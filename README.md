@@ -1,69 +1,65 @@
-# React + TypeScript + Vite
+<div align="center">
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Portfolio - kpulka247
 
-Currently, two official plugins are available:
+<a href="https://github.com/kpulka247/kpulka-website/actions" title="GitHub Actions Workflow Status"><img src="https://img.shields.io/github/actions/workflow/status/kpulka247/kpulka-website/release.yml"></a>
+<a href="https://github.com/kpulka247/kpulka-website/releases" title="GitHub Release"><img src="https://img.shields.io/github/v/release/kpulka247/kpulka-website?logo=github&logoColor=white"></a>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**[Website](https://www.kpulka.com)**
 
-## Expanding the ESLint configuration
+</div>
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+This repository contains the source code for my personal portfolio website, designed to showcase my skills and projects. It was built from scratch with a modern tech stack to be fast, responsive, and maintainable, following professional development practices.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Tech Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+A brief overview of the main technologies used in this project:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+-   **Framework:** [React](https://reactjs.org/)
+-   **Language:** [TypeScript](https://www.typescriptlang.org/)
+-   **Build Tool:** [Vite](https://vitejs.dev/)
+-   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+-   **Deployment:** [GitHub Pages](https://docs.github.com/pages)
+-   **Automation:** [GitHub Actions](https://docs.github.com/actions) + [semantic-release](https://github.com/semantic-release/semantic-release)
+
+## How to Run Locally
+
+Make sure you have:
+
+- [Node.js](https://nodejs.org) (LTS version recommended) installed on your system
+- [Git](https://git-scm.com/) for version control
+
+Then install dependencies:
+
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Start the development server:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+ The site will be available at `http://localhost:5173`.
+
+## Automation & Versioning (CI/CD)
+
+This project is configured with a robust CI/CD pipeline using GitHub Actions to ensure code quality and automate the release process.
+
+### 🚀 Automated Deployment
+
+Every push to the `main` branch automatically triggers a workflow that builds and deploys the latest version of the site to GitHub Pages. This ensures the live website is always synchronized with the code. The pipeline is split into `build` and `deploy` jobs for maximum security and reliability.
+
+### 🏷️ Automated Versioning with Semantic Release
+
+In addition to deployments, this project uses [semantic-release](https://github.com/semantic-release/semantic-release) and [Conventional Commits](https://www.conventionalcommits.org/) for automated version management.
+
+Based on the commit messages (e.g., `feat: ...`, `fix: ...`, `BREAKING CHANGE: ...`), the CI/CD pipeline automatically:
+-   Determines the correct semantic version bump (patch, minor, or major)
+-   Generates and updates a `CHANGELOG.md` file
+-   Creates a tagged GitHub Release with comprehensive release notes
+
+## Changelog
+
+Changes for each release are automatically documented in the [CHANGELOG.md](./CHANGELOG.md) file.
