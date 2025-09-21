@@ -1,6 +1,6 @@
 <div align="center">
 
-## Portfolio
+# Portfolio
 
 <a href="https://github.com/kpulka247/portfolio-kpulka/actions" title="GitHub Actions Workflow Status"><img src="https://img.shields.io/github/actions/workflow/status/kpulka247/portfolio-kpulka/release.yml"></a>
 <a href="https://github.com/kpulka247/portfolio-kpulka/releases" title="GitHub Release"><img src="https://img.shields.io/github/v/release/kpulka247/portfolio-kpulka?logo=github&logoColor=white"></a>
