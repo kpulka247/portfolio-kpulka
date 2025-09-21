@@ -1,9 +1,9 @@
 <div align="center">
 
-## Portfolio - kpulka247
+## Portfolio
 
-<a href="https://github.com/kpulka247/kpulka-website/actions" title="GitHub Actions Workflow Status"><img src="https://img.shields.io/github/actions/workflow/status/kpulka247/kpulka-website/release.yml"></a>
-<a href="https://github.com/kpulka247/kpulka-website/releases" title="GitHub Release"><img src="https://img.shields.io/github/v/release/kpulka247/kpulka-website?logo=github&logoColor=white"></a>
+<a href="https://github.com/kpulka247/portfolio-kpulka/actions" title="GitHub Actions Workflow Status"><img src="https://img.shields.io/github/actions/workflow/status/kpulka247/portfolio-kpulka/release.yml"></a>
+<a href="https://github.com/kpulka247/portfolio-kpulka/releases" title="GitHub Release"><img src="https://img.shields.io/github/v/release/kpulka247/portfolio-kpulka?logo=github&logoColor=white"></a>
 
 **[Website](https://www.kpulka.com)**
 
@@ -13,14 +13,15 @@ This repository contains the source code for my personal portfolio website, desi
 
 ## Tech Stack
 
-A brief overview of the main technologies used in this project:
+<div align="center">
 
--   **Framework:** [React](https://reactjs.org/)
--   **Language:** [TypeScript](https://www.typescriptlang.org/)
--   **Build Tool:** [Vite](https://vitejs.dev/)
--   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
--   **Deployment:** [GitHub Pages](https://docs.github.com/pages)
--   **Automation:** [GitHub Actions](https://docs.github.com/actions) + [semantic-release](https://github.com/semantic-release/semantic-release)
+<a href="https://reactjs.org/" title="React"><img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB"></a>
+<a href="https://vitejs.dev/" title="Vite"><img src="https://img.shields.io/badge/Vite-9B5FFE?style=for-the-badge&logo=vite&logoColor=white"></a>
+<a href="https://www.typescriptlang.org/" title="TypeScript"><img src="https://img.shields.io/badge/TypeScript-323332?style=for-the-badge&logo=typescript&logoColor=007ACC"></a>
+<a href="https://tailwindcss.com/" title="Tailwind CSS"><img src="https://img.shields.io/badge/Tailwind_CSS-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=white"></a>
+<a href="https://git-scm.com/" title="Git"><img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white"></a>
+
+</div>
 
 ## How to Run Locally
 
