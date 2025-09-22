@@ -3,7 +3,7 @@ import ScrollLink from '../components/ScrollLink';
 
 const Hero: React.FC = () => {
     return (
-        <section id="home" className="h-screen flex items-center justify-center bg-zinc-900 text-white">
+        <section id="hello" className="h-screen flex items-center justify-center bg-white text-black">
             <div className="container mx-auto text-center px-4">
                 <h1 className="text-5xl md:text-7xl font-extrabold leading-tight mb-4">
                     Hi, I'm <span className="text-zinc-400">Kamil Pułka</span>
