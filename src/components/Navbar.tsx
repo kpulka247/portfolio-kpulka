@@ -63,8 +63,7 @@ const Navbar: React.FC = () => {
                     </ul>
 
                     <div
-                        className="absolute left-0 h-1 bg-white rounded-full 
-                        transition-width duration-100 ease-linear top-8"
+                        className="absolute left-0 h-1 bg-white rounded-full top-8"
                         style={{ width: `${scrollProgress * 100}%` }}
                     />
                 </div>
