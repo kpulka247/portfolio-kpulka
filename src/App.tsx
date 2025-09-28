@@ -55,9 +55,9 @@ function App() {
       <Navbar />
       <main className="flex-grow relative">
         <Hero onVisibilityChange={handleHeroVisibilityChange} />
-        <About />
         <Skills />
         <Projects />
+        <About />
         <Contact />
       </main>
       <Footer />

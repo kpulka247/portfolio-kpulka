@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const TEXTS_TO_TYPE = ["Kamil Pułka", "kpulka247", "Web Developer"];
+const TEXTS_TO_TYPE = ["Kamil Pułka", "Web Developer", "kpulka247", "UI/UX Designer"];
 const TYPING_SPEED_MS = 120;
 const DELETING_SPEED_MS = 70;
 const PAUSE_DURATION_MS = 3000;

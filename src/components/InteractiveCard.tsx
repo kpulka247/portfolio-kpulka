@@ -138,7 +138,7 @@ const createCardTexture = (project: Project | null, side: 'front' | 'back') => {
                 drawRoundedRect(ctx, 160, height - githubButtonHeight - bottomMargin, width - 320, githubButtonHeight, 20, 'rgba(0,0,0,0.8)');
                 ctx.fillStyle = 'white';
                 ctx.font = 'bold 36px sans-serif';
-                 ctx.textBaseline = 'middle'; 
+                ctx.textBaseline = 'middle';
                 ctx.fillText('GitHub', width / 2, height - githubButtonHeight / 2 - bottomMargin);
             }
         }
@@ -201,11 +201,13 @@ function useMouseInSection(sectionId: string) {
 export const InteractiveCard = ({
     project,
     isFlipped,
+    isVisible,
     edgeColor = '#5c5c5f',
     metalness = 0.6,
     roughness = 0.2
 }: {
     project: Project | null;
+    isVisible: boolean;
     isFlipped: boolean;
     edgeColor?: string;
     metalness?: number;
@@ -215,6 +217,7 @@ export const InteractiveCard = ({
     const { x, y } = useMouseInSection('projects');
 
     const [isHovered, setIsHovered] = useState(false);
+    const [hasAnimatedIn, setHasAnimatedIn] = useState(false);
 
     useEffect(() => {
         if (isHovered && !isFlipped && project?.githubLink) {
@@ -227,6 +230,16 @@ export const InteractiveCard = ({
         };
     }, [isHovered, isFlipped, project]);
 
+    useEffect(() => {
+        if (isVisible && !hasAnimatedIn) {
+            setHasAnimatedIn(true);
+        }
+    }, [isVisible, hasAnimatedIn]);
+
+    const { opacity } = useSpring({
+        opacity: hasAnimatedIn ? 1 : 0,
+        config: { duration: 600 }
+    });
 
     const handleCardClick = () => {
         if (!isFlipped && project?.githubLink) {
@@ -266,6 +279,7 @@ export const InteractiveCard = ({
     }, [shape]);
 
     const sideMaterial = useMemo(() => new THREE.MeshStandardMaterial({
+        transparent: true,
         color: edgeColor,
         metalness,
         roughness
@@ -303,7 +317,8 @@ export const InteractiveCard = ({
     const { rot } = useSpring({
         rot: [y * 0.9 * (isFlipped ? -1 : 1), x * 0.9],
         config: { mass: 1.2, tension: 160, friction: 8 },
-        immediate: false
+        immediate: false,
+        pause: !isVisible
     });
 
     useFrame(() => {
@@ -316,21 +331,34 @@ export const InteractiveCard = ({
     const EPS = 0.001;
 
     return (
-        <a.group
+        <a.group // Zmień 'group' na 'a.group', aby móc animować właściwości
             rotation-y={rotation}
             onClick={handleCardClick}
             onPointerEnter={() => setIsHovered(true)}
             onPointerLeave={() => setIsHovered(false)}
         >
-            <group ref={mouseTrackRef}>
-                <mesh geometry={extrudeGeo} material={sideMaterial} />
-                <mesh position-z={CARD_DEPTH / 2 + EPS} material={frontMaterial}>
+            <a.group ref={mouseTrackRef}>
+                <a.mesh // Zmień 'mesh' na 'a.mesh'
+                    geometry={extrudeGeo}
+                    material={sideMaterial}
+                    material-opacity={opacity} // <-- ZASTOSUJ animowaną przezroczystość
+                />
+                <a.mesh // Zmień 'mesh' na 'a.mesh'
+                    position-z={CARD_DEPTH / 2 + EPS}
+                    material={frontMaterial}
+                    material-opacity={opacity} // <-- ZASTOSUJ animowaną przezroczystość
+                >
                     <planeGeometry args={[CARD_WIDTH, CARD_HEIGHT]} />
-                </mesh>
-                <mesh position-z={-(CARD_DEPTH / 2 + EPS)} rotation-y={Math.PI} material={backMaterial}>
+                </a.mesh>
+                <a.mesh // Zmień 'mesh' na 'a.mesh'
+                    position-z={-(CARD_DEPTH / 2 + EPS)}
+                    rotation-y={Math.PI}
+                    material={backMaterial}
+                    material-opacity={opacity} // <-- ZASTOSUJ animowaną przezroczystość
+                >
                     <planeGeometry args={[CARD_WIDTH, CARD_HEIGHT]} />
-                </mesh>
-            </group>
+                </a.mesh>
+            </a.group>
         </a.group>
     );
 };
