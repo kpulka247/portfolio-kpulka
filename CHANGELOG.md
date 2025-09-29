@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/kpulka247/portfolio-kpulka/compare/v1.0.3...v1.1.0) (2025-09-29)
+
+### Features
+
+* **privacy:** Add privacy policy page and GA4 tracking ([3689d69](https://github.com/kpulka247/portfolio-kpulka/commit/3689d6955f5a526d63fb98b0f0146317199a3f00))
+
 ## [1.0.3](https://github.com/kpulka247/portfolio-kpulka/compare/v1.0.2...v1.0.3) (2025-09-29)
 
 ### Bug Fixes
