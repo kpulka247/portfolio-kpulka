@@ -4,6 +4,7 @@ import TypingEffect from '../components/TypingEffect';
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useTypingEffect } from '../hooks/useTypingEffect';
+import { trackEvent } from '../utils/analytics';
 
 interface HeroProps {
     onVisibilityChange: (isVisible: boolean) => void;
@@ -37,6 +38,14 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
         return () => { if (currentRef) { observer.unobserve(currentRef); } };
     }, [onVisibilityChange]);
 
+    const handleGitHubClick = () => {
+        trackEvent('Contact', 'Click Icon', 'GitHub');
+    };
+
+    const handleLinkedInClick = () => {
+        trackEvent('Contact', 'Click Icon', 'LinkedIn');
+    };
+
     return (
         <section
             ref={heroRef}
@@ -59,8 +68,24 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
                     <div className="flex justify-center items-center space-x-4">
                         <ScrollLink to="projects" className="bg-zinc-800 hover:bg-black text-white font-bold py-3 px-8 rounded-full transition duration-300 transform hover:scale-105 inline-block">VIEW MY WORK</ScrollLink>
                         <ScrollLink to="contact" className="border-2 border-zinc-800 text-zinc-800 hover:text-black hover:border-black font-bold py-3 px-8 rounded-full transition duration-300 transform hover:scale-105 inline-block">CONTACT ME</ScrollLink>
-                        <a href="https://github.com/kpulka247" target="_blank" rel="noopener noreferrer" className="text-zinc-800 hover:text-black transition duration-300 transform hover:scale-110" aria-label="GitHub Profile"><FaGithub size={30} /></a>
-                        <a href="https://www.linkedin.com/in/kpulka247/" target="_blank" rel="noopener noreferrer" className="text-zinc-800 hover:text-black transition duration-300 transform hover:scale-110" aria-label="LinkedIn Profile"><FaLinkedin size={30} /></a>
+                        <a href="https://github.com/kpulka247"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-zinc-800 hover:text-black transition duration-300 transform hover:scale-110"
+                            aria-label="GitHub Profile"
+                            onClick={handleGitHubClick}
+                        >
+                            <FaGithub size={30} />
+                        </a>
+                        <a href="https://www.linkedin.com/in/kpulka247/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-zinc-800 hover:text-black transition duration-300 transform hover:scale-110"
+                            aria-label="LinkedIn Profile"
+                            onClick={handleLinkedInClick}
+                        >
+                            <FaLinkedin size={30} />
+                        </a>
                     </div>
                 </div>
             </motion.div>
@@ -81,8 +106,16 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
                     <div className="invisible flex justify-center items-center space-x-4">
                         <ScrollLink to="projects" className="bg-zinc-800 hover:bg-black text-white font-bold py-3 px-8 rounded-full transition duration-300 transform hover:scale-105 inline-block">VIEW MY WORK</ScrollLink>
                         <ScrollLink to="contact" className="border-2 border-zinc-800 text-zinc-800 hover:text-black hover:border-black font-bold py-3 px-8 rounded-full transition duration-300 transform hover:scale-105 inline-block">CONTACT ME</ScrollLink>
-                        <a href="https://github.com/kpulka247" target="_blank" rel="noopener noreferrer"><FaGithub size={30} /></a>
-                        <a href="https://www.linkedin.com/in/kpulka247/" target="_blank" rel="noopener noreferrer"><FaLinkedin size={30} /></a>
+                        <a href="https://github.com/kpulka247"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <FaGithub size={30} /></a>
+                        <a href="https://www.linkedin.com/in/kpulka247/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <FaLinkedin size={30} /></a>
                     </div>
                 </div>
             </motion.div>

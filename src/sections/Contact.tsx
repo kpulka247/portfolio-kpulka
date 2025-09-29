@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { FaGithub, FaLinkedin, FaEnvelope } from "react-icons/fa";
 import SectionHeader from "../components/SectionHeader";
 import { fadeIn } from '../utils/animations';
+import { trackEvent } from '../utils/analytics';
 
 const Contact: React.FC = () => {
     const [isCopied, setIsCopied] = useState(false);
@@ -14,6 +15,7 @@ const Contact: React.FC = () => {
             .writeText(email)
             .then(() => {
                 setIsCopied(true);
+                trackEvent('Contact', 'Click Icon', 'Copy Email');
                 setTimeout(() => {
                     setIsCopied(false);
                 }, 2000);
@@ -21,6 +23,18 @@ const Contact: React.FC = () => {
             .catch((err) => {
                 console.error("Failed to copy email address: ", err);
             });
+    };
+
+    const handleEmailClick = () => {
+        trackEvent('Contact', 'Click Icon', 'Email');
+    };
+
+    const handleGitHubClick = () => {
+        trackEvent('Contact', 'Click Icon', 'GitHub');
+    };
+
+    const handleLinkedInClick = () => {
+        trackEvent('Contact', 'Click Icon', 'LinkedIn');
     };
 
     return (
@@ -57,8 +71,8 @@ const Contact: React.FC = () => {
                             <button
                                 onClick={handleCopyEmail}
                                 className={`font-semibold text-sm py-1 px-3 rounded-md transition-all duration-300 ease-in-out ${isCopied
-                                        ? "bg-white text-black"
-                                        : "bg-transparent border border-zinc-300 text-zinc-300 hover:bg-white hover:text-black"
+                                    ? "bg-white text-black"
+                                    : "bg-transparent border border-zinc-300 text-zinc-300 hover:bg-white hover:text-black"
                                     }`}
                             >
                                 {isCopied ? "Copied!" : "Copy"}
@@ -71,6 +85,7 @@ const Contact: React.FC = () => {
                             href={`mailto:${email}`}
                             aria-label="Send an email or hover to copy"
                             className="transition transform hover:scale-110"
+                            onClick={handleEmailClick}
                         >
                             <FaEnvelope className="text-4xl group-hover:text-white transition-colors duration-300" />
                         </a>
@@ -83,6 +98,7 @@ const Contact: React.FC = () => {
                         rel="noopener noreferrer"
                         className="group flex flex-col items-center transition transform hover:scale-110"
                         aria-label="GitHub Profile"
+                        onClick={handleGitHubClick}
                     >
                         <FaGithub className="text-4xl group-hover:text-white transition-colors duration-300" />
                     </a>
@@ -94,6 +110,7 @@ const Contact: React.FC = () => {
                         rel="noopener noreferrer"
                         className="group flex flex-col items-center transition transform hover:scale-110"
                         aria-label="LinkedIn Profile"
+                        onClick={handleLinkedInClick}
                     >
                         <FaLinkedin className="text-4xl group-hover:text-white transition-colors duration-300" />
                     </a>
