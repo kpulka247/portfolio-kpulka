@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/kpulka247/portfolio-kpulka/compare/v1.0.0...v1.0.1) (2025-09-29)
+
+### Bug Fixes
+
+* **ci:** Fix deploy artifact path ([a1d7a0d](https://github.com/kpulka247/portfolio-kpulka/commit/a1d7a0d915415ef648fee32cbb657cdcb011318e))
+
 ## 1.0.0 (2025-09-29)
 
 ### Features
