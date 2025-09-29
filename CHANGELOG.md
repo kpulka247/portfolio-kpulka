@@ -1,3 +1,9 @@
+## [1.0.3](https://github.com/kpulka247/portfolio-kpulka/compare/v1.0.2...v1.0.3) (2025-09-29)
+
+### Bug Fixes
+
+* **ci:** Fix workflow upload artifact job ([2c66cfa](https://github.com/kpulka247/portfolio-kpulka/commit/2c66cfa1ad5f48e3ccf047918d355ec0f4ede139))
+
 ## [1.0.2](https://github.com/kpulka247/portfolio-kpulka/compare/v1.0.1...v1.0.2) (2025-09-29)
 
 ### Bug Fixes
