@@ -2,6 +2,7 @@ import { useRef, useMemo, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useSpring, a } from '@react-spring/three';
 import * as THREE from 'three';
+import { trackEvent } from '../utils/analytics';
 
 interface Project {
     id: number;
@@ -243,6 +244,7 @@ export const InteractiveCard = ({
 
     const handleCardClick = () => {
         if (!isFlipped && project?.githubLink) {
+            trackEvent('Projects', 'Click GitHub', project.title);
             window.open(project.githubLink, '_blank', 'noopener,noreferrer');
         }
     };
@@ -331,30 +333,30 @@ export const InteractiveCard = ({
     const EPS = 0.001;
 
     return (
-        <a.group // Zmień 'group' na 'a.group', aby móc animować właściwości
+        <a.group
             rotation-y={rotation}
             onClick={handleCardClick}
             onPointerEnter={() => setIsHovered(true)}
             onPointerLeave={() => setIsHovered(false)}
         >
             <a.group ref={mouseTrackRef}>
-                <a.mesh // Zmień 'mesh' na 'a.mesh'
+                <a.mesh
                     geometry={extrudeGeo}
                     material={sideMaterial}
-                    material-opacity={opacity} // <-- ZASTOSUJ animowaną przezroczystość
+                    material-opacity={opacity}
                 />
-                <a.mesh // Zmień 'mesh' na 'a.mesh'
+                <a.mesh
                     position-z={CARD_DEPTH / 2 + EPS}
                     material={frontMaterial}
-                    material-opacity={opacity} // <-- ZASTOSUJ animowaną przezroczystość
+                    material-opacity={opacity}
                 >
                     <planeGeometry args={[CARD_WIDTH, CARD_HEIGHT]} />
                 </a.mesh>
-                <a.mesh // Zmień 'mesh' na 'a.mesh'
+                <a.mesh
                     position-z={-(CARD_DEPTH / 2 + EPS)}
                     rotation-y={Math.PI}
                     material={backMaterial}
-                    material-opacity={opacity} // <-- ZASTOSUJ animowaną przezroczystość
+                    material-opacity={opacity}
                 >
                     <planeGeometry args={[CARD_WIDTH, CARD_HEIGHT]} />
                 </a.mesh>
