@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 import { FaGithub, FaLinkedin, FaEnvelope } from "react-icons/fa";
 import SectionHeader from "../components/SectionHeader";
+import { fadeIn } from '../utils/animations';
 
 const Contact: React.FC = () => {
     const [isCopied, setIsCopied] = useState(false);
@@ -22,7 +24,7 @@ const Contact: React.FC = () => {
     };
 
     return (
-        <section id="contact" className="bg-black py-20 text-zinc-300">
+        <section id="contact" className="py-20">
             <div className="container mx-auto px-4 max-w-3xl text-center">
                 <SectionHeader
                     title="GET IN TOUCH"
@@ -36,22 +38,27 @@ const Contact: React.FC = () => {
                     platforms below.
                 </p>
 
-                <div className="flex justify-center items-center gap-12">
+                <motion.div
+                    className="flex justify-center items-center gap-12"
+                    variants={fadeIn}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.5 }}
+                >
+                    {/* Email */}
                     <div className="relative flex items-center group">
                         <div
                             className="absolute right-full top-1/2 -translate-y-1/2 flex items-center gap-3
-                                       opacity-0 -translate-x-4 transition-all duration-300
-                                       group-hover:opacity-100 group-hover:translate-x-0
-                                       pointer-events-none group-hover:pointer-events-auto mr-4"
+                         opacity-0 -translate-x-4 transition-all duration-300
+                         group-hover:opacity-100 group-hover:translate-x-0
+                         pointer-events-none group-hover:pointer-events-auto mr-4"
                         >
-                            <span className="font-mono whitespace-nowrap">
-                                {email}
-                            </span>
+                            <span className="font-mono whitespace-nowrap">{email}</span>
                             <button
                                 onClick={handleCopyEmail}
                                 className={`font-semibold text-sm py-1 px-3 rounded-md transition-all duration-300 ease-in-out ${isCopied
-                                    ? "bg-white text-black"
-                                    : "bg-transparent border border-zinc-300 text-zinc-300 hover:bg-white hover:text-black"
+                                        ? "bg-white text-black"
+                                        : "bg-transparent border border-zinc-300 text-zinc-300 hover:bg-white hover:text-black"
                                     }`}
                             >
                                 {isCopied ? "Copied!" : "Copy"}
@@ -69,6 +76,7 @@ const Contact: React.FC = () => {
                         </a>
                     </div>
 
+                    {/* GitHub */}
                     <a
                         href="https://github.com/kpulka247"
                         target="_blank"
@@ -78,6 +86,8 @@ const Contact: React.FC = () => {
                     >
                         <FaGithub className="text-4xl group-hover:text-white transition-colors duration-300" />
                     </a>
+
+                    {/* LinkedIn */}
                     <a
                         href="https://www.linkedin.com/in/kpulka247/"
                         target="_blank"
@@ -87,7 +97,7 @@ const Contact: React.FC = () => {
                     >
                         <FaLinkedin className="text-4xl group-hover:text-white transition-colors duration-300" />
                     </a>
-                </div>
+                </motion.div>
             </div>
         </section>
     );

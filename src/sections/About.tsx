@@ -1,22 +1,32 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import SectionHeader from '../components/SectionHeader';
 import photo1 from '/static/images/photo1.jpg';
+import { fadeIn } from '../utils/animations';
 
 const About: React.FC = () => {
   return (
-    <section id="about" className="bg-black py-20 text-white">
+    <section id="about" className="py-20">
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-          <div className="flex justify-center">
+          {/* Photo */}
+          <motion.div
+            className="flex justify-center"
+            variants={fadeIn}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.5 }}
+          >
             <img
               src={photo1}
               alt="Photo 1"
-              className="opacity-70 rounded-xl shadow-lg w-64 h-auto object-cover"
+              className="opacity-70 rounded-xl shadow-lg w-72 h-auto object-cover"
             />
-          </div>
+          </motion.div>
 
+          {/* Text */}
           <div>
-            <div className="text-left mb-6 text-zinc-300">
+            <div className="text-left mb-6">
               <SectionHeader
                 title="ABOUT ME"
                 subtitle="Who am I and what do I do?"

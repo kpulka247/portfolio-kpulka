@@ -70,7 +70,7 @@ const Projects: React.FC = () => {
     }, []);
 
     return (
-        <section id="projects" className="bg-black py-20 text-zinc-300">
+        <section id="projects" className="py-20">
             <div className="container mx-auto px-4 max-w-5xl">
                 <div className="grid md:grid-cols-2 gap-10">
                     <div className="md:col-span-1 flex flex-col items-end">

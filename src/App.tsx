@@ -7,11 +7,20 @@ import Projects from './sections/Projects';
 import Contact from './sections/Contact';
 import Footer from './components/Footer';
 import InteractiveBg from './components/InteractiveBg';
+import { motion, AnimatePresence } from "framer-motion";
+import { fade } from "./utils/animations";
 
 function App() {
   const mousePosRef = useRef({ x: 0.5, y: 0.5 });
   const [hasInteracted, setHasInteracted] = useState(false);
   const [isSimulationActive, setSimulationActive] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Symulacja ładowania
+    const timeout = setTimeout(() => setIsLoading(false), 2000);
+    return () => clearTimeout(timeout);
+  }, []);
 
   useEffect(() => {
     const updatePosition = (clientX: number, clientY: number) => {
@@ -46,22 +55,51 @@ function App() {
   };
 
   return (
-    <div className="text-zinc-800 antialiased min-h-screen flex flex-col">
-      <InteractiveBg
-        mousePosRef={mousePosRef}
-        hasInteracted={hasInteracted}
-        isSimulationActive={isSimulationActive}
-      />
-      <Navbar />
-      <main className="flex-grow relative">
-        <Hero onVisibilityChange={handleHeroVisibilityChange} />
-        <Skills />
-        <Projects />
-        <About />
-        <Contact />
-      </main>
-      <Footer />
-    </div>
+    <>
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            key="loader"
+            className="h-screen w-screen flex flex-col justify-center items-center bg-black fixed top-0 left-0 z-100"
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, repeat: Infinity, repeatType: "reverse" }}
+              className="w-12 h-12 border-4 border-t-transparent border-zinc-300 rounded-full animate-spin mb-4"
+            />
+            <p className="font-mono text-lg text-zinc-300">Loading...</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <motion.div
+        variants={fade}
+        initial="hidden"
+        animate="visible"
+        className="text-zinc-800 antialiased min-h-screen flex flex-col"
+      >
+        <Navbar />
+        <main className="flex-grow relative">
+          <div className="relative z-10" style={{ isolation: 'isolate' }}>
+            <InteractiveBg
+              mousePosRef={mousePosRef}
+              hasInteracted={hasInteracted}
+              isSimulationActive={isSimulationActive}
+            />
+            <Hero onVisibilityChange={handleHeroVisibilityChange} />
+          </div>
+          <div className="z-20 bg-black text-zinc-300 rounded-t-4xl relative">
+            <Skills />
+            <Projects />
+            <About />
+            <Contact />
+          </div>
+        </main>
+        <Footer />
+      </motion.div>
+    </>
   );
 }
 

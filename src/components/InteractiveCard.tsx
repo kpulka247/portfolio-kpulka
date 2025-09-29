@@ -238,7 +238,7 @@ export const InteractiveCard = ({
 
     const { opacity } = useSpring({
         opacity: hasAnimatedIn ? 1 : 0,
-        config: { duration: 600 }
+        config: { duration: 500 }
     });
 
     const handleCardClick = () => {

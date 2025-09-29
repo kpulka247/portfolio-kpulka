@@ -1,4 +1,6 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import { fadeUpDelayed, titleContainer, titleLetter } from '../utils/animations';
 
 interface SectionHeaderProps {
     title: string;
@@ -7,16 +9,45 @@ interface SectionHeaderProps {
 }
 
 const SectionHeader: React.FC<SectionHeaderProps> = ({ title, subtitle, fileName }) => {
+    const letters = title.split('');
+
     return (
-        <div className="mb-10">
-            <p className="text-md font-mono text-zinc-600">
+        <motion.div
+            className="mb-10"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.5 }}
+        >
+            {/* Filename */}
+            <motion.p
+                className="text-md font-mono text-zinc-600"
+                variants={fadeUpDelayed}
+            >
                 [{fileName}.tsx]
-            </p>
-            <h2 className="text-4xl font-extrabold text-zinc-300 sm:text-7xl">
-                {title}
-            </h2>
-            {subtitle && <p className="mt-4 text-xl text-zinc-300">{subtitle}</p>}
-        </div>
+            </motion.p>
+
+            {/* Title */}
+            <motion.h2
+                className="text-4xl font-extrabold text-zinc-300 sm:text-7xl"
+                variants={titleContainer}
+                aria-label={title}
+            >
+                {letters.map((char, index) => (
+                    <motion.span
+                        key={index}
+                        variants={titleLetter}
+                        className="inline-block"
+                    >
+                        {char === ' ' ? '\u00A0' : char}
+                    </motion.span>
+                ))}
+            </motion.h2>
+
+            {/* Subtitle */}
+            {subtitle && (
+                <p className="mt-4 text-xl text-zinc-300">{subtitle}</p>
+            )}
+        </motion.div>
     );
 };
 

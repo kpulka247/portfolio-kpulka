@@ -1,21 +1,13 @@
 import React from 'react';
 import { FaReact, FaGitAlt } from 'react-icons/fa';
 import {
-    SiTypescript,
-    SiTailwindcss,
-    SiWebpack,
-    SiVite,
-    SiDjango,
-    SiJavascript,
-    SiHtml5,
-    SiCss3,
-    SiThreedotjs,
-    SiGithubactions,
-    SiPostgresql,
-    SiBootstrap,
+    SiTypescript, SiTailwindcss, SiWebpack, SiVite, SiDjango,
+    SiJavascript, SiHtml5, SiCss3, SiThreedotjs, SiGithubactions,
+    SiPostgresql, SiBootstrap,
 } from 'react-icons/si';
-import { easeOut, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import SectionHeader from '../components/SectionHeader';
+import { staggerContainer, staggerItem } from '../utils/animations';
 
 const skillCategories = [
     {
@@ -51,22 +43,12 @@ const skillCategories = [
 
 const allSkills = skillCategories.flatMap(category => category.skills);
 
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
-};
-
-const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { duration: 0.5, easeOut } },
-};
-
 const Skills: React.FC = () => {
     const [hoveredSkillName, setHoveredSkillName] = React.useState<string | null>(null);
     const [hoveredSliderIndex, setHoveredSliderIndex] = React.useState<number | null>(null);
 
     return (
-        <section id="skills" className="bg-black py-20 text-zinc-300">
+        <section id="skills" className="py-20">
             <div className="container mx-auto px-4 max-w-5xl">
                 <div className="text-center">
                     <SectionHeader
@@ -75,7 +57,10 @@ const Skills: React.FC = () => {
                         fileName="Skills"
                     />
                 </div>
-                <div className="overflow-hidden relative h-16 mt-20"
+
+                {/* Slider */}
+                <div
+                    className="overflow-hidden relative h-16 mt-20"
                     style={{
                         WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
                         maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
@@ -89,7 +74,7 @@ const Skills: React.FC = () => {
                         {[...allSkills, ...allSkills].map((skill, index) => (
                             <motion.div
                                 key={index}
-                                className={`mx-2`}
+                                className="mx-2"
                                 animate={
                                     hoveredSliderIndex === index % allSkills.length
                                         ? { color: '#fff', scale: 1.2 }
@@ -102,20 +87,23 @@ const Skills: React.FC = () => {
                     </motion.div>
                 </div>
 
+                {/* List */}
                 <div className="mt-20 flex flex-col items-start gap-y-12 text-left md:flex-row md:justify-center md:gap-x-16 lg:gap-x-24">
                     {skillCategories.map((category, index) => (
                         <motion.div
                             key={category.title}
                             className={index === 1 ? 'md:mt-10' : index === 2 ? 'md:mt-20' : ''}
-                            variants={containerVariants}
+                            variants={staggerContainer}
                             initial="hidden"
                             whileInView="visible"
                             viewport={{ once: true, amount: 0.2 }}
                         >
-                            <h3 className="mb-5 text-lg font-semibold tracking-widest text-zinc-600">{category.title}</h3>
+                            <h3 className="mb-5 text-lg font-semibold tracking-widest text-zinc-600">
+                                {category.title}
+                            </h3>
                             <ul className="space-y-4">
-                                {category.skills.map((skill) => (
-                                    <motion.li key={skill.name} variants={itemVariants}>
+                                {category.skills.map(skill => (
+                                    <motion.li key={skill.name} variants={staggerItem}>
                                         <motion.a
                                             href={skill.url}
                                             target="_blank"
