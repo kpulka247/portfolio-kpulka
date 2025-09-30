@@ -1,4 +1,4 @@
-import { easeOut } from "framer-motion";
+import { easeInOut, easeOut } from "framer-motion";
 
 export const fade = {
     hidden: { opacity: 0 },
@@ -72,5 +72,20 @@ export const titleLetter = {
         opacity: 1,
         y: 0,
         transition: { easeOut, duration: 0.5 },
+    },
+};
+
+export const scrollLetterJump = {
+    hidden: {
+        opacity: 1,
+        y: 0
+    },
+    visible: {
+        opacity: 1,
+        y: [0, -10, 0],
+        transition: {
+            easeInOut,
+            duration: 0.3
+        },
     },
 };

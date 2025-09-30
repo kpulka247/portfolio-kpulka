@@ -172,6 +172,12 @@ function useMouseInSection(sectionId: string) {
     const [pos, setPos] = useState({ x: 0, y: 0 });
 
     useEffect(() => {
+        const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        if (isTouch) {
+            setPos({ x: 0, y: 0 });
+            return;
+        }
+
         const section = document.getElementById(sectionId);
         if (!section) return;
 
@@ -219,6 +225,11 @@ export const InteractiveCard = ({
 
     const [isHovered, setIsHovered] = useState(false);
     const [hasAnimatedIn, setHasAnimatedIn] = useState(false);
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+    useEffect(() => {
+        setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    }, []);
 
     useEffect(() => {
         if (isHovered && !isFlipped && project?.githubLink) {
@@ -248,7 +259,6 @@ export const InteractiveCard = ({
             window.open(project.githubLink, '_blank', 'noopener,noreferrer');
         }
     };
-
 
     const { rotation } = useSpring({ rotation: isFlipped ? Math.PI : 0, config: { friction: 22, tension: 170 } });
 
@@ -290,31 +300,37 @@ export const InteractiveCard = ({
     const frontTexture = useMemo(() => createCardTexture(project, 'front'), [project]);
     const backTexture = useMemo(() => createCardTexture(project, 'back'), [project]);
 
-    const frontMaterial = useMemo(() => {
-        frontTexture.colorSpace = THREE.SRGBColorSpace;
-        frontTexture.needsUpdate = true;
-        return new THREE.MeshStandardMaterial({
-            map: frontTexture,
-            transparent: true,
-            alphaTest: 0.01,
-            metalness,
-            roughness,
-            side: THREE.FrontSide
-        });
-    }, [frontTexture, metalness, roughness]);
+    useEffect(() => {
+        if (frontTexture) {
+            frontTexture.colorSpace = THREE.SRGBColorSpace;
+            frontTexture.needsUpdate = true;
+        }
+    }, [frontTexture]);
 
-    const backMaterial = useMemo(() => {
-        backTexture.colorSpace = THREE.SRGBColorSpace;
-        backTexture.needsUpdate = true;
-        return new THREE.MeshStandardMaterial({
-            map: backTexture,
-            transparent: true,
-            alphaTest: 0.01,
-            metalness,
-            roughness,
-            side: THREE.FrontSide
-        });
-    }, [backTexture, metalness, roughness]);
+    useEffect(() => {
+        if (backTexture) {
+            backTexture.colorSpace = THREE.SRGBColorSpace;
+            backTexture.needsUpdate = true;
+        }
+    }, [backTexture]);
+
+    const frontMaterial = useMemo(() => new THREE.MeshStandardMaterial({
+        map: frontTexture,
+        transparent: true,
+        alphaTest: 0.01,
+        metalness,
+        roughness,
+        side: THREE.FrontSide
+    }), [frontTexture, metalness, roughness]);
+
+    const backMaterial = useMemo(() => new THREE.MeshStandardMaterial({
+        map: backTexture,
+        transparent: true,
+        alphaTest: 0.01,
+        metalness,
+        roughness,
+        side: THREE.FrontSide
+    }), [backTexture, metalness, roughness]);
 
     const { rot } = useSpring({
         rot: [y * 0.9 * (isFlipped ? -1 : 1), x * 0.9],
@@ -336,8 +352,8 @@ export const InteractiveCard = ({
         <a.group
             rotation-y={rotation}
             onClick={handleCardClick}
-            onPointerEnter={() => setIsHovered(true)}
-            onPointerLeave={() => setIsHovered(false)}
+            onPointerEnter={() => !isTouchDevice && setIsHovered(true)}
+            onPointerLeave={() => !isTouchDevice && setIsHovered(false)}
         >
             <a.group ref={mouseTrackRef}>
                 <a.mesh
