@@ -1,3 +1,13 @@
+## [1.2.0](https://github.com/kpulka247/portfolio-kpulka/compare/v1.1.1...v1.2.0) (2025-09-30)
+
+### Features
+
+* Add responsiveness and mobile support ([0772b96](https://github.com/kpulka247/portfolio-kpulka/commit/0772b968d08d7498aeb254f91e0c0612a21b2ed5))
+
+### Bug Fixes
+
+* **style:** Text style adjust ([2152f69](https://github.com/kpulka247/portfolio-kpulka/commit/2152f692c5fd59b2cbb4bb9c0eafadcb2a1b5ad7))
+
 ## [1.1.1](https://github.com/kpulka247/portfolio-kpulka/compare/v1.1.0...v1.1.1) (2025-09-30)
 
 ### Bug Fixes
