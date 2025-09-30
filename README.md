@@ -2,12 +2,8 @@
 
 # Portfolio
 
-<a href="https://github.com/kpulka247/portfolio-kpulka/actions" title="GitHub Actions Workflow Status">
-  <img src="https://img.shields.io/github/actions/workflow/status/kpulka247/portfolio-kpulka/release.yml">
-</a>
-<a href="https://github.com/kpulka247/portfolio-kpulka/releases" title="GitHub Release">
-  <img src="https://img.shields.io/github/v/release/kpulka247/portfolio-kpulka?logo=github&logoColor=white">
-</a>
+<a href="https://github.com/kpulka247/portfolio-kpulka/actions" title="GitHub Actions Workflow Status"><img src="https://img.shields.io/github/actions/workflow/status/kpulka247/portfolio-kpulka/release.yml"></a>
+<a href="https://github.com/kpulka247/portfolio-kpulka/releases" title="GitHub Release"><img src="https://img.shields.io/github/v/release/kpulka247/portfolio-kpulka?logo=github&logoColor=white"></a>
 
 **[Website](https://www.kpulka.com)**
 
@@ -19,24 +15,12 @@ This repository contains the source code for my personal portfolio website, desi
 
 <div align="center">
 
-<a href="https://reactjs.org/" title="React">
-  <img src="https://img.shields.io/badge/React-0D1117?style=for-the-badge&logo=react&logoColor=61DAFB">
-</a>
-<a href="https://vitejs.dev/" title="Vite">
-  <img src="https://img.shields.io/badge/Vite-6E00FF?style=for-the-badge&logo=vite&logoColor=FFFFFF">
-</a>
-<a href="https://www.typescriptlang.org/" title="TypeScript">
-  <img src="https://img.shields.io/badge/TypeScript-1E2A38?style=for-the-badge&logo=typescript&logoColor=00CFFF">
-</a>
-<a href="https://tailwindcss.com/" title="Tailwind CSS">
-  <img src="https://img.shields.io/badge/Tailwind_CSS-0F172A?style=for-the-badge&logo=tailwindcss&logoColor=38BDF8">
-</a>
-<a href="https://git-scm.com/" title="Git">
-  <img src="https://img.shields.io/badge/Git-2D0C19?style=for-the-badge&logo=git&logoColor=F05032">
-</a>
-<a href="https://threejs.org/" title="Three.js">
-  <img src="https://img.shields.io/badge/Three.js-111111?style=for-the-badge&logo=three.js&logoColor=FFFFFF">
-</a>
+<a href="https://reactjs.org/" title="React"><img src="https://img.shields.io/badge/React-0D1117?style=for-the-badge&logo=react&logoColor=61DAFB"></a>
+<a href="https://vitejs.dev/" title="Vite"><img src="https://img.shields.io/badge/Vite-6E00FF?style=for-the-badge&logo=vite&logoColor=FFFFFF"></a>
+<a href="https://www.typescriptlang.org/" title="TypeScript"><img src="https://img.shields.io/badge/TypeScript-1E2A38?style=for-the-badge&logo=typescript&logoColor=00CFFF"></a>
+<a href="https://tailwindcss.com/" title="Tailwind CSS"><img src="https://img.shields.io/badge/Tailwind_CSS-0F172A?style=for-the-badge&logo=tailwindcss&logoColor=38BDF8"></a>
+<a href="https://git-scm.com/" title="Git"><img src="https://img.shields.io/badge/Git-2D0C19?style=for-the-badge&logo=git&logoColor=F05032"></a>
+<a href="https://threejs.org/" title="Three.js"><img src="https://img.shields.io/badge/Three.js-111111?style=for-the-badge&logo=three.js&logoColor=FFFFFF"></a>
 
 </div>
 
