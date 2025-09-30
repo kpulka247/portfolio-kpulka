@@ -1,8 +1,10 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import ScrollLink from '../components/ScrollLink';
 import TypingEffect from '../components/TypingEffect';
 import { FaGithub, FaLinkedin } from "react-icons/fa";
+import { BsArrowDown } from "react-icons/bs";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { titleContainer, scrollLetterJump } from '../utils/animations';
 import { useTypingEffect } from '../hooks/useTypingEffect';
 import { trackEvent } from '../utils/analytics';
 
@@ -10,10 +12,51 @@ interface HeroProps {
     onVisibilityChange: (isVisible: boolean) => void;
 }
 
+const RepeatScrollAnimation: React.FC<{ text: string }> = ({ text }) => {
+    const [animationKey, setAnimationKey] = useState(0);
+
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            setAnimationKey(prevKey => prevKey + 1);
+        }, 3000); // Co 3 sekundy
+
+        return () => clearInterval(intervalId);
+    }, []);
+
+    const letters = text.split('');
+
+    return (
+        <motion.div
+            key={animationKey}
+            className="font-semibold tracking-wider uppercase text-white flex justify-center"
+            variants={titleContainer}
+            initial="hidden"
+            animate="visible"
+            aria-label={text}
+        >
+            {letters.map((char, index) => (
+                <motion.span
+                    key={index}
+                    variants={scrollLetterJump}
+                    className="inline-block"
+                >
+                    {char === ' ' ? '\u00A0' : char}
+                </motion.span>
+            ))}
+        </motion.div>
+    );
+};
+
 const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
     const heroRef = useRef<HTMLElement>(null);
-
     const animatedText = useTypingEffect();
+
+    const isTouchDevice = useMemo(() => {
+        if (typeof window !== 'undefined') {
+            return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        }
+        return false;
+    }, []);
 
     const { scrollYProgress } = useScroll({
         target: heroRef,
@@ -38,6 +81,33 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
         return () => { if (currentRef) { observer.unobserve(currentRef); } };
     }, [onVisibilityChange]);
 
+    useEffect(() => {
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        if (!isTouchDevice) return;
+
+        const preventScroll = (e: TouchEvent) => e.preventDefault();
+        const body = document.body;
+
+        const handleScroll = () => {
+            if (window.scrollY === 0) {
+                body.addEventListener('touchmove', preventScroll, { passive: false });
+                body.style.overscrollBehavior = 'none';
+            } else {
+                body.removeEventListener('touchmove', preventScroll);
+                body.style.overscrollBehavior = 'auto';
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        handleScroll();
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            body.removeEventListener('touchmove', preventScroll);
+            body.style.overscrollBehavior = 'auto';
+        };
+    }, []);
+
     const handleGitHubClick = () => {
         trackEvent('Contact', 'Click Icon', 'GitHub');
     };
@@ -54,7 +124,7 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
         >
             {/* --- LAYER A: No blend --- */}
             <motion.div
-                className="fixed inset-0 flex items-center justify-center"
+                className="fixed inset-0 flex flex-col items-center justify-start pt-[16vh] sm:justify-center sm:pt-0"
                 style={motionStyle}
             >
                 <div className="pointer-events-auto container mx-auto text-center px-4">
@@ -96,7 +166,7 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
 
             {/* --- LAYER B: `mix-blend-mode` --- */}
             <motion.div
-                className="fixed inset-0 flex items-center justify-center mix-blend-difference pointer-events-none"
+                className="fixed inset-0 flex flex-col items-center justify-start pt-[16vh] sm:justify-center sm:pt-0 mix-blend-difference pointer-events-none"
                 style={motionStyle}
             >
                 <div className="container mx-auto text-center px-4">
@@ -125,6 +195,28 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
                                 <FaLinkedin size={30} /></a>
                         </div>
                     </div>
+                </div>
+                <div className="pointer-events-auto absolute bottom-32 md:bottom-18">
+                    <ScrollLink to="skills" className="text-white cursor-pointer p-2" aria-label="Scroll to Skills">
+
+                        {isTouchDevice ? (
+                            <RepeatScrollAnimation text="CLICK TO SCROLL" />
+                        ) : (
+                            <motion.div
+                                className="text-white"
+                                animate={{ y: [0, 10, 0] }}
+                                transition={{
+                                    duration: 1.5,
+                                    repeat: Infinity,
+                                    repeatType: "loop",
+                                    ease: "easeInOut"
+                                }}
+                            >
+                                <BsArrowDown size={30} />
+                            </motion.div>
+                        )}
+
+                    </ScrollLink>
                 </div>
             </motion.div>
             <div aria-hidden className="h-screen" />

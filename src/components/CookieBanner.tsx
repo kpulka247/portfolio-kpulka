@@ -39,28 +39,32 @@ const CookieBanner = () => {
                     animate={{ y: '0%' }}
                     exit={{ y: '100%' }}
                     transition={{ duration: 0.5, ease: 'easeInOut' }}
-                    className="fixed bottom-0 left-0 right-0 bg-zinc-800 text-zinc-300 p-4 z-50 flex justify-center items-center gap-4"
+                    className="fixed bottom-0 left-0 right-0 bg-zinc-800 text-zinc-300 p-4 z-50 flex flex-col md:flex-row justify-center items-center gap-4"
                 >
                     <p className="text-sm text-center">
                         We use cookies to analyze website traffic. Your consent helps us improve this page.
                     </p>
-                    <div className="flex gap-4">
-                        <button
-                            onClick={() => handleDecision('denied')}
-                            className="px-4 py-1.5 rounded-full bg-transparent border-2 text-zinc-300 border-zinc-300 hover:border-white hover:text-white transition-colors text-sm cursor-pointer"
-                        >
-                            Reject
-                        </button>
-                        <button
-                            onClick={() => handleDecision('granted')}
-                            className="px-4 py-1.5 rounded-full bg-white text-black font-bold hover:bg-zinc-300 transition-colors text-sm cursor-pointer"
-                        >
-                            Accept
-                        </button>
+
+                    {/* ZMIANA: Ten kontener teraz zawsze układa elementy w rzędzie i pozwala im się zawijać */}
+                    <div className="flex flex-row justify-center items-center gap-4">
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => handleDecision('denied')}
+                                className="px-4 py-1.5 rounded-full bg-transparent border-2 text-zinc-300 border-zinc-300 hover:border-white hover:text-white transition-colors text-sm cursor-pointer"
+                            >
+                                Reject
+                            </button>
+                            <button
+                                onClick={() => handleDecision('granted')}
+                                className="px-4 py-1.5 rounded-full bg-white text-black font-bold hover:bg-zinc-300 transition-colors text-sm cursor-pointer"
+                            >
+                                Accept
+                            </button>
+                        </div>
+                        <Link to="/privacy" className="text-sm hover:text-white text-center underline">
+                            Privacy Policy
+                        </Link>
                     </div>
-                    <Link to="/privacy" className="text-sm hover:text-white underline">
-                        Privacy Policy
-                    </Link>
                 </motion.div>
             )}
         </AnimatePresence>

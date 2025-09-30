@@ -12,6 +12,7 @@ interface Project {
     description: string;
     techStack: string[];
     githubLink?: string;
+    chromeExtensionId?: string;
 }
 
 const projects: Project[] = [
@@ -22,6 +23,7 @@ const projects: Project[] = [
         description: 'This is a simple browser extension designed to turn the Garmin Connect website into dark mode. Frustrated by the lack of a dark mode feature on Garmin Connect, I created this extension to enhance the browsing experience for users who prefer a darker interface, especially during nighttime use. The extension is lightweight, easy to to install, and only affects Garmin Connect domains, leaving all other websites untouched.',
         techStack: ['React.js', 'JavaScript', 'HTML5', 'CSS3', 'Webpack'],
         githubLink: 'https://github.com/kpulka247/dark-connect',
+        chromeExtensionId: 'nadhhgppikppmjacnkebagbgcibnfnob',
     },
     {
         id: 2,
@@ -83,14 +85,30 @@ const Projects: React.FC = () => {
                         </div>
                         <ul className="w-full">
                             {projects.map((project) => (
-                                <li key={project.id}>
+                                <li key={project.id} className="flex flex-col items-center md:items-end">
                                     <button
                                         onClick={() => handleProjectSelect(project.id)}
-                                        className={`w-full font-mono text-center md:text-right py-4 text-lg transition-all duration-300 cursor-pointer
+                                        className={`font-mono py-4 text-lg transition-all duration-300 cursor-pointer
                                             ${selectedProjectId === project.id ? 'text-white font-bold' : 'hover:text-white'}
                                         `}
                                     >
-                                        {project.title}
+                                        <div className="flex items-center gap-3">
+                                            {project.chromeExtensionId && (
+                                                <div className="flex items-center justify-center">
+                                                    <img
+                                                        src={`https://img.shields.io/chrome-web-store/users/${project.chromeExtensionId}?style=flat-square&label=&logo=google-chrome&logoColor=white&color=black`}
+                                                        alt="Chrome Web Store Users"
+                                                        style={{ height: '20px' }}
+                                                    />
+                                                    <img
+                                                        src={`https://img.shields.io/chrome-web-store/rating/${project.chromeExtensionId}?style=flat-square&label=&color=black`}
+                                                        alt="Chrome Web Store Users"
+                                                        style={{ height: '20px' }}
+                                                    />
+                                                </div>
+                                            )}
+                                            {project.title}
+                                        </div>
                                     </button>
                                     <div
                                         className={`overflow-hidden text-center md:text-right transition-all duration-300 ease-in-out

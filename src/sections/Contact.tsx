@@ -72,7 +72,7 @@ const Contact: React.FC = () => {
                                 onClick={handleCopyEmail}
                                 className={`font-semibold text-sm py-1 px-3 rounded-md transition-all duration-300 ease-in-out ${isCopied
                                     ? "bg-white text-black"
-                                    : "bg-transparent border border-zinc-300 text-zinc-300 hover:bg-white hover:text-black"
+                                    : "bg-transparent cursor-pointer border border-zinc-300 text-zinc-300 hover:bg-white hover:text-black"
                                     }`}
                             >
                                 {isCopied ? "Copied!" : "Copy"}
