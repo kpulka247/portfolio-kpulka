@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/kpulka247/portfolio-kpulka/compare/v1.2.0...v1.2.1) (2025-09-30)
+
+### Bug Fixes
+
+* Fix touch and mobile compatibility ([3a53fd3](https://github.com/kpulka247/portfolio-kpulka/commit/3a53fd36227fff961c08b938fb42a5d4fc542c8b))
+
 ## [1.2.0](https://github.com/kpulka247/portfolio-kpulka/compare/v1.1.1...v1.2.0) (2025-09-30)
 
 ### Features
