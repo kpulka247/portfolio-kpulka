@@ -13,7 +13,7 @@ const PrivacyPolicy = () => {
             initial="hidden"
             animate="visible"
         >
-            <div className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+            <div className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-20">
                 <Link
                     to="/"
                     className="inline-flex items-center gap-2 text-zinc-300 hover:text-white transition-colors mb-8 group"
