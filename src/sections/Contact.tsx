@@ -48,7 +48,7 @@ const Contact: React.FC = () => {
 
                 <p className="text-md mt-4 mb-12">
                     Whether you want to talk about a project, collaboration, or
-                    just say hi — feel free to reach out through any of the
+                    just say hi, feel free to reach out through any of the
                     platforms below.
                 </p>
 
