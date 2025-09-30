@@ -70,30 +70,30 @@ const Projects: React.FC = () => {
     }, []);
 
     return (
-        <section id="projects" className="py-20">
+        <section id="projects" className="py-10 md:py-20">
             <div className="container mx-auto px-4 max-w-5xl">
                 <div className="grid md:grid-cols-2 gap-10">
-                    <div className="md:col-span-1 flex flex-col items-end">
-                        <div className="text-right mb-6">
+                    <div className="md:col-span-1 flex flex-col items-center md:items-end">
+                        <div className="text-center md:text-right mb-6">
                             <SectionHeader
                                 title="PROJECTS"
                                 subtitle="Click on a project to see the details."
                                 fileName="Projects"
                             />
                         </div>
-                        <ul>
+                        <ul className="w-full">
                             {projects.map((project) => (
                                 <li key={project.id}>
                                     <button
                                         onClick={() => handleProjectSelect(project.id)}
-                                        className={`w-full font-mono text-right py-4 text-lg transition-all duration-300 cursor-pointer
+                                        className={`w-full font-mono text-center md:text-right py-4 text-lg transition-all duration-300 cursor-pointer
                                             ${selectedProjectId === project.id ? 'text-white font-bold' : 'hover:text-white'}
                                         `}
                                     >
                                         {project.title}
                                     </button>
                                     <div
-                                        className={`overflow-hidden text-right transition-all duration-300 ease-in-out
+                                        className={`overflow-hidden text-center md:text-right transition-all duration-300 ease-in-out
                                             ${selectedProjectId === project.id ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}
                                         `}
                                     >

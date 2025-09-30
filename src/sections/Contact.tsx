@@ -38,7 +38,7 @@ const Contact: React.FC = () => {
     };
 
     return (
-        <section id="contact" className="py-20">
+        <section id="contact" className="py-10 md:py-20">
             <div className="container mx-auto px-4 max-w-3xl text-center">
                 <SectionHeader
                     title="GET IN TOUCH"
@@ -46,14 +46,14 @@ const Contact: React.FC = () => {
                     fileName="Contact"
                 />
 
-                <p className="text-md mt-4 mb-12">
+                <p className="text-md mb-10">
                     Whether you want to talk about a project, collaboration, or
                     just say hi, feel free to reach out through any of the
                     platforms below.
                 </p>
 
                 <motion.div
-                    className="flex justify-center items-center gap-12"
+                    className="flex text-zinc-200 justify-center items-center gap-12"
                     variants={fadeIn}
                     initial="hidden"
                     whileInView="visible"

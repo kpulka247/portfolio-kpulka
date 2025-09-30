@@ -10,6 +10,7 @@ import {
   Scene,
   Mesh,
   PlaneGeometry,
+  HalfFloatType,
 } from 'three';
 import vertexShader from '../shaders/vertexShader.glsl';
 import fragmentShader from '../shaders/fragmentShader.glsl';
@@ -29,7 +30,10 @@ const SmokePlane: React.FC<SmokePlaneProps> = ({ mousePosRef, hasInteracted, isS
   const fboState = useRef(
     (() => {
       const fbo1 = new WebGLRenderTarget(size.width, size.height, {
-        minFilter: LinearFilter, magFilter: LinearFilter, format: RGBAFormat,
+        minFilter: LinearFilter,
+        magFilter: LinearFilter,
+        format: RGBAFormat,
+        type: HalfFloatType,
       });
       const fbo2 = fbo1.clone();
       return { read: fbo1, write: fbo2 };
@@ -119,7 +123,7 @@ interface InteractiveBgProps {
 const InteractiveBg: React.FC<InteractiveBgProps> = ({ mousePosRef, hasInteracted, isSimulationActive }) => {
   return (
     <div className="fixed top-0 left-0 w-full h-full z-0 pointer-events-none">
-      <Canvas>
+      <Canvas dpr={[1, 1.5]}>
         <SmokePlane
           mousePosRef={mousePosRef}
           hasInteracted={hasInteracted}

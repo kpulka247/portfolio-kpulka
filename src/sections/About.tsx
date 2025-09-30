@@ -6,12 +6,11 @@ import { fadeIn } from '../utils/animations';
 
 const About: React.FC = () => {
   return (
-    <section id="about" className="py-20">
+    <section id="about" className="py-10 md:py-20">
       <div className="container mx-auto px-4 max-w-5xl">
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-          {/* Photo */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
           <motion.div
-            className="flex justify-center"
+            className="flex justify-center order-2 md:order-1 mt-20 md:mt-0"
             variants={fadeIn}
             initial="hidden"
             whileInView="visible"
@@ -24,9 +23,8 @@ const About: React.FC = () => {
             />
           </motion.div>
 
-          {/* Text */}
-          <div>
-            <div className="text-left mb-6">
+          <div className="order-1 md:order-2 text-center md:text-left">
+            <div className="mb-6">
               <SectionHeader
                 title="ABOUT ME"
                 subtitle="Who am I and what do I do?"

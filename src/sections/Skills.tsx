@@ -48,7 +48,7 @@ const Skills: React.FC = () => {
     const [hoveredSliderIndex, setHoveredSliderIndex] = React.useState<number | null>(null);
 
     return (
-        <section id="skills" className="py-20">
+        <section id="skills" className="py-10 md:py-20">
             <div className="container mx-auto px-4 max-w-5xl">
                 <div className="text-center">
                     <SectionHeader
@@ -60,7 +60,7 @@ const Skills: React.FC = () => {
 
                 {/* Slider */}
                 <div
-                    className="overflow-hidden relative h-16 mt-20"
+                    className="overflow-hidden relative h-16 mt-10 md:mt-20"
                     style={{
                         WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
                         maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
@@ -87,8 +87,7 @@ const Skills: React.FC = () => {
                     </motion.div>
                 </div>
 
-                {/* List */}
-                <div className="mt-20 flex flex-col items-start gap-y-12 text-left md:flex-row md:justify-center md:gap-x-16 lg:gap-x-24">
+                <div className="mt-10 md:mt-20 flex flex-col items-center text-center gap-y-12 md:flex-row md:items-start md:text-left md:justify-center md:gap-x-16 lg:gap-x-24">
                     {skillCategories.map((category, index) => (
                         <motion.div
                             key={category.title}
