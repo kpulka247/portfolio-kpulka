@@ -20,7 +20,7 @@ const About: React.FC = () => {
             <img
               src={photo1}
               alt="Photo 1"
-              className="opacity-70 rounded-xl shadow-lg w-72 h-auto object-cover"
+              className="opacity-80 rounded-xl shadow-lg w-72 h-auto object-cover"
             />
           </motion.div>
 
@@ -43,7 +43,7 @@ const About: React.FC = () => {
             <p className="text-md leading-relaxed">
               Outside of coding I enjoy computer games, both story-driven and competitive.
               I also like being active outdoors, from cycling to snowboarding. Coding itself
-              feels a bit like gaming — solving challenges, leveling up skills, and building
+              feels a bit like gaming, solving challenges, leveling up skills, and building
               things I’m proud of.
             </p>
           </div>
