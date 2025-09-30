@@ -22,7 +22,7 @@ const PrivacyPolicy = () => {
                     <span>Back to Home</span>
                 </Link>
 
-                <div className="prose prose-invert max-w-none">
+                <div className="prose prose-invert prose-headings:text-zinc-200 prose-strong:text-zinc-200 prose-code:text-zinc-200 max-w-none">
                     <h1>Privacy Policy</h1>
                     <p>
                         <strong>Effective Date:</strong> September 29, 2025

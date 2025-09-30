@@ -53,7 +53,7 @@ const Contact: React.FC = () => {
                 </p>
 
                 <motion.div
-                    className="flex justify-center items-center gap-12"
+                    className="flex text-zinc-200 justify-center items-center gap-12"
                     variants={fadeIn}
                     initial="hidden"
                     whileInView="visible"

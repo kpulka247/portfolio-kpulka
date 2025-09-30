@@ -28,7 +28,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ title, subtitle, fileName
 
             {/* Title */}
             <motion.h2
-                className="text-4xl font-extrabold text-white sm:text-7xl"
+                className="text-4xl font-extrabold text-zinc-200 sm:text-7xl"
                 variants={titleContainer}
                 aria-label={title}
             >
