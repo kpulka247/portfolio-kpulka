@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/kpulka247/portfolio-kpulka/compare/v1.1.0...v1.1.1) (2025-09-30)
+
+### Bug Fixes
+
+* **style:** Text style adjust ([fc83f97](https://github.com/kpulka247/portfolio-kpulka/commit/fc83f972ac8062e8b22b1158e9a117cf85587256))
+
 ## [1.1.0](https://github.com/kpulka247/portfolio-kpulka/compare/v1.0.3...v1.1.0) (2025-09-29)
 
 ### Features
