@@ -52,10 +52,15 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
     const animatedText = useTypingEffect();
 
     const isTouchDevice = useMemo(() => {
-        if (typeof window !== 'undefined') {
-            return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        }
-        return false;
+        if (typeof window === "undefined") return false;
+
+        const hasTouch =
+            navigator.maxTouchPoints > 0 || "ontouchstart" in window;
+
+        const isSmallScreen = window.matchMedia("(max-width: 1024px)").matches;
+        const isNotDesktop = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+
+        return hasTouch && (isSmallScreen || isNotDesktop);
     }, []);
 
     const { scrollYProgress } = useScroll({
