@@ -1,27 +1,20 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import SectionHeader from '../components/SectionHeader';
 import photo1 from '/static/images/photo1.jpg';
-import { fadeIn } from '../utils/animations';
 
 const About: React.FC = () => {
   return (
     <section id="about" className="py-10 md:py-20">
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-          <motion.div
-            className="flex justify-center order-2 md:order-1 mt-20 md:mt-0"
-            variants={fadeIn}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.5 }}
-          >
+          <div
+            className="flex justify-center order-2 md:order-1 mt-20 md:mt-0">
             <img
               src={photo1}
               alt="Photo 1"
               className="opacity-80 rounded-xl shadow-lg w-72 h-auto object-cover"
             />
-          </motion.div>
+          </div>
 
           <div className="order-1 md:order-2 text-center md:text-left">
             <div className="mb-6">

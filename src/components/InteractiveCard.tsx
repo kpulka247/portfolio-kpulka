@@ -209,6 +209,7 @@ export const InteractiveCard = ({
     project,
     isFlipped,
     isVisible,
+    onReady,
     edgeColor = '#5c5c5f',
     metalness = 0.6,
     roughness = 0.2
@@ -216,6 +217,7 @@ export const InteractiveCard = ({
     project: Project | null;
     isVisible: boolean;
     isFlipped: boolean;
+    onReady: () => void;
     edgeColor?: string;
     metalness?: number;
     roughness?: number;
@@ -224,8 +226,13 @@ export const InteractiveCard = ({
     const { x, y } = useMouseInSection('projects');
 
     const [isHovered, setIsHovered] = useState(false);
-    const [hasAnimatedIn, setHasAnimatedIn] = useState(false);
     const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+    useEffect(() => {
+        if (onReady) {
+            onReady();
+        }
+    }, [onReady]);
 
     useEffect(() => {
         setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
@@ -242,20 +249,9 @@ export const InteractiveCard = ({
         };
     }, [isHovered, isFlipped, project]);
 
-    useEffect(() => {
-        if (isVisible && !hasAnimatedIn) {
-            setHasAnimatedIn(true);
-        }
-    }, [isVisible, hasAnimatedIn]);
-
-    const { opacity } = useSpring({
-        opacity: hasAnimatedIn ? 1 : 0,
-        config: { duration: 500 }
-    });
-
     const handleCardClick = () => {
         if (!isFlipped && project?.githubLink) {
-            trackEvent('Projects', 'Click GitHub', project.title);
+            trackEvent('Projects', 'Click Card', project.title);
             window.open(project.githubLink, '_blank', 'noopener,noreferrer');
         }
     };
@@ -359,12 +355,10 @@ export const InteractiveCard = ({
                 <a.mesh
                     geometry={extrudeGeo}
                     material={sideMaterial}
-                    material-opacity={opacity}
                 />
                 <a.mesh
                     position-z={CARD_DEPTH / 2 + EPS}
                     material={frontMaterial}
-                    material-opacity={opacity}
                 >
                     <planeGeometry args={[CARD_WIDTH, CARD_HEIGHT]} />
                 </a.mesh>
@@ -372,7 +366,6 @@ export const InteractiveCard = ({
                     position-z={-(CARD_DEPTH / 2 + EPS)}
                     rotation-y={Math.PI}
                     material={backMaterial}
-                    material-opacity={opacity}
                 >
                     <planeGeometry args={[CARD_WIDTH, CARD_HEIGHT]} />
                 </a.mesh>

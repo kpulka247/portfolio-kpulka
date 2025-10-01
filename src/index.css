@@ -17,3 +17,17 @@ html {
   display: inline-block;
   margin-left: 2px;
 }
+
+@keyframes loop-scroll {
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(calc(-50% - 32px));
+  }
+}
+
+.animate-loop-scroll {
+  animation: loop-scroll 20s linear infinite;
+}

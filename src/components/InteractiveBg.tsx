@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   ShaderMaterial,
@@ -21,21 +21,20 @@ interface SmokePlaneProps {
   mousePosRef: React.MutableRefObject<{ x: number; y: number }>;
   hasInteracted: boolean;
   isSimulationActive: boolean;
+  onReady: () => void;
 }
 
-const SmokePlane: React.FC<SmokePlaneProps> = ({ mousePosRef, hasInteracted, isSimulationActive }) => {
-  const { size, viewport, gl } = useThree();
+const SmokePlane: React.FC<SmokePlaneProps> = ({ mousePosRef, hasInteracted, isSimulationActive, onReady }) => {
+  const { size, viewport, gl, scene, camera } = useThree();
   const mainMaterialRef = useRef<ShaderMaterial>(null!);
   const lastMousePos = useRef(new Vector2(0.5, 0.5));
+  const onReadyCalledRef = useRef(false);
 
   const fboState = useRef(
     (() => {
       const isHalfFloatSupported = gl.capabilities.isWebGL2 || gl.extensions.get('EXT_color_buffer_half_float');
-
       const targetType = isHalfFloatSupported ? HalfFloatType : UnsignedByteType;
-
       console.log(`Using texture type: ${targetType === HalfFloatType ? 'HalfFloatType' : 'UnsignedByteType'}`);
-
       const fbo1 = new WebGLRenderTarget(size.width, size.height, {
         minFilter: LinearFilter,
         magFilter: LinearFilter,
@@ -72,7 +71,16 @@ const SmokePlane: React.FC<SmokePlaneProps> = ({ mousePosRef, hasInteracted, isS
     uTrailTexture: { value: fboState.current.read.texture },
   }), [size]);
 
+  useEffect(() => {
+    gl.compile(scene, camera);
+  }, [gl, scene, camera]);
+
   useFrame((state) => {
+    if (!onReadyCalledRef.current) {
+      onReady();
+      onReadyCalledRef.current = true;
+    }
+
     if (!isSimulationActive) {
       trailMaterial.uniforms.uMouseVelocity.value.set(0, 0);
       return;
@@ -120,14 +128,14 @@ const SmokePlane: React.FC<SmokePlaneProps> = ({ mousePosRef, hasInteracted, isS
   );
 };
 
-
 interface InteractiveBgProps {
   mousePosRef: React.MutableRefObject<{ x: number; y: number }>;
   hasInteracted: boolean;
   isSimulationActive: boolean;
+  onReady: () => void;
 }
 
-const InteractiveBg: React.FC<InteractiveBgProps> = ({ mousePosRef, hasInteracted, isSimulationActive }) => {
+const InteractiveBg: React.FC<InteractiveBgProps> = ({ mousePosRef, hasInteracted, isSimulationActive, onReady }) => {
   return (
     <div className="fixed top-0 left-0 w-full h-full z-0 pointer-events-none">
       <Canvas dpr={[1, 2]}>
@@ -135,6 +143,7 @@ const InteractiveBg: React.FC<InteractiveBgProps> = ({ mousePosRef, hasInteracte
           mousePosRef={mousePosRef}
           hasInteracted={hasInteracted}
           isSimulationActive={isSimulationActive}
+          onReady={onReady}
         />
       </Canvas>
     </div>

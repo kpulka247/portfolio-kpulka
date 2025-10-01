@@ -46,6 +46,7 @@ const allSkills = skillCategories.flatMap(category => category.skills);
 const Skills: React.FC = () => {
     const [hoveredSkillName, setHoveredSkillName] = React.useState<string | null>(null);
     const [hoveredSliderIndex, setHoveredSliderIndex] = React.useState<number | null>(null);
+    const duplicatedSkills = [...allSkills, ...allSkills];
 
     return (
         <section id="skills" className="py-10 md:py-20">
@@ -58,20 +59,16 @@ const Skills: React.FC = () => {
                     />
                 </div>
 
-                {/* Slider */}
                 <div
-                    className="overflow-hidden relative h-16 mt-10 md:mt-20"
+                    className="overflow-hidden flex relative h-16 items-center mt-10 md:mt-20"
                     style={{
                         WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
                         maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
                     }}
                 >
-                    <motion.div
-                        className="flex absolute items-center top-1/2 -translate-y-1/2 gap-8 whitespace-nowrap"
-                        animate={{ x: ['0%', '-50%'] }}
-                        transition={{ repeat: Infinity, duration: 20, ease: 'linear' }}
-                    >
-                        {[...allSkills, ...allSkills].map((skill, index) => (
+                    <div
+                        className="flex gap-16 animate-loop-scroll">
+                        {duplicatedSkills.map((skill, index) => (
                             <motion.div
                                 key={index}
                                 className="mx-2"
@@ -84,7 +81,7 @@ const Skills: React.FC = () => {
                                 {skill.icon}
                             </motion.div>
                         ))}
-                    </motion.div>
+                    </div>
                 </div>
 
                 <div className="mt-10 md:mt-20 flex flex-col items-center text-center gap-y-12 md:flex-row md:items-start md:text-left md:justify-center md:gap-x-16 lg:gap-x-24">

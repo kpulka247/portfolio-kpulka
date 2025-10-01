@@ -3,7 +3,9 @@ import SectionHeader from '../components/SectionHeader';
 import { Canvas } from '@react-three/fiber';
 import { InteractiveCard } from '../components/InteractiveCard';
 import { MovingLight } from '../components/MovingLight';
-import { BsArrowRepeat } from "react-icons/bs";
+import { Spinner } from '../components/Loader';
+import { motion } from 'framer-motion';
+import { BsPersonFill, BsStarFill, BsArrowRepeat } from "react-icons/bs";
 
 interface Project {
     id: number;
@@ -13,6 +15,7 @@ interface Project {
     techStack: string[];
     githubLink?: string;
     chromeExtensionId?: string;
+    firefoxExtensionId?: string;
 }
 
 const projects: Project[] = [
@@ -24,6 +27,7 @@ const projects: Project[] = [
         techStack: ['React.js', 'JavaScript', 'HTML5', 'CSS3', 'Webpack'],
         githubLink: 'https://github.com/kpulka247/dark-connect',
         chromeExtensionId: 'nadhhgppikppmjacnkebagbgcibnfnob',
+        firefoxExtensionId: 'dark-connect'
     },
     {
         id: 2,
@@ -39,6 +43,7 @@ const Projects: React.FC = () => {
     const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
     const [isFlipped, setIsFlipped] = useState(false);
     const [isCanvasVisible, setIsCanvasVisible] = useState(false);
+    const [isCardReady, setIsCardReady] = useState(false);
 
     const canvasContainerRef = useRef<HTMLDivElement>(null);
 
@@ -47,6 +52,10 @@ const Projects: React.FC = () => {
     const handleProjectSelect = (projectId: number) => {
         setSelectedProjectId(prevId => (prevId === projectId ? null : projectId));
         setIsFlipped(false);
+    };
+
+    const handleCardReady = () => {
+        setIsCardReady(true);
     };
 
     useEffect(() => {
@@ -95,11 +104,13 @@ const Projects: React.FC = () => {
                                         <div className="flex items-center gap-3">
                                             {project.chromeExtensionId && (
                                                 <div className="flex items-center justify-center">
+                                                    <BsPersonFill size={16} className="mr-1" />
                                                     <img
-                                                        src={`https://img.shields.io/chrome-web-store/users/${project.chromeExtensionId}?style=flat-square&label=&logo=google-chrome&logoColor=white&color=black`}
+                                                        src={`https://img.shields.io/chrome-web-store/users/${project.chromeExtensionId}?style=flat-square&label=&color=black`}
                                                         alt="Chrome Web Store Users"
                                                         style={{ height: '20px' }}
                                                     />
+                                                    <BsStarFill size={16} className="mx-1" />
                                                     <img
                                                         src={`https://img.shields.io/chrome-web-store/rating/${project.chromeExtensionId}?style=flat-square&label=&color=black`}
                                                         alt="Chrome Web Store Users"
@@ -115,6 +126,38 @@ const Projects: React.FC = () => {
                                             ${selectedProjectId === project.id ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}
                                         `}
                                     >
+                                        <div className="flex justify-center md:justify-end text-sm font-mono gap-3">
+                                            {project.chromeExtensionId && (
+                                                <a
+                                                    href={`https://chrome.google.com/webstore/detail/${project.chromeExtensionId}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-zinc-600 hover:text-white underline pb-4"
+                                                >
+                                                    Chrome
+                                                </a>
+                                            )}
+                                            {project.firefoxExtensionId && (
+                                                <a
+                                                    href={`https://addons.mozilla.org/firefox/addon/${project.firefoxExtensionId}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-zinc-600 hover:text-white underline pb-4"
+                                                >
+                                                    Firefox
+                                                </a>
+                                            )}
+                                            {project.githubLink && (
+                                                <a
+                                                    href={`${project.githubLink}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-zinc-600 hover:text-white underline pb-4"
+                                                >
+                                                    GitHub
+                                                </a>
+                                            )}
+                                        </div>
                                         <p className="pb-4 text-md">
                                             {project.description}
                                         </p>
@@ -124,26 +167,36 @@ const Projects: React.FC = () => {
                         </ul>
                     </div>
 
-                    <div ref={canvasContainerRef} className="md:col-span-1 flex flex-col items-center justify-center min-h-[500px] md:min-h-[600px]">
-                        <div className="w-full h-full relative">
+                    <div ref={canvasContainerRef} className="md:col-span-1 flex flex-col items-center justify-center min-h-[500px] md:min-h-[600px] relative">
+                        {!isCardReady && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <Spinner />
+                            </div>
+                        )}
+
+                        <motion.div
+                            className="w-full h-full"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: isCardReady ? 1 : 0 }}
+                            transition={{ duration: 0.5 }}
+                        >
                             <Canvas
                                 camera={{ position: [0, 0, 9], fov: 52 }}
                                 frameloop={isCanvasVisible ? 'always' : 'never'}
                             >
                                 <directionalLight position={[20, 7, -5]} intensity={0.4} />
-                                <rectAreaLight
-                                    width={20}
-                                    height={20}
-                                    intensity={6}
-                                    color="#ffffff"
-                                    position={[-10, 10, 10]}
-                                />
+                                <rectAreaLight width={20} height={20} intensity={6} color="#ffffff" position={[-10, 10, 10]} />
                                 <Suspense fallback={null}>
-                                    <InteractiveCard project={selectedProject} isFlipped={isFlipped} isVisible={isCanvasVisible} />
+                                    <InteractiveCard
+                                        project={selectedProject}
+                                        isFlipped={isFlipped}
+                                        isVisible={isCanvasVisible}
+                                        onReady={handleCardReady}
+                                    />
                                     <MovingLight />
                                 </Suspense>
                             </Canvas>
-                        </div>
+                        </motion.div>
 
                         <div className="mt-4">
                             <button

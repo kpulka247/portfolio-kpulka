@@ -109,11 +109,11 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
     }, []);
 
     const handleGitHubClick = () => {
-        trackEvent('Contact', 'Click Icon', 'GitHub');
+        trackEvent('Hero', 'Click Icon', 'GitHub');
     };
 
     const handleLinkedInClick = () => {
-        trackEvent('Contact', 'Click Icon', 'LinkedIn');
+        trackEvent('Hero', 'Click Icon', 'LinkedIn');
     };
 
     return (
@@ -197,7 +197,7 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
                     </div>
                 </div>
                 <div className="pointer-events-auto absolute bottom-32 md:bottom-18">
-                    <ScrollLink to="skills" className="text-white cursor-pointer p-2" aria-label="Scroll to Skills">
+                    <ScrollLink to="main-page" className="text-white cursor-pointer p-2" aria-label="Scroll to Skills">
 
                         {isTouchDevice ? (
                             <RepeatScrollAnimation text="CLICK TO SCROLL" />
