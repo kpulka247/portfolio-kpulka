@@ -255,7 +255,7 @@ export const InteractiveCard = ({
 
     const handleCardClick = () => {
         if (!isFlipped && project?.githubLink) {
-            trackEvent('Projects', 'Click GitHub', project.title);
+            trackEvent('Projects', 'Click Card', project.title);
             window.open(project.githubLink, '_blank', 'noopener,noreferrer');
         }
     };
