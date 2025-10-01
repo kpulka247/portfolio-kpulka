@@ -5,6 +5,7 @@ import { InteractiveCard } from '../components/InteractiveCard';
 import { MovingLight } from '../components/MovingLight';
 import { Spinner } from '../components/Loader';
 import { motion } from 'framer-motion';
+import { fadeIn } from '../utils/animations';
 import { BsPersonFill, BsStarFill, BsArrowRepeat } from "react-icons/bs";
 
 interface Project {
@@ -176,9 +177,9 @@ const Projects: React.FC = () => {
 
                         <motion.div
                             className="w-full h-full"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: isCardReady ? 1 : 0 }}
-                            transition={{ duration: 0.5 }}
+                            variants={fadeIn}
+                            initial="hidden"
+                            animate={isCardReady ? "visible" : "hidden"}
                         >
                             <Canvas
                                 camera={{ position: [0, 0, 9], fov: 52 }}

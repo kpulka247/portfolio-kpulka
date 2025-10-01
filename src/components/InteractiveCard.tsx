@@ -227,12 +227,7 @@ export const InteractiveCard = ({
 
     const [isHovered, setIsHovered] = useState(false);
     const [isTouchDevice, setIsTouchDevice] = useState(false);
-
-    useEffect(() => {
-        if (onReady) {
-            onReady();
-        }
-    }, [onReady]);
+    const onReadyCalledRef = useRef(false);
 
     useEffect(() => {
         setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
@@ -336,6 +331,11 @@ export const InteractiveCard = ({
     });
 
     useFrame(() => {
+        if (!onReadyCalledRef.current) {
+            onReady();
+            onReadyCalledRef.current = true;
+        }
+
         if (mouseTrackRef.current) {
             mouseTrackRef.current.rotation.x = rot.get()[0];
             mouseTrackRef.current.rotation.y = rot.get()[1];
