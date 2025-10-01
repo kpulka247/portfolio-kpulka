@@ -1,8 +1,6 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
 import { FaGithub, FaLinkedin, FaEnvelope } from "react-icons/fa";
 import SectionHeader from "../components/SectionHeader";
-import { fadeIn } from '../utils/animations';
 import { trackEvent } from '../utils/analytics';
 
 const Contact: React.FC = () => {
@@ -52,13 +50,8 @@ const Contact: React.FC = () => {
                     platforms below.
                 </p>
 
-                <motion.div
-                    className="flex text-zinc-200 justify-center items-center gap-12"
-                    variants={fadeIn}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.5 }}
-                >
+                <div
+                    className="flex text-zinc-200 justify-center items-center gap-12">
                     {/* Email */}
                     <div className="relative flex items-center group">
                         <div
@@ -114,7 +107,7 @@ const Contact: React.FC = () => {
                     >
                         <FaLinkedin className="text-4xl group-hover:text-white transition-colors duration-300" />
                     </a>
-                </motion.div>
+                </div>
             </div>
         </section>
     );

@@ -3,6 +3,8 @@ import SectionHeader from '../components/SectionHeader';
 import { Canvas } from '@react-three/fiber';
 import { InteractiveCard } from '../components/InteractiveCard';
 import { MovingLight } from '../components/MovingLight';
+import { Spinner } from '../components/Loader';
+import { motion } from 'framer-motion';
 import { BsPersonFill, BsStarFill, BsArrowRepeat } from "react-icons/bs";
 
 interface Project {
@@ -41,6 +43,7 @@ const Projects: React.FC = () => {
     const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
     const [isFlipped, setIsFlipped] = useState(false);
     const [isCanvasVisible, setIsCanvasVisible] = useState(false);
+    const [isCardReady, setIsCardReady] = useState(false);
 
     const canvasContainerRef = useRef<HTMLDivElement>(null);
 
@@ -49,6 +52,10 @@ const Projects: React.FC = () => {
     const handleProjectSelect = (projectId: number) => {
         setSelectedProjectId(prevId => (prevId === projectId ? null : projectId));
         setIsFlipped(false);
+    };
+
+    const handleCardReady = () => {
+        setIsCardReady(true);
     };
 
     useEffect(() => {
@@ -126,7 +133,6 @@ const Projects: React.FC = () => {
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="text-zinc-600 hover:text-white underline pb-4"
-                                                    title="Chrome Web Store"
                                                 >
                                                     Chrome
                                                 </a>
@@ -137,9 +143,18 @@ const Projects: React.FC = () => {
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="text-zinc-600 hover:text-white underline pb-4"
-                                                    title="Firefox Add-ons"
                                                 >
                                                     Firefox
+                                                </a>
+                                            )}
+                                            {project.githubLink && (
+                                                <a
+                                                    href={`${project.githubLink}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-zinc-600 hover:text-white underline pb-4"
+                                                >
+                                                    GitHub
                                                 </a>
                                             )}
                                         </div>
@@ -152,26 +167,36 @@ const Projects: React.FC = () => {
                         </ul>
                     </div>
 
-                    <div ref={canvasContainerRef} className="md:col-span-1 flex flex-col items-center justify-center min-h-[500px] md:min-h-[600px]">
-                        <div className="w-full h-full relative">
+                    <div ref={canvasContainerRef} className="md:col-span-1 flex flex-col items-center justify-center min-h-[500px] md:min-h-[600px] relative">
+                        {!isCardReady && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <Spinner />
+                            </div>
+                        )}
+
+                        <motion.div
+                            className="w-full h-full"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: isCardReady ? 1 : 0 }}
+                            transition={{ duration: 0.5 }}
+                        >
                             <Canvas
                                 camera={{ position: [0, 0, 9], fov: 52 }}
                                 frameloop={isCanvasVisible ? 'always' : 'never'}
                             >
                                 <directionalLight position={[20, 7, -5]} intensity={0.4} />
-                                <rectAreaLight
-                                    width={20}
-                                    height={20}
-                                    intensity={6}
-                                    color="#ffffff"
-                                    position={[-10, 10, 10]}
-                                />
+                                <rectAreaLight width={20} height={20} intensity={6} color="#ffffff" position={[-10, 10, 10]} />
                                 <Suspense fallback={null}>
-                                    <InteractiveCard project={selectedProject} isFlipped={isFlipped} isVisible={isCanvasVisible} />
+                                    <InteractiveCard
+                                        project={selectedProject}
+                                        isFlipped={isFlipped}
+                                        isVisible={isCanvasVisible}
+                                        onReady={handleCardReady}
+                                    />
                                     <MovingLight />
                                 </Suspense>
                             </Canvas>
-                        </div>
+                        </motion.div>
 
                         <div className="mt-4">
                             <button
