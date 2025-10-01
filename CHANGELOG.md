@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.0...v1.3.1) (2025-10-01)
+
+### Bug Fixes
+
+* Fix flicker on WebGL card load ([918fab8](https://github.com/kpulka247/portfolio-kpulka/commit/918fab80a86fba20b660e66b6e65d3602c823ce4))
+
 ## [1.3.0](https://github.com/kpulka247/portfolio-kpulka/compare/v1.2.1...v1.3.0) (2025-10-01)
 
 ### Features
