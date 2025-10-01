@@ -1,3 +1,15 @@
+## [1.3.0](https://github.com/kpulka247/portfolio-kpulka/compare/v1.2.1...v1.3.0) (2025-10-01)
+
+### Features
+
+* Add favicon ([224c159](https://github.com/kpulka247/portfolio-kpulka/commit/224c159e720474b0ce18328f9d0bbfa42463a9a8))
+* **performance:** Implement lazy loading and enhance loading UX ([44e803b](https://github.com/kpulka247/portfolio-kpulka/commit/44e803b4a207bdfd622a2dfaa4adceab4b7c69b7))
+* **ui:** Add users counter and store buttons ([991cfb9](https://github.com/kpulka247/portfolio-kpulka/commit/991cfb94c8fa5ec4977045d0832176d3a25fba41))
+
+### Bug Fixes
+
+* **ui:** Fix infinite slider loop ([a141c6d](https://github.com/kpulka247/portfolio-kpulka/commit/a141c6dd04ec84c4ee76cc1dd93c0799e7060b1f))
+
 ## [1.2.1](https://github.com/kpulka247/portfolio-kpulka/compare/v1.2.0...v1.2.1) (2025-09-30)
 
 ### Bug Fixes
