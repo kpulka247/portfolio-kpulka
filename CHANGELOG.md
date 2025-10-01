@@ -1,3 +1,9 @@
+## [1.3.2](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.1...v1.3.2) (2025-10-01)
+
+### Bug Fixes
+
+* Improve touch screen detection ([8077dae](https://github.com/kpulka247/portfolio-kpulka/commit/8077dae6c82ac82b37289eda486c24ddb568dcd8))
+
 ## [1.3.1](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.0...v1.3.1) (2025-10-01)
 
 ### Bug Fixes
