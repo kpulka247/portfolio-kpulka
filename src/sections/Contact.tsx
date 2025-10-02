@@ -13,7 +13,7 @@ const Contact: React.FC = () => {
             .writeText(email)
             .then(() => {
                 setIsCopied(true);
-                trackEvent('Contact', 'Click Icon', 'Copy Email');
+                trackEvent('Contact', 'click_icon', 'Copy email');
                 setTimeout(() => {
                     setIsCopied(false);
                 }, 2000);
@@ -24,15 +24,15 @@ const Contact: React.FC = () => {
     };
 
     const handleEmailClick = () => {
-        trackEvent('Contact', 'Click Icon', 'Email');
+        trackEvent('Contact', 'click_icon', 'Email');
     };
 
     const handleGitHubClick = () => {
-        trackEvent('Contact', 'Click Icon', 'GitHub');
+        trackEvent('Contact', 'click_icon', 'GitHub');
     };
 
     const handleLinkedInClick = () => {
-        trackEvent('Contact', 'Click Icon', 'LinkedIn');
+        trackEvent('Contact', 'click_icon', 'LinkedIn');
     };
 
     return (
