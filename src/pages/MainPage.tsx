@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense, useCallback } from 'react';
 import ReactGA from "react-ga4";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 
@@ -35,7 +35,6 @@ const SectionController: React.FC<{ children: React.ReactNode }> = ({ children }
 
 const MainPage = () => {
     const mousePosRef = useRef({ x: 0.5, y: 0.5 });
-    const [hasInteracted, setHasInteracted] = useState(false);
     const [isSimulationActive, setSimulationActive] = useState(true);
     const [isBgReady, setIsBgReady] = useState(false);
 
@@ -51,7 +50,6 @@ const MainPage = () => {
 
     useEffect(() => {
         const updatePosition = (clientX: number, clientY: number) => {
-            if (!hasInteracted) setHasInteracted(true);
             mousePosRef.current = {
                 x: clientX / window.innerWidth,
                 y: clientY / window.innerHeight,
@@ -70,12 +68,13 @@ const MainPage = () => {
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('touchmove', handleTouchMove);
         };
-    }, [hasInteracted]);
+    }, []);
 
-    const handleHeroVisibilityChange = (isVisible: boolean) => {
+    const handleHeroVisibilityChange = useCallback((isVisible: boolean) => {
         setSimulationActive(isVisible);
-    };
+    }, []);
 
+    const sections = [Skills, Projects, About, Contact];
     const sectionLoader = <div className="flex justify-center py-10 md:py-20"><Spinner /></div>;
 
     return (
@@ -95,33 +94,19 @@ const MainPage = () => {
                     <div className="relative z-10" style={{ isolation: 'isolate' }}>
                         <InteractiveBg
                             mousePosRef={mousePosRef}
-                            hasInteracted={hasInteracted}
                             isSimulationActive={isSimulationActive}
                             onReady={handleBgReady}
                         />
                         <Hero onVisibilityChange={handleHeroVisibilityChange} />
                     </div>
                     <div id="main-page" className="z-20 bg-black text-zinc-300 rounded-t-4xl relative">
-                        <Suspense fallback={sectionLoader}>
-                            <SectionController>
-                                <Skills />
-                            </SectionController>
-                        </Suspense>
-                        <Suspense fallback={sectionLoader}>
-                            <SectionController>
-                                <Projects />
-                            </SectionController>
-                        </Suspense>
-                        <Suspense fallback={sectionLoader}>
-                            <SectionController>
-                                <About />
-                            </SectionController>
-                        </Suspense>
-                        <Suspense fallback={sectionLoader}>
-                            <SectionController>
-                                <Contact />
-                            </SectionController>
-                        </Suspense>
+                        {sections.map((SectionComponent, index) => (
+                            <Suspense key={index} fallback={sectionLoader}>
+                                <SectionController>
+                                    <SectionComponent />
+                                </SectionController>
+                            </Suspense>
+                        ))}
                     </div>
                 </main>
                 <Footer />

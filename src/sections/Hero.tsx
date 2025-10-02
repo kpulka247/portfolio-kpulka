@@ -18,7 +18,7 @@ const RepeatScrollAnimation: React.FC<{ text: string }> = ({ text }) => {
     useEffect(() => {
         const intervalId = setInterval(() => {
             setAnimationKey(prevKey => prevKey + 1);
-        }, 3000); // Co 3 sekundy
+        }, 3000);
 
         return () => clearInterval(intervalId);
     }, []);
