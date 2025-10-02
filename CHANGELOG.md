@@ -1,3 +1,9 @@
+## [1.3.3](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.2...v1.3.3) (2025-10-02)
+
+### Bug Fixes
+
+* Optimize WebGL background scaling and visibility logic ([2ae8af1](https://github.com/kpulka247/portfolio-kpulka/commit/2ae8af1229e3ca1fda54d6e1164004179e08a17c))
+
 ## [1.3.2](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.1...v1.3.2) (2025-10-01)
 
 ### Bug Fixes
