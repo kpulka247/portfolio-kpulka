@@ -25,7 +25,7 @@ const CookieBanner = () => {
         if (consent === 'granted') {
             ReactGA.event({
                 category: 'Consent',
-                action: 'Granted',
+                action: 'granted',
                 label: 'User granted cookie consent'
             });
         }

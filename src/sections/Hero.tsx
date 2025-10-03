@@ -114,11 +114,11 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
     }, []);
 
     const handleGitHubClick = () => {
-        trackEvent('Hero', 'Click Icon', 'GitHub');
+        trackEvent('Hero', 'click_icon', 'GitHub');
     };
 
     const handleLinkedInClick = () => {
-        trackEvent('Hero', 'Click Icon', 'LinkedIn');
+        trackEvent('Hero', 'click_icon', 'LinkedIn');
     };
 
     return (
