@@ -6,39 +6,8 @@ import { MovingLight } from '../components/MovingLight';
 import { Spinner } from '../components/Loader';
 import { motion } from 'framer-motion';
 import { fadeIn } from '../utils/animations';
+import { projectsData } from '../data/projects';
 import { BsPersonFill, BsStarFill, BsArrowRepeat } from "react-icons/bs";
-
-interface Project {
-    id: number;
-    title: string;
-    shortDescription: string;
-    description: string;
-    techStack: string[];
-    githubLink?: string;
-    chromeExtensionId?: string;
-    firefoxExtensionId?: string;
-}
-
-const projects: Project[] = [
-    {
-        id: 1,
-        title: 'Dark Connect',
-        shortDescription: 'Dark mode for Garmin Connect website that replaces light colors with their dark theme.',
-        description: 'This is a simple browser extension designed to turn the Garmin Connect website into dark mode. Frustrated by the lack of a dark mode feature on Garmin Connect, I created this extension to enhance the browsing experience for users who prefer a darker interface, especially during nighttime use. The extension is lightweight, easy to to install, and only affects Garmin Connect domains, leaving all other websites untouched.',
-        techStack: ['React.js', 'JavaScript', 'HTML5', 'CSS3', 'Webpack'],
-        githubLink: 'https://github.com/kpulka247/dark-connect',
-        chromeExtensionId: 'nadhhgppikppmjacnkebagbgcibnfnob',
-        firefoxExtensionId: 'dark-connect'
-    },
-    {
-        id: 2,
-        title: 'StudentOffers',
-        shortDescription: 'A full-stack application with a Django backend and a responsive React frontend.',
-        description: 'The site was created using React.js and Django. It is a continuation of my original project of a website with offers for students, which was part of my Engineering Thesis. The site will be further developed, as it is also a project for learning new skills as well as testing different solutions.',
-        techStack: ['React.js', 'Django', 'JavaScript', 'Tailwind CSS', 'HTML5', 'CSS3'],
-        githubLink: 'https://github.com/kpulka247/studentoffers',
-    },
-];
 
 const Projects: React.FC = () => {
     const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
@@ -48,7 +17,7 @@ const Projects: React.FC = () => {
 
     const canvasContainerRef = useRef<HTMLDivElement>(null);
 
-    const selectedProject = projects.find(p => p.id === selectedProjectId) || null;
+    const selectedProject = projectsData.find(p => p.id === selectedProjectId) || null;
 
     const handleProjectSelect = (projectId: number) => {
         setSelectedProjectId(prevId => (prevId === projectId ? null : projectId));
@@ -94,7 +63,7 @@ const Projects: React.FC = () => {
                             />
                         </div>
                         <ul className="w-full">
-                            {projects.map((project) => (
+                            {projectsData.map((project) => (
                                 <li key={project.id} className="flex flex-col items-center md:items-end">
                                     <button
                                         onClick={() => handleProjectSelect(project.id)}

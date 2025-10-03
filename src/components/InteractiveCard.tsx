@@ -3,15 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { useSpring, a } from '@react-spring/three';
 import * as THREE from 'three';
 import { trackEvent } from '../utils/analytics';
-
-interface Project {
-    id: number;
-    title: string;
-    shortDescription: string;
-    description: string;
-    techStack: string[];
-    githubLink?: string;
-}
+import type { Project } from '../types/project';
 
 const drawRoundedRect = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, fill: string) => {
     ctx.fillStyle = fill;
