@@ -1,3 +1,10 @@
+## [1.3.4](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.3...v1.3.4) (2025-10-09)
+
+### Bug Fixes
+
+* Fix card click double redirect ([680b4cf](https://github.com/kpulka247/portfolio-kpulka/commit/680b4cff3e7b09df7ccb2b3524adf0694125bbca))
+* **ux:** Disable auto-translation to prevent rendering bug ([452568f](https://github.com/kpulka247/portfolio-kpulka/commit/452568f954e77b002807414e818eafd787be13e6))
+
 ## [1.3.3](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.2...v1.3.3) (2025-10-02)
 
 ### Bug Fixes
