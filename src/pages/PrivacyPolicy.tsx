@@ -24,7 +24,7 @@ const PrivacyPolicy = () => {
         <div className="prose prose-invert prose-headings:text-zinc-200 prose-strong:text-zinc-200 prose-code:text-zinc-200 max-w-none">
           <h1>Privacy Policy</h1>
           <p>
-            <strong>Effective Date:</strong> September 29, 2025
+            <strong>Effective Date:</strong> October 09, 2025
           </p>
           <p>
             This Privacy Policy explains how Kamil Pułka ("I", "me", "my")
@@ -58,14 +58,16 @@ const PrivacyPolicy = () => {
             </li>
             <li>
               <strong>If you accept consent:</strong> Cookies are used to gather
-              more detailed, but still anonymized, data like session duration
-              and browser type. Your IP address is also anonymized.
+              more detailed data. This data is pseudonymized, meaning it is tied
+              to a random client identifier, not your personal identity (like
+              name or email). It allows me to understand user journeys across
+              multiple visits. Your IP address is always anonymized by Google
+              Analytics.
             </li>
           </ul>
           <p>
-            In both cases, I also collect{" "}
-            <strong>anonymous interaction data</strong> to understand which
-            content is most engaging. This includes tracking clicks on:
+            I also collect interaction data to understand which content is most
+            engaging. This includes tracking clicks on:
           </p>
           <ul>
             <li>
@@ -79,7 +81,12 @@ const PrivacyPolicy = () => {
           </ul>
           <p>
             This tracking is event-based (e.g., "a click occurred on the GitHub
-            icon") and is <strong>not tied to your personal identity</strong>.
+            icon").
+            <strong>If you decline consent</strong>, this event is sent
+            completely anonymously. <strong>If you grant consent</strong>, the
+            event is associated with your pseudonymous identifier to help me
+            analyze user behavior patterns. In either case, it is not tied to
+            your real-world identity.
           </p>
           <p>
             The legal basis for this processing is my legitimate interest (Art.

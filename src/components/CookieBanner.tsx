@@ -14,11 +14,11 @@ const CookieBanner = () => {
   }, []);
 
   const handleDecision = (consent: "granted" | "denied") => {
+    localStorage.setItem("cookie_consent", consent);
+
     ReactGA.gtag("consent", "update", {
       analytics_storage: consent,
     });
-
-    localStorage.setItem("cookie_consent", consent);
 
     setIsVisible(false);
 
@@ -26,7 +26,6 @@ const CookieBanner = () => {
       ReactGA.event({
         category: "Consent",
         action: "granted",
-        label: "User granted cookie consent",
       });
     }
   };
