@@ -1,14 +1,13 @@
-import React from 'react';
-import SectionHeader from '../components/SectionHeader';
-import photo1 from '/static/images/photo1.jpg';
+import React from "react";
+import SectionHeader from "../components/SectionHeader";
+import photo1 from "/static/images/photo1.jpg";
 
 const About: React.FC = () => {
   return (
     <section id="about" className="py-10 md:py-20">
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-          <div
-            className="flex justify-center order-2 md:order-1 mt-20 md:mt-0">
+          <div className="flex justify-center order-2 md:order-1 mt-20 md:mt-0">
             <img
               src={photo1}
               alt="Photo 1"
@@ -25,17 +24,17 @@ const About: React.FC = () => {
               />
             </div>
             <p className="text-md leading-relaxed mb-4">
-              I’m a passionate web developer from Poland who loves building modern web
-              applications, experimenting with new technologies and creating
-              clean, user-friendly designs. My journey started with simple
-              websites, browser extensions, and now I’m diving deep into frameworks, 3D graphics, and
-              automation.
+              I’m a passionate web developer from Poland who loves building
+              modern web applications, experimenting with new technologies and
+              creating clean, user-friendly designs. My journey started with
+              simple websites, browser extensions, and now I’m diving deep into
+              frameworks, 3D graphics, and automation.
             </p>
             <p className="text-md leading-relaxed">
-              Outside of coding I enjoy computer games, both story-driven and competitive.
-              I also like being active outdoors, from cycling to snowboarding. Coding itself
-              feels a bit like gaming, solving challenges, leveling up skills, and building
-              things I’m proud of.
+              Outside of coding I enjoy computer games, both story-driven and
+              competitive. I also like being active outdoors, from cycling to
+              snowboarding. Coding itself feels a bit like gaming, solving
+              challenges, leveling up skills, and building things I’m proud of.
             </p>
           </div>
         </div>
