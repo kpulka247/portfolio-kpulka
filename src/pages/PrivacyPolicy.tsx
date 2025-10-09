@@ -24,7 +24,7 @@ const PrivacyPolicy = () => {
         <div className="prose prose-invert prose-headings:text-zinc-200 prose-strong:text-zinc-200 prose-code:text-zinc-200 max-w-none">
           <h1>Privacy Policy</h1>
           <p>
-            <strong>Effective Date:</strong> October 09, 2025
+            <strong>Effective Date:</strong> October 10, 2025
           </p>
           <p>
             This Privacy Policy explains how Kamil Pułka ("I", "me", "my")
@@ -71,7 +71,7 @@ const PrivacyPolicy = () => {
           </p>
           <ul>
             <li>
-              <strong>Project Cards:</strong> To see which projects generate the
+              <strong>Project Card:</strong> To see which projects generate the
               most interest.
             </li>
             <li>
@@ -81,8 +81,7 @@ const PrivacyPolicy = () => {
           </ul>
           <p>
             This tracking is event-based (e.g., "a click occurred on the GitHub
-            icon").
-            <strong>If you decline consent</strong>, this event is sent
+            icon"). <strong>If you decline consent</strong>, this event is sent
             completely anonymously. <strong>If you grant consent</strong>, the
             event is associated with your pseudonymous identifier to help me
             analyze user behavior patterns. In either case, it is not tied to
@@ -99,9 +98,18 @@ const PrivacyPolicy = () => {
             The Website provides links to my social profiles (GitHub, LinkedIn)
             and a direct email (<code>mailto:</code>) link. When you use them,
             you interact directly with third-party services, which have their
-            own privacy policies. This Website{" "}
-            <strong>does not collect or store any data</strong> from these
-            actions.
+            own privacy policies.
+          </p>
+          <p>
+            As stated in Section 2a, a click on these links is recorded as an
+            anonymous or pseudonymous event for statistical analysis. However,
+            this Website{" "}
+            <strong>
+              does not collect, store, or have access to any personal data
+            </strong>{" "}
+            that you share with these external services, such as the content of
+            your email or your activity and profile information on social media
+            platforms.
           </p>
 
           <h3>c) Remembering Your Choices (Local Storage)</h3>
