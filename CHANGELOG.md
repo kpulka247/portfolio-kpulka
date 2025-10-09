@@ -1,3 +1,9 @@
+## [1.3.5](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.4...v1.3.5) (2025-10-09)
+
+### Bug Fixes
+
+* Adjust consent banner and scroll button placement ([07d1c46](https://github.com/kpulka247/portfolio-kpulka/commit/07d1c46518855ed0fe048bf94b0e464654933d6a))
+
 ## [1.3.4](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.3...v1.3.4) (2025-10-09)
 
 ### Bug Fixes
