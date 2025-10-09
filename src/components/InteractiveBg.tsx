@@ -1,5 +1,5 @@
-import React, { useRef, useMemo, useEffect } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import React, { useRef, useMemo, useEffect } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   ShaderMaterial,
   Vector2,
@@ -12,10 +12,10 @@ import {
   PlaneGeometry,
   HalfFloatType,
   UnsignedByteType,
-} from 'three';
-import vertexShader from '../shaders/vertexShader.glsl';
-import fragmentShader from '../shaders/fragmentShader.glsl';
-import trailShader from '../shaders/trailShader.glsl';
+} from "three";
+import vertexShader from "../shaders/vertexShader.glsl";
+import fragmentShader from "../shaders/fragmentShader.glsl";
+import trailShader from "../shaders/trailShader.glsl";
 
 const SIMULATION_RESOLUTION = new Vector2(2048, 2048);
 
@@ -25,7 +25,11 @@ interface SmokePlaneProps {
   onReady: () => void;
 }
 
-const SmokePlane: React.FC<SmokePlaneProps> = ({ mousePosRef, isSimulationActive, onReady }) => {
+const SmokePlane: React.FC<SmokePlaneProps> = ({
+  mousePosRef,
+  isSimulationActive,
+  onReady,
+}) => {
   const { size, viewport, gl } = useThree();
   const mainMaterialRef = useRef<ShaderMaterial>(null!);
   const lastMousePos = useRef(new Vector2(0.5, 0.5));
@@ -39,15 +43,23 @@ const SmokePlane: React.FC<SmokePlaneProps> = ({ mousePosRef, isSimulationActive
 
   const fboState = useRef(
     (() => {
-      const isHalfFloatSupported = gl.capabilities.isWebGL2 || gl.extensions.get('EXT_color_buffer_half_float');
-      const targetType = isHalfFloatSupported ? HalfFloatType : UnsignedByteType;
+      const isHalfFloatSupported =
+        gl.capabilities.isWebGL2 ||
+        gl.extensions.get("EXT_color_buffer_half_float");
+      const targetType = isHalfFloatSupported
+        ? HalfFloatType
+        : UnsignedByteType;
 
-      const fbo1 = new WebGLRenderTarget(SIMULATION_RESOLUTION.x, SIMULATION_RESOLUTION.y, {
-        minFilter: LinearFilter,
-        magFilter: LinearFilter,
-        format: RGBAFormat,
-        type: targetType,
-      });
+      const fbo1 = new WebGLRenderTarget(
+        SIMULATION_RESOLUTION.x,
+        SIMULATION_RESOLUTION.y,
+        {
+          minFilter: LinearFilter,
+          magFilter: LinearFilter,
+          format: RGBAFormat,
+          type: targetType,
+        }
+      );
       const fbo2 = fbo1.clone();
 
       return { read: fbo1, write: fbo2 };
@@ -77,12 +89,15 @@ const SmokePlane: React.FC<SmokePlaneProps> = ({ mousePosRef, isSimulationActive
     return { trailScene: scene, trailCamera: camera };
   }, [trailMaterial]);
 
-  const mainUniforms = useMemo(() => ({
-    uTime: { value: 0 },
-    uTrailTexture: { value: fboState.current.read.texture },
-    uViewSize: { value: new Vector2(1, 1) },
-    uViewOffset: { value: new Vector2(0, 0) },
-  }), []);
+  const mainUniforms = useMemo(
+    () => ({
+      uTime: { value: 0 },
+      uTrailTexture: { value: fboState.current.read.texture },
+      uViewSize: { value: new Vector2(1, 1) },
+      uViewOffset: { value: new Vector2(0, 0) },
+    }),
+    []
+  );
 
   useEffect(() => {
     const displayAspect = size.width / size.height;
@@ -117,8 +132,12 @@ const SmokePlane: React.FC<SmokePlaneProps> = ({ mousePosRef, isSimulationActive
 
     const scaleFactor = 1 / meshScale;
     simMouse.current.set(
-      (screenMouse.current.x * viewSize.current.x + viewOffset.current.x) * scaleFactor - (scaleFactor - 1) / 2,
-      (screenMouse.current.y * viewSize.current.y + viewOffset.current.y) * scaleFactor - (scaleFactor - 1) / 2
+      (screenMouse.current.x * viewSize.current.x + viewOffset.current.x) *
+        scaleFactor -
+        (scaleFactor - 1) / 2,
+      (screenMouse.current.y * viewSize.current.y + viewOffset.current.y) *
+        scaleFactor -
+        (scaleFactor - 1) / 2
     );
 
     velocity.current.subVectors(simMouse.current, lastMousePos.current);
@@ -140,7 +159,9 @@ const SmokePlane: React.FC<SmokePlaneProps> = ({ mousePosRef, isSimulationActive
     if (mainMaterialRef.current) {
       mainMaterialRef.current.uniforms.uTrailTexture.value = fboWrite.texture;
       mainMaterialRef.current.uniforms.uViewSize.value.copy(viewSize.current);
-      mainMaterialRef.current.uniforms.uViewOffset.value.copy(viewOffset.current);
+      mainMaterialRef.current.uniforms.uViewOffset.value.copy(
+        viewOffset.current
+      );
       mainMaterialRef.current.uniforms.uTime.value = elapsed;
     }
 
@@ -170,7 +191,11 @@ interface InteractiveBgProps {
   onReady: () => void;
 }
 
-const InteractiveBg: React.FC<InteractiveBgProps> = ({ mousePosRef, isSimulationActive, onReady }) => {
+const InteractiveBg: React.FC<InteractiveBgProps> = ({
+  mousePosRef,
+  isSimulationActive,
+  onReady,
+}) => {
   return (
     <div className="fixed top-0 left-0 w-full h-full bg-[#ede6e6] z-0 pointer-events-none">
       <Canvas dpr={[1, 2]}>

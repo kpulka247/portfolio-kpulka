@@ -1,11 +1,11 @@
-import { Routes, Route } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
+import { Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 
-import MainPage from './pages/MainPage';
+import MainPage from "./pages/MainPage";
 
-const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 
-import FullPageLoader from './components/Loader';
+import FullPageLoader from "./components/Loader";
 
 function App() {
   return (
