@@ -38,7 +38,7 @@ const CookieBanner = () => {
           animate={{ y: "0%" }}
           exit={{ y: "100%" }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
-          className="fixed bottom-0 left-0 right-0 bg-zinc-800 text-zinc-300 p-4 z-50 flex flex-col md:flex-row justify-center items-center gap-4"
+          className="fixed bottom-0 left-0 right-0 bg-zinc-800 text-zinc-300 p-2 md:p-4 z-50 flex flex-col md:flex-row justify-center items-center gap-2 md:gap-4"
         >
           <p className="text-sm text-center">
             We use cookies to analyze website traffic. Your consent helps us

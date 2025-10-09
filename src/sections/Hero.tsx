@@ -237,7 +237,7 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
             </div>
           </div>
         </div>
-        <div className="pointer-events-auto absolute bottom-32 md:bottom-18">
+        <div className="pointer-events-auto absolute bottom-[12vh] md:bottom-[10vh]">
           <ScrollLink
             to="main-page"
             className="text-white cursor-pointer p-2"
