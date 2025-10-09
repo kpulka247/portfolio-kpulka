@@ -1,3 +1,9 @@
+## [1.3.6](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.5...v1.3.6) (2025-10-09)
+
+### Bug Fixes
+
+* **privacy:** Clarify distinction between event tracking and data collection ([84e431b](https://github.com/kpulka247/portfolio-kpulka/commit/84e431b49a8c721d69368caf397b4765043f6e5e))
+
 ## [1.3.5](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.4...v1.3.5) (2025-10-09)
 
 ### Bug Fixes
