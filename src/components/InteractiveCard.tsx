@@ -4,6 +4,7 @@ import { useSpring, a } from "@react-spring/three";
 import * as THREE from "three";
 import { trackEvent } from "../utils/analytics";
 import type { Project } from "../types/project";
+import useIsTouchDevice from "../hooks/useIsTouchDevice";
 
 const drawRoundedRect = (
   ctx: CanvasRenderingContext2D,
@@ -201,9 +202,9 @@ const createCardTexture = (project: Project | null, side: "front" | "back") => {
 
 function useMouseInSection(sectionId: string) {
   const [pos, setPos] = useState({ x: 0, y: 0 });
+  const isTouch = useIsTouchDevice();
 
   useEffect(() => {
-    const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
     if (isTouch) {
       setPos({ x: 0, y: 0 });
       return;
@@ -231,7 +232,7 @@ function useMouseInSection(sectionId: string) {
       section.removeEventListener("mousemove", handleMouseMove);
       section.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [sectionId]);
+  }, [sectionId, isTouch]);
 
   return pos;
 }
@@ -255,14 +256,10 @@ export const InteractiveCard = ({
 }) => {
   const mouseTrackRef = useRef<THREE.Group>(null!);
   const { x, y } = useMouseInSection("projects");
+  const isTouch = useIsTouchDevice();
 
   const [isHovered, setIsHovered] = useState(false);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const onReadyCalledRef = useRef(false);
-
-  useEffect(() => {
-    setIsTouchDevice("ontouchstart" in window || navigator.maxTouchPoints > 0);
-  }, []);
 
   useEffect(() => {
     if (isHovered && !isFlipped && project?.githubLink) {
@@ -402,8 +399,8 @@ export const InteractiveCard = ({
   return (
     <a.group
       rotation-y={rotation}
-      onPointerEnter={() => !isTouchDevice && setIsHovered(true)}
-      onPointerLeave={() => !isTouchDevice && setIsHovered(false)}
+      onPointerEnter={() => !isTouch && setIsHovered(true)}
+      onPointerLeave={() => !isTouch && setIsHovered(false)}
     >
       <a.group ref={mouseTrackRef}>
         <a.mesh geometry={extrudeGeo} material={sideMaterial} />
