@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import ScrollLink from "../components/ScrollLink";
 import TypingEffect from "../components/TypingEffect";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
@@ -6,6 +6,7 @@ import { BsArrowDown } from "react-icons/bs";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { titleContainer, scrollLetterJump } from "../utils/animations";
 import { useTypingEffect } from "../hooks/useTypingEffect";
+import useIsTouchDevice from "../hooks/useIsTouchDevice";
 import { trackEvent } from "../utils/analytics";
 
 interface HeroProps {
@@ -50,19 +51,7 @@ const RepeatScrollAnimation: React.FC<{ text: string }> = ({ text }) => {
 const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
   const heroRef = useRef<HTMLElement>(null);
   const animatedText = useTypingEffect();
-
-  const isTouchDevice = useMemo(() => {
-    if (typeof window === "undefined") return false;
-
-    const hasTouch = navigator.maxTouchPoints > 0 || "ontouchstart" in window;
-
-    const isSmallScreen = window.matchMedia("(max-width: 1024px)").matches;
-    const isNotDesktop = window.matchMedia(
-      "(hover: none), (pointer: coarse)"
-    ).matches;
-
-    return hasTouch && (isSmallScreen || isNotDesktop);
-  }, []);
+  const isTouch = useIsTouchDevice();
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -94,9 +83,7 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
   }, [onVisibilityChange]);
 
   useEffect(() => {
-    const isTouchDevice =
-      "ontouchstart" in window || navigator.maxTouchPoints > 0;
-    if (!isTouchDevice) return;
+    if (!isTouch) return;
 
     const preventScroll = (e: TouchEvent) => e.preventDefault();
     const body = document.body;
@@ -119,7 +106,7 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
       body.removeEventListener("touchmove", preventScroll);
       body.style.overscrollBehavior = "auto";
     };
-  }, []);
+  }, [isTouch]);
 
   const handleGitHubClick = () => {
     trackEvent("Hero", "click_icon", "GitHub");
@@ -243,7 +230,7 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
             className="text-white cursor-pointer p-2"
             aria-label="Scroll to Skills"
           >
-            {isTouchDevice ? (
+            {isTouch ? (
               <RepeatScrollAnimation text="CLICK TO SCROLL" />
             ) : (
               <motion.div
