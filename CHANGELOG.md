@@ -1,3 +1,9 @@
+## [1.3.7](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.6...v1.3.7) (2025-10-11)
+
+### Bug Fixes
+
+* **refactor:** Centralize touch detection with useIsTouchDevice hook ([6dde09e](https://github.com/kpulka247/portfolio-kpulka/commit/6dde09ec505721ce43cd62928667848412653d70))
+
 ## [1.3.6](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.5...v1.3.6) (2025-10-09)
 
 ### Bug Fixes
