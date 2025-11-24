@@ -1,3 +1,10 @@
+## [1.3.8](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.7...v1.3.8) (2025-11-24)
+
+### Bug Fixes
+
+* Adjust smoke intensity ([1174048](https://github.com/kpulka247/portfolio-kpulka/commit/1174048854fd577320de5ccec6ce47ae81391cea))
+* Fix card scaling bug ([f61b74b](https://github.com/kpulka247/portfolio-kpulka/commit/f61b74bd39e57c14e57dacf7986bef33c43177bd))
+
 ## [1.3.7](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.6...v1.3.7) (2025-10-11)
 
 ### Bug Fixes
