@@ -43,8 +43,8 @@ void main() {
         float remappedSpeed = pow(rawSpeed, 0.4);
         float speed = clamp(remappedSpeed, 0.0, 1.0);
 
-        vec2 turbulenceField = vec2(fbm(vUv * 2.5 + uTime * 0.05), fbm(vUv * 2.5 - uTime * 0.05 + 5.0)) - 0.5;
-        vec2 backgroundOffset = turbulenceField * 0.003;
+        vec2 turbulenceField = vec2(fbm(vUv * 2.5 + uTime * 0.02), fbm(vUv * 2.5 - uTime * 0.05 + 5.0)) - 0.5;
+        vec2 backgroundOffset = turbulenceField * 0.002;
 
         vec2 delta = uMouse - vUv;
         vec2 vortex = vec2(delta.y, -delta.x);
@@ -68,11 +68,11 @@ void main() {
             vec2 fromMouseToPixel = normalize(vUv - uMouse);
             float directionality = (-dot(fromMouseToPixel, moveDir) + 1.0) * 0.5;
 
-            float nibMask = exp(-dist * dist * 10000.0) * 1.0;
-            float coreTrailShape = pow(directionality, 2.0 + dist * 200.0);
-            float coreTrailMask = exp(-dist * dist * 800.0) * coreTrailShape * 0.5;
+            float nibMask = exp(-dist * dist * 30000.0) * 1.0;
+            float coreTrailShape = pow(directionality, 2.0 + dist * 600.0);
+            float coreTrailMask = exp(-dist * dist * 600.0) * coreTrailShape * 0.5;
             float spreadTrailShape = pow(directionality, 1.0 + dist * 100.0);
-            float spreadTrailMask = exp(-dist * dist * 600.0) * spreadTrailShape * 0.15;
+            float spreadTrailMask = exp(-dist * dist * 2000.0) * spreadTrailShape * 0.15;
 
             float totalMask = nibMask + coreTrailMask + spreadTrailMask;
             currentState += newSandPattern * totalMask * speed * 1.5;
