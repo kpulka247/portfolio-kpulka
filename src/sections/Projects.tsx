@@ -23,8 +23,19 @@ const Projects: React.FC = () => {
     projectsData.find((p) => p.id === selectedProjectId) || null;
 
   const handleProjectSelect = (projectId: number) => {
-    setSelectedProjectId((prevId) => (prevId === projectId ? null : projectId));
-    setIsFlipped(false);
+    if (selectedProjectId !== null && selectedProjectId !== projectId) {
+      setSelectedProjectId(null);
+
+      setTimeout(() => {
+        setSelectedProjectId(projectId);
+        setIsFlipped(false);
+      }, 300);
+    } else {
+      setSelectedProjectId((prevId) =>
+        prevId === projectId ? null : projectId
+      );
+      setIsFlipped(false);
+    }
   };
 
   const handleCardReady = () => {
@@ -151,7 +162,7 @@ const Projects: React.FC = () => {
 
           <div
             ref={canvasContainerRef}
-            className="md:col-span-1 flex flex-col items-center justify-center min-h-[500px] md:min-h-[600px] relative"
+            className="md:col-span-1 flex flex-col items-center justify-center min-h-[500px] md:h-[600px] relative"
           >
             {!isCardReady && (
               <div className="absolute inset-0 flex items-center justify-center">
