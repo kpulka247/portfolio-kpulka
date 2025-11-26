@@ -32,6 +32,7 @@
     "@tailwindcss/typography": "^0.5.19",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
+    "@types/three": "^0.181.0",
     "@vitejs/plugin-react": "^5.0.2",
     "baseline-browser-mapping": "^2.8.31",
     "conventional-changelog": "^7.1.1",
