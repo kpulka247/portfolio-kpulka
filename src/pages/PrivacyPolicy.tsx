@@ -24,12 +24,12 @@ const PrivacyPolicy = () => {
         <div className="prose prose-invert prose-headings:text-zinc-200 prose-strong:text-zinc-200 prose-code:text-zinc-200 max-w-none">
           <h1>Privacy Policy</h1>
           <p>
-            <strong>Effective Date:</strong> October 10, 2025
+            <strong>Effective Date:</strong> November 26, 2025
           </p>
           <p>
             This Privacy Policy explains how Kamil Pułka ("I", "me", "my")
             handles information from users ("you", "your") of the website
-            kpulka.com (the "Website").
+            kpulka.com (the "Website") and related software products.
           </p>
 
           <h2>1. Who is responsible for your data?</h2>
@@ -39,7 +39,7 @@ const PrivacyPolicy = () => {
             <strong>contact@kpulka.com</strong>.
           </p>
 
-          <h2>2. What information do I collect and why?</h2>
+          <h2>2. Data Collection on the Website (kpulka.com)</h2>
           <p>
             My goal is to collect minimal data, focusing on what's necessary to
             improve the Website and allow you to get in touch.
@@ -120,14 +120,55 @@ const PrivacyPolicy = () => {
             visit.
           </p>
 
-          <h2>3. Who has access to your data?</h2>
+          <h2>3. Dark Connect Browser Extension</h2>
           <p>
-            Your analytics data is processed by Google Ireland Limited. This
-            data may be transferred to servers in the United States. Google uses
-            Standard Contractual Clauses to ensure your data is protected.
+            I am also the developer of the "Dark Connect" browser extension,
+            available via the Chrome Web Store and other platforms. I am
+            committed to transparency regarding this software.
+          </p>
+          <h3>a) No Data Collection</h3>
+          <p>
+            The Dark Connect extension is designed with privacy as a core
+            principle. It{" "}
+            <strong>
+              does not collect, store, transmit, or sell any user data
+            </strong>
+            .
+          </p>
+          <ul>
+            <li>
+              It functions locally on your device to modify the visual
+              appearance (CSS) of the Garmin Connect website.
+            </li>
+            <li>
+              It does not track your browsing activity, health data, login
+              credentials, or any other personal information.
+            </li>
+            <li>
+              No analytics scripts or third-party trackers are embedded within
+              the extension's code.
+            </li>
+          </ul>
+
+          <h3>b) Chrome Web Store Analytics</h3>
+          <p>
+            Please note that the platform where you download the extension
+            (e.g., Chrome Web Store) may collect its own aggregated statistics
+            regarding store listing visits and installation counts. This data is
+            governed by the privacy policy of the respective store platform
+            (e.g., Google) and is not collected by the Dark Connect extension
+            software itself.
           </p>
 
-          <h2>4. Your Privacy Rights</h2>
+          <h2>4. Who has access to your data?</h2>
+          <p>
+            Regarding data collected via the Website (kpulka.com), your
+            analytics data is processed by Google Ireland Limited. This data may
+            be transferred to servers in the United States. Google uses Standard
+            Contractual Clauses to ensure your data is protected.
+          </p>
+
+          <h2>5. Your Privacy Rights</h2>
           <p>You have rights over your data under GDPR, including:</p>
           <ul>
             <li>
@@ -151,7 +192,7 @@ const PrivacyPolicy = () => {
             Section 1.
           </p>
 
-          <h2>5. Updates to this Policy</h2>
+          <h2>6. Updates to this Policy</h2>
           <p>
             I reserve the right to make changes to this Privacy Policy at any
             time. Any changes will be posted on this page.
