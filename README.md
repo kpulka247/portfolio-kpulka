@@ -29,21 +29,22 @@ This repository contains the source code for my personal portfolio website, desi
 Make sure you have:
 
 - [Node.js](https://nodejs.org) (LTS version recommended) installed on your system
+- [pnpm](https://pnpm.io/) (can be installed via `npm install -g pnpm`)
 - [Git](https://git-scm.com/) for version control
 
 Then install dependencies:
 
 ```bash
-npm install
+pnpm install
 ```
 
 Start the development server:
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
- The site will be available at `http://localhost:5173`.
+The site will be available at `http://localhost:5173`.
 
 ## Automation & Versioning (CI/CD)
 
@@ -58,9 +59,10 @@ Every push to the `main` branch automatically triggers a workflow that builds an
 In addition to deployments, this project uses [semantic-release](https://github.com/semantic-release/semantic-release) and [Conventional Commits](https://www.conventionalcommits.org/) for automated version management.
 
 Based on the commit messages (e.g., `feat: ...`, `fix: ...`, `BREAKING CHANGE: ...`), the CI/CD pipeline automatically:
--   Determines the correct semantic version bump (patch, minor, or major)
--   Generates and updates a `CHANGELOG.md` file
--   Creates a tagged GitHub Release with comprehensive release notes
+
+- Determines the correct semantic version bump (patch, minor, or major)
+- Generates and updates a `CHANGELOG.md` file
+- Creates a tagged GitHub Release with comprehensive release notes
 
 ## Changelog
 
