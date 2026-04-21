@@ -142,16 +142,23 @@ const Projects: React.FC = () => {
                           Firefox
                         </a>
                       )}
-                      {project.githubLink && (
-                        <a
-                          href={`${project.githubLink}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-zinc-600 hover:text-white underline pb-4"
-                        >
-                          GitHub
-                        </a>
-                      )}
+                      {(() => {
+                        const externalLink =
+                          project.websiteLink ?? project.githubLink;
+
+                        if (!externalLink) return null;
+
+                        return (
+                          <a
+                            href={externalLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-zinc-600 hover:text-white underline pb-4"
+                          >
+                            {project.websiteLink ? "Website" : "GitHub"}
+                          </a>
+                        );
+                      })()}
                     </div>
                     <p className="pb-4 text-md">{project.description}</p>
                   </div>
