@@ -32,7 +32,7 @@ export const useTypingEffect = () => {
       () => {
         setSubIndex((prev) => prev + (isDeleting ? -1 : 1));
       },
-      isDeleting ? DELETING_SPEED_MS : TYPING_SPEED_MS
+      isDeleting ? DELETING_SPEED_MS : TYPING_SPEED_MS,
     );
 
     return () => clearTimeout(timeout);

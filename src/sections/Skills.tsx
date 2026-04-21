@@ -8,7 +8,7 @@ const allSkills = skillCategories.flatMap((category) => category.skills);
 
 const Skills: React.FC = () => {
   const [hoveredSkillName, setHoveredSkillName] = React.useState<string | null>(
-    null
+    null,
   );
   const [hoveredSliderIndex, setHoveredSliderIndex] = React.useState<
     number | null
@@ -78,7 +78,7 @@ const Skills: React.FC = () => {
                       onMouseEnter={() => {
                         setHoveredSkillName(skill.name);
                         const sliderIndex = allSkills.findIndex(
-                          (s) => s.name === skill.name
+                          (s) => s.name === skill.name,
                         );
                         setHoveredSliderIndex(sliderIndex);
                       }}

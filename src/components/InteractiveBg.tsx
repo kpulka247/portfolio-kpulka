@@ -58,12 +58,12 @@ const SmokePlane: React.FC<SmokePlaneProps> = ({
           magFilter: LinearFilter,
           format: RGBAFormat,
           type: targetType,
-        }
+        },
       );
       const fbo2 = fbo1.clone();
 
       return { read: fbo1, write: fbo2 };
-    })()
+    })(),
   );
 
   const trailMaterial = useMemo(() => {
@@ -96,7 +96,7 @@ const SmokePlane: React.FC<SmokePlaneProps> = ({
       uViewSize: { value: new Vector2(1, 1) },
       uViewOffset: { value: new Vector2(0, 0) },
     }),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -137,7 +137,7 @@ const SmokePlane: React.FC<SmokePlaneProps> = ({
         (scaleFactor - 1) / 2,
       (screenMouse.current.y * viewSize.current.y + viewOffset.current.y) *
         scaleFactor -
-        (scaleFactor - 1) / 2
+        (scaleFactor - 1) / 2,
     );
 
     velocity.current.subVectors(simMouse.current, lastMousePos.current);
@@ -160,7 +160,7 @@ const SmokePlane: React.FC<SmokePlaneProps> = ({
       mainMaterialRef.current.uniforms.uTrailTexture.value = fboWrite.texture;
       mainMaterialRef.current.uniforms.uViewSize.value.copy(viewSize.current);
       mainMaterialRef.current.uniforms.uViewOffset.value.copy(
-        viewOffset.current
+        viewOffset.current,
       );
       mainMaterialRef.current.uniforms.uTime.value = elapsed;
     }

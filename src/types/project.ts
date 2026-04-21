@@ -13,7 +13,10 @@ export type CardAnimationProfile =
   | "scan-flicker"
   | "float-glow";
 
-export type CardLinkButtonStyle = "glass-pill" | "neon-outline" | "paper-ticket";
+export type CardLinkButtonStyle =
+  | "glass-pill"
+  | "neon-outline"
+  | "paper-ticket";
 
 export interface CardThemePalette {
   baseStart: string;

@@ -12,7 +12,7 @@ const useIsTouchDevice = (): boolean => {
       const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
       const isSmallScreen = window.matchMedia("(max-width: 1024px)").matches;
       const isNotDesktop = window.matchMedia(
-        "(hover: none), (pointer: coarse)"
+        "(hover: none), (pointer: coarse)",
       ).matches;
 
       setIsTouch(hasTouch && (isSmallScreen || isNotDesktop));

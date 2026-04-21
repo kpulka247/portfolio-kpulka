@@ -1,7 +1,6 @@
 import React from "react";
 
-interface ScrollLinkProps
-  extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+interface ScrollLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   to: string;
   children: React.ReactNode;
 }

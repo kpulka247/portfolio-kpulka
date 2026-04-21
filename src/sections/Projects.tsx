@@ -11,7 +11,7 @@ import { BsPersonFill, BsStarFill, BsArrowRepeat } from "react-icons/bs";
 
 const Projects: React.FC = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
-    null
+    null,
   );
   const [isFlipped, setIsFlipped] = useState(false);
   const [isCanvasVisible, setIsCanvasVisible] = useState(false);
@@ -32,7 +32,7 @@ const Projects: React.FC = () => {
       }, 300);
     } else {
       setSelectedProjectId((prevId) =>
-        prevId === projectId ? null : projectId
+        prevId === projectId ? null : projectId,
       );
       setIsFlipped(false);
     }
@@ -49,7 +49,7 @@ const Projects: React.FC = () => {
       },
       {
         threshold: 0,
-      }
+      },
     );
 
     const currentContainer = canvasContainerRef.current;

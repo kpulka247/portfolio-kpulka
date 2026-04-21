@@ -44,7 +44,7 @@ const drawRoundedRect = (
   w: number,
   h: number,
   r: number,
-  fill: string
+  fill: string,
 ) => {
   ctx.fillStyle = fill;
   ctx.beginPath();
@@ -67,7 +67,7 @@ const wrapText = (
   x: number,
   yStart: number,
   maxWidth: number,
-  lineHeight: number
+  lineHeight: number,
 ) => {
   const words = text.split(" ");
   let line = "";
@@ -87,7 +87,7 @@ const wrapText = (
 
 const applyRoundedMask = (
   ctx: CanvasRenderingContext2D,
-  radius = CARD_TEXTURE_RADIUS
+  radius = CARD_TEXTURE_RADIUS,
 ) => {
   ctx.save();
   ctx.beginPath();
@@ -99,7 +99,7 @@ const applyRoundedMask = (
     CARD_TEXTURE_WIDTH,
     CARD_TEXTURE_HEIGHT,
     CARD_TEXTURE_WIDTH - radius,
-    CARD_TEXTURE_HEIGHT
+    CARD_TEXTURE_HEIGHT,
   );
   ctx.lineTo(radius, CARD_TEXTURE_HEIGHT);
   ctx.quadraticCurveTo(0, CARD_TEXTURE_HEIGHT, 0, CARD_TEXTURE_HEIGHT - radius);
@@ -145,20 +145,25 @@ const getProjectTheme = (project: Project | null) =>
 const drawMetallicBase = (
   ctx: CanvasRenderingContext2D,
   theme: CardTheme,
-  side: CardSide
+  side: CardSide,
 ) => {
   const gradient = ctx.createLinearGradient(
     0,
     0,
     CARD_TEXTURE_WIDTH,
-    CARD_TEXTURE_HEIGHT
+    CARD_TEXTURE_HEIGHT,
   );
   gradient.addColorStop(0, theme.palette.baseStart);
   gradient.addColorStop(1, theme.palette.baseEnd);
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, CARD_TEXTURE_WIDTH, CARD_TEXTURE_HEIGHT);
 
-  const imageData = ctx.getImageData(0, 0, CARD_TEXTURE_WIDTH, CARD_TEXTURE_HEIGHT);
+  const imageData = ctx.getImageData(
+    0,
+    0,
+    CARD_TEXTURE_WIDTH,
+    CARD_TEXTURE_HEIGHT,
+  );
   const seed = side === "front" ? 91.733 : 157.311;
   for (let i = 0; i < imageData.data.length; i += 4) {
     const n = Math.sin((i / 4) * 12.9898 + seed) * 43758.5453;
@@ -166,17 +171,20 @@ const drawMetallicBase = (
     imageData.data[i] = Math.max(0, Math.min(255, imageData.data[i] + grain));
     imageData.data[i + 1] = Math.max(
       0,
-      Math.min(255, imageData.data[i + 1] + grain)
+      Math.min(255, imageData.data[i + 1] + grain),
     );
     imageData.data[i + 2] = Math.max(
       0,
-      Math.min(255, imageData.data[i + 2] + grain)
+      Math.min(255, imageData.data[i + 2] + grain),
     );
   }
   ctx.putImageData(imageData, 0, 0);
 };
 
-const drawFrontThemeAccent = (ctx: CanvasRenderingContext2D, theme: CardTheme) => {
+const drawFrontThemeAccent = (
+  ctx: CanvasRenderingContext2D,
+  theme: CardTheme,
+) => {
   switch (theme.frontVariant) {
     case "mood-gradient":
       ctx.strokeStyle = toRgba(theme.palette.accent, 0.24);
@@ -203,10 +211,21 @@ const drawFrontThemeAccent = (ctx: CanvasRenderingContext2D, theme: CardTheme) =
   }
 };
 
-const drawProjectBackMotif = (ctx: CanvasRenderingContext2D, theme: CardTheme) => {
+const drawProjectBackMotif = (
+  ctx: CanvasRenderingContext2D,
+  theme: CardTheme,
+) => {
   switch (theme.backMotif) {
     case "gifoji-generative-frames": {
-      drawRoundedRect(ctx, 74, 122, CARD_TEXTURE_WIDTH - 148, 54, 14, "rgba(0,0,0,0.24)");
+      drawRoundedRect(
+        ctx,
+        74,
+        122,
+        CARD_TEXTURE_WIDTH - 148,
+        54,
+        14,
+        "rgba(0,0,0,0.24)",
+      );
       drawRoundedRect(
         ctx,
         90,
@@ -214,7 +233,7 @@ const drawProjectBackMotif = (ctx: CanvasRenderingContext2D, theme: CardTheme) =
         CARD_TEXTURE_WIDTH - 250,
         26,
         10,
-        toRgba(theme.palette.accentSoft, 0.22)
+        toRgba(theme.palette.accentSoft, 0.22),
       );
 
       for (let i = 0; i < 4; i++) {
@@ -225,7 +244,7 @@ const drawProjectBackMotif = (ctx: CanvasRenderingContext2D, theme: CardTheme) =
           88,
           28,
           12,
-          toRgba(theme.palette.accent, 0.18)
+          toRgba(theme.palette.accent, 0.18),
         );
       }
 
@@ -238,7 +257,7 @@ const drawProjectBackMotif = (ctx: CanvasRenderingContext2D, theme: CardTheme) =
         176,
         144,
         14,
-        toRgba(theme.palette.accentSoft, 0.16)
+        toRgba(theme.palette.accentSoft, 0.16),
       );
       drawRoundedRect(
         ctx,
@@ -247,7 +266,7 @@ const drawProjectBackMotif = (ctx: CanvasRenderingContext2D, theme: CardTheme) =
         178,
         144,
         14,
-        toRgba(theme.palette.accent, 0.13)
+        toRgba(theme.palette.accent, 0.13),
       );
       drawRoundedRect(ctx, 96, 438, 70, 26, 10, "rgba(255,255,255,0.16)");
       drawRoundedRect(ctx, 334, 438, 82, 26, 10, "rgba(255,255,255,0.15)");
@@ -259,7 +278,7 @@ const drawProjectBackMotif = (ctx: CanvasRenderingContext2D, theme: CardTheme) =
         CARD_TEXTURE_WIDTH - 156,
         134,
         18,
-        "rgba(0,0,0,0.22)"
+        "rgba(0,0,0,0.22)",
       );
       drawRoundedRect(
         ctx,
@@ -268,7 +287,7 @@ const drawProjectBackMotif = (ctx: CanvasRenderingContext2D, theme: CardTheme) =
         CARD_TEXTURE_WIDTH - 192,
         12,
         6,
-        toRgba(theme.palette.accentSoft, 0.2)
+        toRgba(theme.palette.accentSoft, 0.2),
       );
       drawRoundedRect(
         ctx,
@@ -277,9 +296,17 @@ const drawProjectBackMotif = (ctx: CanvasRenderingContext2D, theme: CardTheme) =
         CARD_TEXTURE_WIDTH - 220,
         12,
         6,
-        toRgba(theme.palette.accent, 0.18)
+        toRgba(theme.palette.accent, 0.18),
       );
-      drawRoundedRect(ctx, 96, 616, 120, 34, 14, toRgba(theme.palette.accent, 0.2));
+      drawRoundedRect(
+        ctx,
+        96,
+        616,
+        120,
+        34,
+        14,
+        toRgba(theme.palette.accent, 0.2),
+      );
       break;
     }
     case "dark-connect-toggle-night": {
@@ -299,7 +326,15 @@ const drawProjectBackMotif = (ctx: CanvasRenderingContext2D, theme: CardTheme) =
       break;
     }
     case "student-offers-coupons": {
-      drawRoundedRect(ctx, 66, 114, CARD_TEXTURE_WIDTH - 132, 56, 14, "rgba(0,0,0,0.2)");
+      drawRoundedRect(
+        ctx,
+        66,
+        114,
+        CARD_TEXTURE_WIDTH - 132,
+        56,
+        14,
+        "rgba(0,0,0,0.2)",
+      );
       drawRoundedRect(
         ctx,
         84,
@@ -307,7 +342,7 @@ const drawProjectBackMotif = (ctx: CanvasRenderingContext2D, theme: CardTheme) =
         CARD_TEXTURE_WIDTH - 240,
         24,
         10,
-        "rgba(255,255,255,0.18)"
+        "rgba(255,255,255,0.18)",
       );
       drawRoundedRect(ctx, 466, 129, 44, 26, 12, "rgba(255,255,255,0.14)");
 
@@ -320,7 +355,7 @@ const drawProjectBackMotif = (ctx: CanvasRenderingContext2D, theme: CardTheme) =
           108,
           30,
           10,
-          toRgba(theme.palette.accentSoft, 0.18)
+          toRgba(theme.palette.accentSoft, 0.18),
         );
       }
 
@@ -333,7 +368,7 @@ const drawProjectBackMotif = (ctx: CanvasRenderingContext2D, theme: CardTheme) =
           CARD_TEXTURE_WIDTH - 294,
           96 + (i % 2) * 8,
           12,
-          "rgba(0,0,0,0.2)"
+          "rgba(0,0,0,0.2)",
         );
         drawRoundedRect(
           ctx,
@@ -342,7 +377,7 @@ const drawProjectBackMotif = (ctx: CanvasRenderingContext2D, theme: CardTheme) =
           CARD_TEXTURE_WIDTH - 340,
           14,
           7,
-          toRgba(theme.palette.accentSoft, 0.2)
+          toRgba(theme.palette.accentSoft, 0.2),
         );
         drawRoundedRect(
           ctx,
@@ -351,18 +386,10 @@ const drawProjectBackMotif = (ctx: CanvasRenderingContext2D, theme: CardTheme) =
           CARD_TEXTURE_WIDTH - 380,
           12,
           6,
-          toRgba(theme.palette.accent, 0.16)
+          toRgba(theme.palette.accent, 0.16),
         );
       }
-      drawRoundedRect(
-        ctx,
-        408,
-        684,
-        112,
-        34,
-        12,
-        "rgba(255,255,255,0.16)"
-      );
+      drawRoundedRect(ctx, 408, 684, 112, 34, 12, "rgba(255,255,255,0.16)");
       break;
     }
   }
@@ -375,7 +402,7 @@ const drawLinkButton = (
   x: number,
   y: number,
   width: number,
-  height: number
+  height: number,
 ) => {
   switch (theme.linkButtonStyle) {
     case "glass-pill":
@@ -413,53 +440,61 @@ const createFrontStaticCanvas = (project: Project, theme: CardTheme) => {
   drawMetallicBase(ctx, theme, "front");
   drawFrontThemeAccent(ctx, theme);
 
-    const externalLink = project.websiteLink ?? project.githubLink;
-    const externalLinkLabel = project.websiteLink ? "Website" : "GitHub";
+  const externalLink = project.websiteLink ?? project.githubLink;
+  const externalLinkLabel = project.websiteLink ? "Website" : "GitHub";
 
-    ctx.fillStyle = theme.palette.textMain;
-    ctx.font = "56px Metal Mania";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "alphabetic";
-    ctx.fillText(project.title, CARD_TEXTURE_WIDTH / 2, 100);
+  ctx.fillStyle = theme.palette.textMain;
+  ctx.font = "56px Metal Mania";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText(project.title, CARD_TEXTURE_WIDTH / 2, 100);
 
-    ctx.fillStyle = theme.palette.textMuted;
-    ctx.font = "36px sans-serif";
-    wrapText(
+  ctx.fillStyle = theme.palette.textMuted;
+  ctx.font = "36px sans-serif";
+  wrapText(
+    ctx,
+    project.shortDescription,
+    CARD_TEXTURE_WIDTH / 2,
+    180,
+    CARD_TEXTURE_WIDTH - 80,
+    40,
+  );
+
+  ctx.font = "26px sans-serif";
+  const tagHeight = 60;
+  const padding = 20;
+  const gap = 15;
+  const maxWidth = CARD_TEXTURE_WIDTH - 80;
+  const buttonHeight = 80;
+  const bottomMargin = 60;
+  const buttonY = CARD_TEXTURE_HEIGHT - buttonHeight - bottomMargin;
+  const maxTagY = CARD_TEXTURE_HEIGHT - buttonHeight - bottomMargin - tagHeight;
+  let currentX = (CARD_TEXTURE_WIDTH - maxWidth) / 2;
+  let currentY = 180 + 180;
+
+  project.techStack.forEach((tag) => {
+    const tagWidth = ctx.measureText(tag).width + padding * 2;
+    if (currentX + tagWidth > (CARD_TEXTURE_WIDTH + maxWidth) / 2) {
+      currentX = (CARD_TEXTURE_WIDTH - maxWidth) / 2;
+      currentY += tagHeight + gap;
+    }
+    if (currentY > maxTagY) return;
+
+    drawRoundedRect(
       ctx,
-      project.shortDescription,
-      CARD_TEXTURE_WIDTH / 2,
-      180,
-      CARD_TEXTURE_WIDTH - 80,
-      40
+      currentX,
+      currentY,
+      tagWidth,
+      tagHeight,
+      15,
+      theme.palette.tagBg,
     );
-
-    ctx.font = "26px sans-serif";
-    const tagHeight = 60;
-    const padding = 20;
-    const gap = 15;
-    const maxWidth = CARD_TEXTURE_WIDTH - 80;
-    const buttonHeight = 80;
-    const bottomMargin = 60;
-    const buttonY = CARD_TEXTURE_HEIGHT - buttonHeight - bottomMargin;
-    const maxTagY = CARD_TEXTURE_HEIGHT - buttonHeight - bottomMargin - tagHeight;
-    let currentX = (CARD_TEXTURE_WIDTH - maxWidth) / 2;
-    let currentY = 180 + 180;
-
-    project.techStack.forEach((tag) => {
-      const tagWidth = ctx.measureText(tag).width + padding * 2;
-      if (currentX + tagWidth > (CARD_TEXTURE_WIDTH + maxWidth) / 2) {
-        currentX = (CARD_TEXTURE_WIDTH - maxWidth) / 2;
-        currentY += tagHeight + gap;
-      }
-      if (currentY > maxTagY) return;
-
-      drawRoundedRect(ctx, currentX, currentY, tagWidth, tagHeight, 15, theme.palette.tagBg);
-      ctx.fillStyle = theme.palette.textMain;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(tag, currentX + tagWidth / 2, currentY + tagHeight / 2);
-      currentX += tagWidth + gap;
-    });
+    ctx.fillStyle = theme.palette.textMain;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(tag, currentX + tagWidth / 2, currentY + tagHeight / 2);
+    currentX += tagWidth + gap;
+  });
 
   if (externalLink) {
     const buttonWidth = CARD_TEXTURE_WIDTH - 320;
@@ -476,7 +511,7 @@ const createFrontStaticCanvas = (project: Project, theme: CardTheme) => {
       buttonX,
       buttonY,
       buttonWidth,
-      buttonHeight
+      buttonHeight,
     );
   }
   applyRoundedMask(ctx);
@@ -518,15 +553,21 @@ const drawAnimatedOverlay = (
   ctx: CanvasRenderingContext2D,
   theme: CardTheme,
   side: CardSide,
-  time: number
+  time: number,
 ) => {
   switch (theme.animationProfile) {
     case "pulse-drift": {
       const x = -120 + ((time * 86) % (CARD_TEXTURE_WIDTH + 240));
-      const y = side === "front" ? CARD_TEXTURE_HEIGHT * 0.76 : CARD_TEXTURE_HEIGHT * 0.56;
+      const y =
+        side === "front"
+          ? CARD_TEXTURE_HEIGHT * 0.76
+          : CARD_TEXTURE_HEIGHT * 0.56;
       const radius = 70 + (Math.sin(time * 2.2) + 1) * 18;
       const glow = ctx.createRadialGradient(x, y, 12, x, y, radius);
-      glow.addColorStop(0, toRgba(theme.palette.accentSoft, side === "back" ? 0.14 : 0.1));
+      glow.addColorStop(
+        0,
+        toRgba(theme.palette.accentSoft, side === "back" ? 0.14 : 0.1),
+      );
       glow.addColorStop(1, "rgba(255,255,255,0)");
       ctx.fillStyle = glow;
       ctx.fillRect(0, 0, CARD_TEXTURE_WIDTH, CARD_TEXTURE_HEIGHT);
@@ -540,7 +581,7 @@ const drawAnimatedOverlay = (
           88,
           28,
           12,
-          toRgba(theme.palette.accentSoft, 0.3)
+          toRgba(theme.palette.accentSoft, 0.3),
         );
         drawRoundedRect(
           ctx,
@@ -549,16 +590,19 @@ const drawAnimatedOverlay = (
           120,
           12,
           6,
-          toRgba(theme.palette.accent, 0.3)
+          toRgba(theme.palette.accent, 0.3),
         );
       }
       break;
     }
     case "scan-flicker": {
-      const scanY = (time * 200) % (CARD_TEXTURE_HEIGHT + 44) - 22;
+      const scanY = ((time * 200) % (CARD_TEXTURE_HEIGHT + 44)) - 22;
       const band = ctx.createLinearGradient(0, scanY - 16, 0, scanY + 16);
       band.addColorStop(0, "rgba(255,255,255,0)");
-      band.addColorStop(0.5, toRgba(theme.palette.accent, side === "back" ? 0.16 : 0.1));
+      band.addColorStop(
+        0.5,
+        toRgba(theme.palette.accent, side === "back" ? 0.16 : 0.1),
+      );
       band.addColorStop(1, "rgba(255,255,255,0)");
       ctx.fillStyle = band;
       ctx.fillRect(0, scanY - 16, CARD_TEXTURE_WIDTH, 32);
@@ -574,7 +618,7 @@ const drawAnimatedOverlay = (
           48,
           40,
           20,
-          toRgba(theme.palette.accentSoft, 0.82)
+          toRgba(theme.palette.accentSoft, 0.82),
         );
         drawRoundedRect(
           ctx,
@@ -583,17 +627,23 @@ const drawAnimatedOverlay = (
           48,
           40,
           20,
-          toRgba(theme.palette.accentSoft, 0.82)
+          toRgba(theme.palette.accentSoft, 0.82),
         );
       }
       break;
     }
     case "float-glow": {
       for (let i = 0; i < 2; i++) {
-        const x = CARD_TEXTURE_WIDTH / 2 + Math.cos(time * 0.8 + i * 2.2) * (140 - i * 34);
-        const y = CARD_TEXTURE_HEIGHT / 2 + Math.sin(time + i * 1.8) * (190 - i * 30);
+        const x =
+          CARD_TEXTURE_WIDTH / 2 +
+          Math.cos(time * 0.8 + i * 2.2) * (140 - i * 34);
+        const y =
+          CARD_TEXTURE_HEIGHT / 2 + Math.sin(time + i * 1.8) * (190 - i * 30);
         const orb = ctx.createRadialGradient(x, y, 6, x, y, 50);
-        orb.addColorStop(0, toRgba(theme.palette.accentSoft, side === "back" ? 0.12 : 0.08));
+        orb.addColorStop(
+          0,
+          toRgba(theme.palette.accentSoft, side === "back" ? 0.12 : 0.08),
+        );
         orb.addColorStop(1, "rgba(255,255,255,0)");
         ctx.fillStyle = orb;
         ctx.fillRect(x - 50, y - 50, 100, 100);
@@ -608,7 +658,7 @@ const drawAnimatedOverlay = (
           CARD_TEXTURE_WIDTH - 294,
           34,
           10,
-          toRgba(theme.palette.accentSoft, 0.18)
+          toRgba(theme.palette.accentSoft, 0.18),
         );
         drawRoundedRect(
           ctx,
@@ -617,7 +667,7 @@ const drawAnimatedOverlay = (
           10,
           24,
           5,
-          toRgba(theme.palette.accent, 0.5)
+          toRgba(theme.palette.accent, 0.5),
         );
       }
       break;
@@ -630,7 +680,7 @@ const renderAnimatedTexture = (
   staticCanvas: HTMLCanvasElement,
   theme: CardTheme,
   side: CardSide,
-  time: number
+  time: number,
 ) => {
   const { ctx } = surface;
   ctx.clearRect(0, 0, CARD_TEXTURE_WIDTH, CARD_TEXTURE_HEIGHT);
@@ -707,12 +757,18 @@ export const InteractiveCard = ({
   const frontSurface = useMemo(() => createTextureSurface(), []);
   const backSurface = useMemo(() => createTextureSurface(), []);
   const staticFrontCanvas = useMemo(
-    () => (project ? createFrontStaticCanvas(project, projectTheme) : createEmptyStaticCanvas()),
-    [project, projectTheme]
+    () =>
+      project
+        ? createFrontStaticCanvas(project, projectTheme)
+        : createEmptyStaticCanvas(),
+    [project, projectTheme],
   );
   const staticBackCanvas = useMemo(
-    () => (project ? createBackStaticCanvas(projectTheme) : createEmptyStaticCanvas()),
-    [project, projectTheme]
+    () =>
+      project
+        ? createBackStaticCanvas(projectTheme)
+        : createEmptyStaticCanvas(),
+    [project, projectTheme],
   );
   const resolvedEdgeColor = edgeColor ?? DEFAULT_CARD_THEME.palette.edgeColor;
 
@@ -741,11 +797,23 @@ export const InteractiveCard = ({
         staticFrontCanvas,
         projectTheme,
         "front",
-        time
+        time,
       );
-      renderAnimatedTexture(backSurface, staticBackCanvas, projectTheme, "back", time);
+      renderAnimatedTexture(
+        backSurface,
+        staticBackCanvas,
+        projectTheme,
+        "back",
+        time,
+      );
     },
-    [frontSurface, backSurface, staticFrontCanvas, staticBackCanvas, projectTheme]
+    [
+      frontSurface,
+      backSurface,
+      staticFrontCanvas,
+      staticBackCanvas,
+      projectTheme,
+    ],
   );
 
   useEffect(() => {
@@ -804,7 +872,7 @@ export const InteractiveCard = ({
         metalness,
         roughness,
       }),
-    [resolvedEdgeColor, metalness, roughness]
+    [resolvedEdgeColor, metalness, roughness],
   );
 
   const frontMaterial = useMemo(
@@ -817,7 +885,7 @@ export const InteractiveCard = ({
         roughness,
         side: THREE.FrontSide,
       }),
-    [frontSurface.texture, metalness, roughness]
+    [frontSurface.texture, metalness, roughness],
   );
 
   const backMaterial = useMemo(
@@ -830,7 +898,7 @@ export const InteractiveCard = ({
         roughness,
         side: THREE.FrontSide,
       }),
-    [backSurface.texture, metalness, roughness]
+    [backSurface.texture, metalness, roughness],
   );
 
   useEffect(() => {
