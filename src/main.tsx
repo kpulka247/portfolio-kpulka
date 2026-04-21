@@ -11,5 +11,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <ScrollToTop />
       <App />
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

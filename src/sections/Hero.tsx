@@ -69,7 +69,7 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
       ([entry]) => {
         onVisibilityChange(entry.isIntersecting);
       },
-      { root: null, rootMargin: "0px", threshold: 0.0 }
+      { root: null, rootMargin: "0px", threshold: 0.0 },
     );
     const currentRef = heroRef.current;
     if (currentRef) {

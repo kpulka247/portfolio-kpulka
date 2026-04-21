@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "postbuild": "node scripts/copy-404.js",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@react-spring/three": "^10.0.3",
@@ -41,6 +43,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.4.0",
+    "prettier": "^3.8.3",
     "semantic-release": "^24.2.9",
     "tailwindcss": "^4.1.13",
     "typescript": "~5.8.3",

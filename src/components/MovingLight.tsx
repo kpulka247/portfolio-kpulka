@@ -18,7 +18,7 @@ export function MovingLight() {
     lightRef.current.position.set(
       THREE.MathUtils.lerp(xStart, xEnd, t),
       THREE.MathUtils.lerp(yStart, yEnd, t),
-      5
+      5,
     );
     lightRef.current.lookAt(0, 0, 0);
     lightRef.current.intensity = 5 * fade;

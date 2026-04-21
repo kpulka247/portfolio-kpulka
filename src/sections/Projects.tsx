@@ -11,7 +11,7 @@ import { BsPersonFill, BsStarFill, BsArrowRepeat } from "react-icons/bs";
 
 const Projects: React.FC = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
-    null
+    null,
   );
   const [isFlipped, setIsFlipped] = useState(false);
   const [isCanvasVisible, setIsCanvasVisible] = useState(false);
@@ -32,7 +32,7 @@ const Projects: React.FC = () => {
       }, 300);
     } else {
       setSelectedProjectId((prevId) =>
-        prevId === projectId ? null : projectId
+        prevId === projectId ? null : projectId,
       );
       setIsFlipped(false);
     }
@@ -49,7 +49,7 @@ const Projects: React.FC = () => {
       },
       {
         threshold: 0,
-      }
+      },
     );
 
     const currentContainer = canvasContainerRef.current;
@@ -142,16 +142,23 @@ const Projects: React.FC = () => {
                           Firefox
                         </a>
                       )}
-                      {project.githubLink && (
-                        <a
-                          href={`${project.githubLink}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-zinc-600 hover:text-white underline pb-4"
-                        >
-                          GitHub
-                        </a>
-                      )}
+                      {(() => {
+                        const externalLink =
+                          project.websiteLink ?? project.githubLink;
+
+                        if (!externalLink) return null;
+
+                        return (
+                          <a
+                            href={externalLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-zinc-600 hover:text-white underline pb-4"
+                          >
+                            {project.websiteLink ? "Website" : "GitHub"}
+                          </a>
+                        );
+                      })()}
                     </div>
                     <p className="pb-4 text-md">{project.description}</p>
                   </div>
