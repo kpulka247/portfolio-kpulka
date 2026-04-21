@@ -1,3 +1,9 @@
+## [1.3.9](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.8...v1.3.9) (2026-04-21)
+
+### Bug Fixes
+
+* **projects:** Refine themed project cards and interactive motifs ([8bcfd77](https://github.com/kpulka247/portfolio-kpulka/commit/8bcfd77ae3096990115a627e5ed0f83eb41519d5))
+
 ## [1.3.8](https://github.com/kpulka247/portfolio-kpulka/compare/v1.3.7...v1.3.8) (2025-11-24)
 
 ### Bug Fixes
