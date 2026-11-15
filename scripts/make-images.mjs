@@ -22,6 +22,14 @@ const repoRoot = resolve(import.meta.dirname, "..");
 const outDir = join(repoRoot, "public", "og");
 const readmeDir = join(repoRoot, "docs", "images");
 const BANNER_RADIUS = 28;
+const CENTRED_HERO = `
+  section[aria-label="Introduction"] h1 { text-align: center; margin-left: 0; }
+  section[aria-label="Introduction"] h1 + div {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+`;
 const SIZE = { width: 1200, height: 630 };
 // Covers are drawn for cards about this size. Rendering them there at twice
 // the pixel density gives 1200 by 630 that looks like the card.
@@ -96,7 +104,10 @@ try {
     await home.screenshot({ type: "jpeg", quality: QUALITY }),
   );
   console.log("Wrote public/og/home.jpg");
-  // The README banner is the same view, with rounded corners.
+  // The README banner is the same view with everything centred, since it
+  // stands alone at the top of the README, and with rounded corners.
+  await home.addStyleTag({ content: CENTRED_HERO });
+  await settle(home);
   await writeFile(
     join(readmeDir, "banner.png"),
     await roundCorners(await home.screenshot(), {
