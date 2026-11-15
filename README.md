@@ -1,69 +1,98 @@
 <div align="center">
 
-# Portfolio
+[![The kpulka.com hero: Kamil Pułka, full-stack developer, over a field of pins](public/og/home.jpg)](https://kpulka.com)
 
-<a href="https://github.com/kpulka247/portfolio-kpulka/actions" title="GitHub Actions Workflow Status"><img src="https://img.shields.io/github/actions/workflow/status/kpulka247/portfolio-kpulka/release.yml"></a>
-<a href="https://github.com/kpulka247/portfolio-kpulka/releases" title="GitHub Release"><img src="https://img.shields.io/github/v/release/kpulka247/portfolio-kpulka?logo=github&logoColor=white"></a>
+# kpulka.com
 
-**[Website](https://www.kpulka.com)**
+The portfolio site of Kamil Pułka, full-stack developer.
 
-</div>
+[![Release and deploy](https://img.shields.io/github/actions/workflow/status/kpulka247/portfolio-kpulka/release.yml?label=release%20and%20deploy)](https://github.com/kpulka247/portfolio-kpulka/actions/workflows/release.yml)
+[![Latest release](https://img.shields.io/github/v/release/kpulka247/portfolio-kpulka?logo=github&logoColor=white)](https://github.com/kpulka247/portfolio-kpulka/releases)
 
-This repository contains the source code for my personal portfolio website, designed to showcase my skills and projects. It was built from scratch with a modern tech stack to be fast, responsive, and maintainable, following professional development practices.
-
-## Tech Stack
-
-<div align="center">
-
-<a href="https://reactjs.org/" title="React"><img src="https://img.shields.io/badge/React-0D1117?style=for-the-badge&logo=react&logoColor=61DAFB"></a>
-<a href="https://vitejs.dev/" title="Vite"><img src="https://img.shields.io/badge/Vite-6E00FF?style=for-the-badge&logo=vite&logoColor=FFFFFF"></a>
-<a href="https://www.typescriptlang.org/" title="TypeScript"><img src="https://img.shields.io/badge/TypeScript-1E2A38?style=for-the-badge&logo=typescript&logoColor=00CFFF"></a>
-<a href="https://tailwindcss.com/" title="Tailwind CSS"><img src="https://img.shields.io/badge/Tailwind_CSS-0F172A?style=for-the-badge&logo=tailwindcss&logoColor=38BDF8"></a>
-<a href="https://git-scm.com/" title="Git"><img src="https://img.shields.io/badge/Git-2D0C19?style=for-the-badge&logo=git&logoColor=F05032"></a>
-<a href="https://threejs.org/" title="Three.js"><img src="https://img.shields.io/badge/Three.js-111111?style=for-the-badge&logo=three.js&logoColor=FFFFFF"></a>
+**[Open the site](https://kpulka.com)**
 
 </div>
 
-## How to Run Locally
+## What the site does
 
-Make sure you have:
+- **A pin board you can play with.** The hero is a field of pins that dips under the pointer. **Play** drops a toy car on it that you drive with the keyboard or a finger. It is a plain three.js module that loads after the page, renders only while in view, and falls back to a still image on slow devices and for visitors who prefer reduced motion.
+- **A page for every project.** Each project lives in one data file and gets a prerendered page at `/projects/<slug>`, so search engines and link previews see real content.
+- **Live store numbers.** Users, ratings, releases and downloads come from the Chrome Web Store, Firefox Add-ons, Google Play and GitHub at build time. Nothing is typed by hand, and the site rebuilds every Monday to stay current.
+- **No cookies.** Visits are counted with Cloudflare Web Analytics, which stores nothing on the visitor's device, so there is no cookie banner.
 
-- [Node.js](https://nodejs.org) (LTS version recommended) installed on your system
-- [pnpm](https://pnpm.io/) (can be installed via `npm install -g pnpm`)
-- [Git](https://git-scm.com/) for version control
+## Tech stack
 
-Then install dependencies:
+- React 19 and TypeScript
+- React Router 7 in framework mode, prerendering every page
+- Vite 7 and Tailwind CSS 4
+- three.js for the hero
+- Vitest and Playwright for tests
+- GitHub Actions, GitHub Pages and semantic-release
+
+## Run it locally
+
+You need [Node.js](https://nodejs.org) 20 or later and [pnpm](https://pnpm.io) 10 or later.
 
 ```bash
+git clone https://github.com/kpulka247/portfolio-kpulka.git
+cd portfolio-kpulka
 pnpm install
-```
-
-Start the development server:
-
-```bash
 pnpm dev
 ```
 
-The site will be available at `http://localhost:5173`.
+The site runs at `http://localhost:5173`. `pnpm dev` also prints a network address, so you can open the site on a phone on the same network.
 
-## Automation & Versioning (CI/CD)
+| Command | What it does |
+| --- | --- |
+| `pnpm dev` | Starts the dev server. |
+| `pnpm build` | Fetches the store numbers, typechecks and prerenders every page into `dist/client`. |
+| `pnpm test` | Runs the unit tests. |
+| `pnpm test:e2e` | Runs the Playwright tests against `dist/client`. Run `pnpm build` and `pnpm exec playwright install chromium` first. |
+| `pnpm lint` | Runs ESLint. |
+| `pnpm stats` | Fetches the store numbers into `src/content/stats.json` without building. |
 
-This project is configured with a robust CI/CD pipeline using GitHub Actions to ensure code quality and automate the release process.
+## Add a project
 
-### 🚀 Automated Deployment
+A project is one data file plus its images. The home page, the project page, the sitemap and the link preview all follow from it.
 
-Every push to the `main` branch automatically triggers a workflow that builds and deploys the latest version of the site to GitHub Pages. This ensures the live website is always synchronized with the code. The pipeline is split into `build` and `deploy` jobs for maximum security and reliability.
+1. Create `src/content/projects/<slug>.ts`. The file name must be the slug, because `src/routes.ts` makes one page per file. Copy an existing project of the same kind and change its fields. `src/content/schema.ts` describes each one.
+2. Put the images in `src/assets/projects/<slug>/`: an icon, a cover screenshot and the screenshots for the project page. If the source images live in the project's own repository, add jobs for them to `scripts/make-covers.mjs`, which crops them and writes WebP.
+3. Add the project to the `projects` list in `src/content/projects/index.ts`. Its `order` field sets its place: 1 is first and spans two columns on desktop.
+4. If the project is in a store or has GitHub releases, add its IDs to `src/content/sources.json` and run `pnpm stats`. A store ID with no live listing yet shows "Coming to" that store.
+5. Run `node scripts/make-og.mjs` to render the project's link-preview image into `public/og/`.
+6. Run `pnpm build && pnpm test && pnpm test:e2e`.
 
-### 🏷️ Automated Versioning with Semantic Release
+A small project with no page goes in `earlierProjects` in the same `index.ts` instead.
 
-In addition to deployments, this project uses [semantic-release](https://github.com/semantic-release/semantic-release) and [Conventional Commits](https://www.conventionalcommits.org/) for automated version management.
+## Project structure
 
-Based on the commit messages (e.g., `feat: ...`, `fix: ...`, `BREAKING CHANGE: ...`), the CI/CD pipeline automatically:
+```text
+src/
+├── root.tsx            Page shell, fonts and the analytics script
+├── routes.ts           One route per page, including one per project file
+├── pages/              The home, project, privacy and 404 pages
+├── sections/           The home page sections: Hero, Work, Stack, About, Contact
+├── components/         Navbar, Footer, ProjectCard, ProjectCover, LegalPage
+├── hero/pinBoard.ts    The three.js pin board
+├── content/            Projects as data, store IDs, fetched stats and status rules
+├── data/               Contact links and the Stack list
+├── assets/             Images, imported so Vite fingerprints them
+├── seo.ts              Canonical URLs, link previews and structured data
+└── analytics.ts        Cloudflare Web Analytics token
+```
 
-- Determines the correct semantic version bump (patch, minor, or major)
-- Generates and updates a `CHANGELOG.md` file
-- Creates a tagged GitHub Release with comprehensive release notes
+The `scripts/` folder holds the build steps (`fetch-stats.mjs`, `copy-404.js`, `write-sitemap.mjs`) and the image tools you run by hand (`make-covers.mjs`, `capture-hero.mjs`, `make-og.mjs`).
 
-## Changelog
+## Deployment and releases
 
-Changes for each release are automatically documented in the [CHANGELOG.md](./CHANGELOG.md) file.
+`.github/workflows/release.yml` runs on every push to `main`, every Monday at 06:00 UTC, and on demand:
+
+1. **Build.** Installs dependencies, fetches fresh store numbers and prerenders the site.
+2. **Release.** [semantic-release](https://github.com/semantic-release/semantic-release) reads the [Conventional Commits](https://www.conventionalcommits.org/) since the last release, picks the version, updates [CHANGELOG.md](CHANGELOG.md) and publishes a GitHub release. With no new commits, as on most Mondays, it releases nothing.
+3. **Deploy.** Publishes `dist/client` to GitHub Pages at [kpulka.com](https://kpulka.com).
+
+Analytics are on only when the repository variable `CF_BEACON_TOKEN` holds the Cloudflare Web Analytics token. Without it, the site has no analytics, and the privacy page leaves them out.
+
+## License
+
+Copyright © Kamil Pułka. All rights reserved. The code is public so you can read how the site works. It carries no open-source license.
