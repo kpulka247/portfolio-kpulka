@@ -18,6 +18,8 @@
 
   --font-display: "Anybody Variable", sans-serif;
   --font-body: "Instrument Sans Variable", sans-serif;
+  /* Tailwind's base styles set the page font from --font-sans. */
+  --font-sans: var(--font-body);
 
   --text-xs: 12px;
   --text-sm: 14px;
