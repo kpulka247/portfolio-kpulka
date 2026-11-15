@@ -262,6 +262,19 @@ function Intro({ project }: { project: Project }) {
             <dd className={FACT_VALUE}>{value}</dd>
           </div>
         ))}
+        {project.links.privacy && (
+          <div className={FACT}>
+            <dt className={FACT_LABEL}>Privacy</dt>
+            <dd className={FACT_VALUE}>
+              <Link
+                to={project.links.privacy}
+                className="underline decoration-dim underline-offset-4 hover:decoration-paper"
+              >
+                Privacy policy
+              </Link>
+            </dd>
+          </div>
+        )}
       </dl>
     </div>
   );

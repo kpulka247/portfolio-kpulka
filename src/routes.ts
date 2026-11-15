@@ -13,6 +13,7 @@ export default [
       id: `project-${slug}`,
     }),
   ),
+  route("projects/do-nothing/privacy", "pages/DoNothingPrivacy.tsx"),
   route("privacy", "pages/PrivacyPolicy.tsx"),
   route("*", "pages/NotFound.tsx"),
 ] satisfies RouteConfig;

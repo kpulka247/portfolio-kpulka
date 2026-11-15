@@ -86,7 +86,13 @@ export interface Project {
   builtWith: string[];
   // Facts beyond type, platforms and tools, for the project page.
   facts?: { label: string; value: string }[];
-  links: { github?: string; website?: string; releases?: string };
+  links: {
+    github?: string;
+    website?: string;
+    releases?: string;
+    // A path on this site, for a product that needs its own policy.
+    privacy?: string;
+  };
   sources?: Sources;
   icon: ProjectIcon;
   cover: Cover;

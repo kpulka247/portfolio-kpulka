@@ -47,8 +47,10 @@ export function Layout({ children }: { children: ReactNode }) {
         <ScrollRestoration />
         <Scripts />
         {BEACON_TOKEN && (
+          // As in Cloudflare's own snippet. Module scripts run after the
+          // page is parsed, like defer.
           <script
-            defer
+            type="module"
             src={BEACON_SRC}
             data-cf-beacon={JSON.stringify({ token: BEACON_TOKEN })}
           />

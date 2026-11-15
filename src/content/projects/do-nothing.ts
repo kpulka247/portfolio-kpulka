@@ -18,7 +18,7 @@ export const doNothing: Project = {
   meta: "Mobile app with Expo and React Native",
   platforms: "Android, with iOS to follow",
   builtWith: ["Expo", "React Native", "TypeScript", "Skia", "Reanimated"],
-  links: {},
+  links: { privacy: "/projects/do-nothing/privacy" },
   sources: sources["do-nothing"],
   icon: { kind: "image", image: { src: icon, alt: "" } },
   cover: {
