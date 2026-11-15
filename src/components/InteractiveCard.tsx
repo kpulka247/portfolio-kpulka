@@ -2,7 +2,6 @@ import { useRef, useMemo, useEffect, useState, useCallback } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useSpring, a } from "@react-spring/three";
 import * as THREE from "three";
-import { trackEvent } from "../utils/analytics";
 import type { CardTheme, Project } from "../types/project";
 import useIsTouchDevice from "../hooks/useIsTouchDevice";
 
@@ -837,7 +836,6 @@ export const InteractiveCard = ({
 
   const handleCardClick = () => {
     if (!isFlipped && project && projectExternalLink) {
-      trackEvent("Projects", "click_card", project.title);
       window.open(projectExternalLink, "_blank", "noopener,noreferrer");
     }
   };

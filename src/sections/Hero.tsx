@@ -7,7 +7,6 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { titleContainer, scrollLetterJump } from "../utils/animations";
 import { useTypingEffect } from "../hooks/useTypingEffect";
 import useIsTouchDevice from "../hooks/useIsTouchDevice";
-import { trackEvent } from "../utils/analytics";
 
 interface HeroProps {
   onVisibilityChange: (isVisible: boolean) => void;
@@ -108,14 +107,6 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
     };
   }, [isTouch]);
 
-  const handleGitHubClick = () => {
-    trackEvent("Hero", "click_icon", "GitHub");
-  };
-
-  const handleLinkedInClick = () => {
-    trackEvent("Hero", "click_icon", "LinkedIn");
-  };
-
   return (
     <section ref={heroRef} id="hello" className="relative h-screen">
       {/* --- LAYER A: No blend --- */}
@@ -156,7 +147,6 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
                 rel="noopener noreferrer"
                 className="text-zinc-800 hover:text-black transition duration-300 transform hover:scale-110"
                 aria-label="GitHub Profile"
-                onClick={handleGitHubClick}
               >
                 <FaGithub size={30} />
               </a>
@@ -166,7 +156,6 @@ const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
                 rel="noopener noreferrer"
                 className="text-zinc-800 hover:text-black transition duration-300 transform hover:scale-110"
                 aria-label="LinkedIn Profile"
-                onClick={handleLinkedInClick}
               >
                 <FaLinkedin size={30} />
               </a>

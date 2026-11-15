@@ -6,13 +6,11 @@ import {
   Suspense,
   useCallback,
 } from "react";
-import ReactGA from "react-ga4";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 
 import Navbar from "../components/Navbar";
 import Hero from "../sections/Hero";
 import Footer from "../components/Footer";
-import CookieBanner from "../components/CookieBanner";
 import { Spinner } from "../components/Loader";
 import { fade, fadeIn } from "../utils/animations";
 
@@ -22,7 +20,6 @@ const Projects = lazy(() => import("../sections/Projects"));
 const About = lazy(() => import("../sections/About"));
 const Contact = lazy(() => import("../sections/Contact"));
 
-const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
 const BACKGROUND_FALLBACK_COLOR = "#eaebef";
 
 interface DeferredSectionProps {
@@ -109,12 +106,6 @@ const MainPage = () => {
   const handleBgReady = () => {
     setIsBgReady(true);
   };
-
-  useEffect(() => {
-    if (GA_MEASUREMENT_ID) {
-      ReactGA.initialize(GA_MEASUREMENT_ID);
-    }
-  }, []);
 
   useEffect(() => {
     let frameId: number | null = null;
@@ -219,7 +210,6 @@ const MainPage = () => {
         <Footer />
       </motion.div>
 
-      <CookieBanner />
     </>
   );
 };

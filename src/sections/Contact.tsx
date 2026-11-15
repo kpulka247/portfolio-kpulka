@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { FaGithub, FaLinkedin, FaEnvelope } from "react-icons/fa";
 import SectionHeader from "../components/SectionHeader";
-import { trackEvent } from "../utils/analytics";
 
 const Contact: React.FC = () => {
   const [isCopied, setIsCopied] = useState(false);
@@ -13,7 +12,6 @@ const Contact: React.FC = () => {
       .writeText(email)
       .then(() => {
         setIsCopied(true);
-        trackEvent("Contact", "click_icon", "Copy email");
         setTimeout(() => {
           setIsCopied(false);
         }, 2000);
@@ -21,18 +19,6 @@ const Contact: React.FC = () => {
       .catch((err) => {
         console.error("Failed to copy email address: ", err);
       });
-  };
-
-  const handleEmailClick = () => {
-    trackEvent("Contact", "click_icon", "Email");
-  };
-
-  const handleGitHubClick = () => {
-    trackEvent("Contact", "click_icon", "GitHub");
-  };
-
-  const handleLinkedInClick = () => {
-    trackEvent("Contact", "click_icon", "LinkedIn");
   };
 
   return (
@@ -77,7 +63,6 @@ const Contact: React.FC = () => {
               href={`mailto:${email}`}
               aria-label="Send an email or hover to copy"
               className="transition transform hover:scale-110"
-              onClick={handleEmailClick}
             >
               <FaEnvelope className="text-4xl group-hover:text-white transition-colors duration-300" />
             </a>
@@ -90,7 +75,6 @@ const Contact: React.FC = () => {
             rel="noopener noreferrer"
             className="group flex flex-col items-center transition transform hover:scale-110"
             aria-label="GitHub Profile"
-            onClick={handleGitHubClick}
           >
             <FaGithub className="text-4xl group-hover:text-white transition-colors duration-300" />
           </a>
@@ -102,7 +86,6 @@ const Contact: React.FC = () => {
             rel="noopener noreferrer"
             className="group flex flex-col items-center transition transform hover:scale-110"
             aria-label="LinkedIn Profile"
-            onClick={handleLinkedInClick}
           >
             <FaLinkedin className="text-4xl group-hover:text-white transition-colors duration-300" />
           </a>

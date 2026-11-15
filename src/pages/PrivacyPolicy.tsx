@@ -24,7 +24,7 @@ const PrivacyPolicy = () => {
         <div className="prose prose-invert prose-headings:text-zinc-200 prose-strong:text-zinc-200 prose-code:text-zinc-200 max-w-none">
           <h1>Privacy Policy</h1>
           <p>
-            <strong>Effective Date:</strong> November 26, 2025
+            <strong>Effective Date:</strong> November 15, 2026
           </p>
           <p>
             This Privacy Policy explains how Kamil Pułka ("I", "me", "my")
@@ -41,83 +41,27 @@ const PrivacyPolicy = () => {
 
           <h2>2. Data Collection on the Website (kpulka.com)</h2>
           <p>
-            My goal is to collect minimal data, focusing on what's necessary to
-            improve the Website and allow you to get in touch.
+            The Website does not use analytics, cookies, or local storage, and
+            it does not track your visits.
           </p>
 
-          <h3>a) Website Analytics & Event Tracking (Google Analytics 4)</h3>
+          <h3>a) Hosting</h3>
           <p>
-            I use Google Analytics 4 to understand how visitors interact with
-            the Website. To protect your privacy, I use Google Consent Mode:
-          </p>
-          <ul>
-            <li>
-              <strong>If you decline consent:</strong> I receive only
-              aggregated, anonymous "pings" (e.g., that a page was viewed). No
-              cookies are used, and you cannot be personally identified.
-            </li>
-            <li>
-              <strong>If you accept consent:</strong> Cookies are used to gather
-              more detailed data. This data is pseudonymized, meaning it is tied
-              to a random client identifier, not your personal identity (like
-              name or email). It allows me to understand user journeys across
-              multiple visits. Your IP address is always anonymized by Google
-              Analytics.
-            </li>
-          </ul>
-          <p>
-            I also collect interaction data to understand which content is most
-            engaging. This includes tracking clicks on:
-          </p>
-          <ul>
-            <li>
-              <strong>Project Card:</strong> To see which projects generate the
-              most interest.
-            </li>
-            <li>
-              <strong>Contact Icons:</strong> To know which contact methods
-              (GitHub, LinkedIn, Email) are most frequently used.
-            </li>
-          </ul>
-          <p>
-            This tracking is event-based (e.g., "a click occurred on the GitHub
-            icon"). <strong>If you decline consent</strong>, this event is sent
-            completely anonymously. <strong>If you grant consent</strong>, the
-            event is associated with your pseudonymous identifier to help me
-            analyze user behavior patterns. In either case, it is not tied to
-            your real-world identity.
-          </p>
-          <p>
-            The legal basis for this processing is my legitimate interest (Art.
-            6(1)(f) GDPR) to improve the Website, and your consent (Art. 6(1)(a)
-            GDPR) where you provide it.
+            The Website is hosted on GitHub Pages. GitHub receives your IP
+            address when your browser loads the Website, as every web host
+            does, and keeps it in its server logs for security.
           </p>
 
-          <h3>b) Information from Contact Links</h3>
+          <h3>b) Contact Links</h3>
           <p>
-            The Website provides links to my social profiles (GitHub, LinkedIn)
-            and a direct email (<code>mailto:</code>) link. When you use them,
-            you interact directly with third-party services, which have their
-            own privacy policies.
-          </p>
-          <p>
-            As stated in Section 2a, a click on these links is recorded as an
-            anonymous or pseudonymous event for statistical analysis. However,
-            this Website{" "}
+            The Website links to my GitHub and LinkedIn profiles and to my email
+            address (<code>mailto:</code>). When you use them, you interact
+            directly with those services, which have their own privacy policies.
+            This Website{" "}
             <strong>
               does not collect, store, or have access to any personal data
             </strong>{" "}
-            that you share with these external services, such as the content of
-            your email or your activity and profile information on social media
-            platforms.
-          </p>
-
-          <h3>c) Remembering Your Choices (Local Storage)</h3>
-          <p>
-            The Website uses your browser's <code>localStorage</code> to save
-            your consent choice (<code>cookie_consent</code>). This is a purely
-            functional step to avoid showing you the consent banner on every
-            visit.
+            that you share with them.
           </p>
 
           <h2>3. Dark Connect Browser Extension</h2>
@@ -162,10 +106,10 @@ const PrivacyPolicy = () => {
 
           <h2>4. Who has access to your data?</h2>
           <p>
-            Regarding data collected via the Website (kpulka.com), your
-            analytics data is processed by Google Ireland Limited. This data may
-            be transferred to servers in the United States. Google uses Standard
-            Contractual Clauses to ensure your data is protected.
+            GitHub, Inc. hosts the Website and processes the server logs
+            described in Section 2a under its own privacy statement. If you
+            email me, I keep your message only as long as the conversation
+            needs and never share it.
           </p>
 
           <h2>5. Your Privacy Rights</h2>
@@ -178,9 +122,6 @@ const PrivacyPolicy = () => {
             <li>
               The right to <strong>object to</strong> or{" "}
               <strong>restrict</strong> processing.
-            </li>
-            <li>
-              The right to <strong>withdraw consent</strong> at any time.
             </li>
             <li>
               The right to <strong>lodge a complaint</strong> with a supervisory
