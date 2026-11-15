@@ -74,19 +74,6 @@ export default function PrivacyPolicy() {
         </p>
       </LegalSection>
 
-      <LegalSection title="Dark Connect">
-        <p>
-          Dark Connect, my browser extension for Garmin Connect, collects no
-          data. It changes how Garmin Connect looks, on your device and only on
-          Garmin's own sites. It does not read or send your browsing, health
-          data or logins, and it contains no analytics or trackers.
-        </p>
-        <p>
-          The store you install it from, such as the Chrome Web Store, counts
-          visits to its listing and installs under its own privacy policy.
-        </p>
-      </LegalSection>
-
       <LegalSection title="Your rights">
         <p>
           You can ask me what I hold about you, ask me to correct or delete it,
