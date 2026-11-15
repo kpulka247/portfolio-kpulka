@@ -103,7 +103,7 @@ interface Project {
 }
 ```
 
-Copy the cover and screenshot images from the project repos into `src/assets/projects/<slug>/`. Convert them to WebP or AVIF at build time with `vite-imagetools`. Source files:
+`scripts/make-covers.mjs` copies the cover and screenshot images from the project repos into `src/assets/projects/<slug>/` and writes them as WebP, so the build needs no image plugin. The Gifoji wordmark is the outlined SVG, so it does not depend on the visitor having Arial Black. Source files:
 
 | Project | Icon | Cover window | Cover front piece | Project page screenshots |
 | --- | --- | --- | --- | --- |
