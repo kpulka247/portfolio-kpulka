@@ -12,6 +12,7 @@ export const doNothing: Project = {
   type: "mobile",
   pitch:
     "Tap, put the phone down, and the app counts the minutes it stays still. Everything stays on the device.",
+  tagline: "A timer that counts only the minutes your phone stays still.",
   summary:
     "do nothing is a one-screen app for short breaks from the phone. Tap, put the phone down, and leave it. The motion sensors notice when the phone is still, and the timer counts only that time. Pick the phone up and the timer pauses until you put it down again.",
   meta: "Mobile app with Expo and React Native",
@@ -62,5 +63,6 @@ export const doNothing: Project = {
       alt: "The summary after a session: you did nothing for 07:31",
     },
   ],
+  screenshotLayout: "grid",
   order: 3,
 };

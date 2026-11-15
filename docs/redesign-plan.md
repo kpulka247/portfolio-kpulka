@@ -171,7 +171,9 @@ Keep motion to the one hero load sequence. The black sheet slides over the hero 
 
 ### 7. Build the project pages
 
-`src/routes/project.tsx` renders the layout of the NoVice frame: name, pitch, summary, links, facts column, main screenshot, **What it does**, a captioned screenshot and **Next project**. All content comes from the project file and `stats.json`.
+`src/pages/ProjectPage.tsx` renders the layout of the NoVice frame: name, tagline, summary, links, facts column, screenshots, **What it does** and **Next project**. All content comes from the project file and `stats.json`. A project's `screenshotLayout` picks how its screenshots show: `stack` puts the first one full width and the rest in captioned rows, and `grid` puts them side by side, for phone screens and small tiles.
+
+`src/routes.ts` adds one static route per file in `src/content/projects/`, not one `projects/:slug` route. GitHub Pages answers an unknown path with `404.html`, which is rendered for the `*` route, and a dynamic route would match an unknown slug in the browser and fail to hydrate.
 
 **Check.** All five pages prerender, and each one matches the NoVice frame's layout at 1280 px and 390 px.
 

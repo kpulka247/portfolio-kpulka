@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 
+import { projectSlugs } from "../projectSlugs";
 import type { Image, Project } from "../schema";
 import { earlierProjects, projects } from "./index";
 
@@ -48,6 +49,11 @@ describe.each(projects)("$name", (project) => {
 test("slugs and order positions are unique", () => {
   expect(new Set(projects.map((p) => p.slug)).size).toBe(projects.length);
   expect(new Set(projects.map((p) => p.order)).size).toBe(projects.length);
+});
+
+// src/routes.ts makes one page per file name in this folder.
+test("each project file is named after its slug", () => {
+  expect(projectSlugs().sort()).toEqual(projects.map((p) => p.slug).sort());
 });
 
 test("projects are listed newest first", () => {

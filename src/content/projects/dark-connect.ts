@@ -13,6 +13,7 @@ export const darkConnect: Project = {
   type: "extension",
   pitch:
     "Garmin Connect, finally in dark mode. Charts, sleep, training and the rest of the site, without a white flash.",
+  tagline: "Garmin Connect, finally in dark mode.",
   summary:
     'Garmin Connect has no dark mode, so Dark Connect adds one. Every page, chart and pop-up is themed by hand, because Garmin colours many features one by one and a simple "invert the colours" approach breaks its charts. The extension runs only on Garmin\'s sites and leaves the rest of the web alone.',
   meta: "Browser extension for Chrome and Firefox",
@@ -67,8 +68,20 @@ export const darkConnect: Project = {
   ],
   screenshots: [
     { src: training, alt: "The training page of Garmin Connect in dark mode" },
-    { src: hrv, alt: "The HRV status page in dark mode" },
-    { src: challenges, alt: "The challenges page in dark mode" },
+    {
+      src: hrv,
+      alt: "The HRV status page in dark mode",
+      title: "Charts keep their colours",
+      caption:
+        "Garmin's own chart and zone colours stay, on a dark background.",
+    },
+    {
+      src: challenges,
+      alt: "The challenges page in dark mode",
+      title: "Every page",
+      caption: "Challenges, badges and the rest of the site are themed too.",
+    },
   ],
+  screenshotLayout: "stack",
   order: 5,
 };

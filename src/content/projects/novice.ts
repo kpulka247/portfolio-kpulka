@@ -13,11 +13,13 @@ export const novice: Project = {
   type: "extension",
   pitch:
     "Play GTA VI knowing nothing about it. Blurs trailers, leaks and story spoilers on every website you visit.",
+  tagline: "Play GTA VI knowing nothing about it.",
   summary:
     "NoVice blurs every trailer, leak, post and story spoiler about Grand Theft Auto VI on every website you visit, and leaves the rest of the internet alone. It is on from the moment you install it.",
   meta: "Browser extension for Chrome and Firefox",
   platforms: "Chrome and Firefox",
   builtWith: ["Webpack", "web-ext", "Playwright", "semantic-release"],
+  facts: [{ label: "Languages", value: "20, following the browser" }],
   links: {
     github: "https://github.com/kpulka247/novice",
     releases: "https://github.com/kpulka247/novice/releases/latest",
@@ -74,14 +76,17 @@ export const novice: Project = {
     },
     {
       src: spoilerCover,
+      title: "Whole pages",
       alt: "The Spoiler ahead cover over a page about GTA VI, with the NoVice popup open",
       caption: "Whole pages about the game get a see-through cover.",
     },
     {
       src: search,
+      title: "Search results",
       alt: "Bing results for Rockstar Games with the GTA results blurred",
       caption: "Search results stay readable around the blurred ones.",
     },
   ],
+  screenshotLayout: "stack",
   order: 1,
 };

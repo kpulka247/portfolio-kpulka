@@ -1,0 +1,324 @@
+import type { IconType } from "react-icons";
+import {
+  FaChrome,
+  FaFirefoxBrowser,
+  FaGithub,
+  FaGooglePlay,
+} from "react-icons/fa";
+import {
+  PiArrowLeftBold,
+  PiArrowRightBold,
+  PiArrowUpRightBold,
+  PiCodeBold,
+} from "react-icons/pi";
+import { Link, type MetaFunction, useLocation } from "react-router";
+
+import Footer from "../components/Footer";
+import { Navbar } from "../components/Navbar";
+import { findProject, projects } from "../content/projects";
+import type { Project, ProjectType, Screenshot } from "../content/schema";
+import {
+  type Store,
+  projectStatus,
+  statsFor,
+  storeLinks,
+  storesOf,
+} from "../content/status";
+import NotFound, { meta as notFoundMeta } from "./NotFound";
+
+const TYPE_NAMES: Record<ProjectType, string> = {
+  extension: "Browser extension",
+  web: "Web app",
+  mobile: "Mobile app",
+  plugin: "Plugin",
+};
+
+const STORE_ACTIONS: Record<Store, { label: string; Icon: IconType }> = {
+  chrome: { label: "Add to Chrome", Icon: FaChrome },
+  firefox: { label: "Add to Firefox", Icon: FaFirefoxBrowser },
+  play: { label: "Get it on Google Play", Icon: FaGooglePlay },
+};
+
+// "/projects/novice" and "/projects/novice/" both give "novice".
+function slugOf(pathname: string): string {
+  return pathname.split("/").filter(Boolean)[1] ?? "";
+}
+
+// Names longer than this get a smaller title, so they wrap onto fewer lines.
+const LONG_NAME = 12;
+
+export const meta: MetaFunction = (args) => {
+  const project = findProject(slugOf(args.location.pathname));
+  if (!project) return notFoundMeta(args);
+  return [
+    { title: `${project.name} | Kamil Pułka` },
+    { name: "description", content: project.pitch },
+  ];
+};
+
+export default function ProjectPage() {
+  const project = findProject(slugOf(useLocation().pathname));
+  if (!project) return <NotFound />;
+
+  const [lead, ...rest] = project.screenshots;
+  const next = projects[(projects.indexOf(project) + 1) % projects.length];
+
+  return (
+    <>
+      <Navbar />
+      <main
+        id="main"
+        className="mx-auto max-w-[1280px] px-5 pt-24 text-soft md:px-16 md:pt-32"
+      >
+        <Link
+          to="/#work"
+          className="inline-flex min-h-11 items-center gap-2 text-sm underline decoration-dim underline-offset-4 hover:text-paper hover:decoration-paper"
+        >
+          <PiArrowLeftBold aria-hidden="true" className="size-4" />
+          All work
+        </Link>
+        <Intro project={project} />
+
+        {project.screenshotLayout === "grid" ? (
+          <Grid screenshots={project.screenshots} />
+        ) : (
+          lead && (
+            <figure className="mt-14 md:mt-18">
+              <img
+                src={lead.src}
+                alt={lead.alt}
+                decoding="async"
+                className={SHOT}
+              />
+              {lead.caption && (
+                <figcaption className="mt-3 text-sm text-dim">
+                  {lead.caption}
+                </figcaption>
+              )}
+            </figure>
+          )
+        )}
+
+        <section
+          aria-labelledby="features-heading"
+          className="mt-20 grid gap-6 md:mt-28 lg:grid-cols-[340px_1fr] lg:gap-20"
+        >
+          <h2 id="features-heading" className={H3}>
+            What it does
+          </h2>
+          <ul className="border-b border-rule">
+            {project.features.map((feature) => (
+              <li
+                key={feature.name}
+                className="grid gap-1 border-t border-rule py-4.5 text-base leading-[1.55] md:grid-cols-[200px_1fr] md:gap-6"
+              >
+                <p className="font-semibold text-paper">{feature.name}</p>
+                <p>{feature.text}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {project.screenshotLayout === "stack" &&
+          rest.map((shot) => <Row key={shot.src} screenshot={shot} />)}
+
+        <Link
+          to={`/projects/${next.slug}`}
+          className="group mt-24 flex items-center justify-between gap-6 border-y border-rule py-8 md:mt-32 md:py-10"
+        >
+          <span>
+            <span className="block text-sm text-dim">Next project</span>
+            <span className="mt-2 block font-display text-[clamp(36px,9vw,72px)] leading-none font-extrabold text-paper [font-stretch:112%]">
+              {next.name}
+            </span>
+          </span>
+          <PiArrowRightBold
+            aria-hidden="true"
+            className="size-8 shrink-0 text-paper transition-transform group-hover:translate-x-1 md:size-10"
+          />
+        </Link>
+      </main>
+      <div className="mt-20 md:mt-24">
+        <Footer />
+      </div>
+    </>
+  );
+}
+
+function Intro({ project }: { project: Project }) {
+  const stats = statsFor(project.slug);
+  const status = projectStatus(project, stats);
+  const stores = storeLinks(project, stats);
+  const release = stats.github?.release;
+  const plannedStores = storesOf(project).length;
+  const waitingForStores = plannedStores > 0 && stores.length === 0;
+  // The status already names the version when there is nothing bigger to say.
+  const releaseFacts =
+    release && !status.label.includes(`version ${release}`)
+      ? [{ label: "Latest release", value: release }]
+      : [];
+
+  const actions: { href: string; label: string; Icon: IconType }[] = [
+    ...stores.map((link) => ({
+      href: link.href,
+      ...STORE_ACTIONS[link.store],
+    })),
+  ];
+  if (project.links.website) {
+    const host = new URL(project.links.website).host.replace(/^www\./, "");
+    actions.push({
+      href: project.links.website,
+      label: `Open ${host}`,
+      Icon: PiArrowUpRightBold,
+    });
+  }
+  if (stores.length === 0 && project.links.releases) {
+    actions.push({
+      href: project.links.releases,
+      label: "Download from GitHub",
+      Icon: FaGithub,
+    });
+  }
+  if (project.links.github) {
+    actions.push({
+      href: project.links.github,
+      label: "Source",
+      Icon: PiCodeBold,
+    });
+  }
+
+  const facts = [
+    { label: "Type", value: TYPE_NAMES[project.type] },
+    { label: "Runs in", value: project.platforms },
+    ...releaseFacts,
+    { label: "Built with", value: project.builtWith.join(", ") },
+    ...(project.facts ?? []),
+  ];
+
+  return (
+    <div className="mt-8 grid gap-12 md:mt-10 lg:grid-cols-[1fr_340px] lg:items-end lg:gap-20">
+      <div>
+        <h1
+          className={`font-display leading-[0.85] font-[850] tracking-[-0.03em] text-paper [font-stretch:96%] md:[font-stretch:118%] ${
+            project.name.length > LONG_NAME
+              ? "text-[clamp(48px,10vw,104px)]"
+              : "text-[clamp(64px,15vw,144px)]"
+          }`}
+        >
+          {project.name}
+        </h1>
+        <p className="mt-6 max-w-[32ch] text-[22px] leading-[1.3] font-medium text-paper md:mt-7 md:text-lg">
+          {project.tagline}
+        </p>
+        <p className="mt-3.5 max-w-[46ch] text-base leading-normal md:text-md">
+          {project.summary}
+        </p>
+        {(actions.length > 0 || waitingForStores) && (
+          <div className="mt-8 flex flex-wrap items-center gap-2.5">
+            {actions.map(({ href, label, Icon }, index) => (
+              <a
+                key={href}
+                href={href}
+                className={`inline-flex h-12 items-center gap-2.5 rounded-full px-5.5 text-[15px] font-semibold transition-colors ${
+                  index === 0
+                    ? "bg-paper text-sheet hover:bg-white"
+                    : "text-paper shadow-[inset_0_0_0_1.5px_var(--color-rule)] hover:shadow-[inset_0_0_0_1.5px_var(--color-dim)]"
+                }`}
+              >
+                <Icon aria-hidden="true" className="size-4.5" />
+                {label}
+              </a>
+            ))}
+            {waitingForStores && (
+              <span className="text-sm text-dim">
+                {plannedStores > 1
+                  ? "Store buttons appear here once the listings are live."
+                  : "The store button appears here once the listing is live."}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+      <dl className="border-b border-rule">
+        <div className={FACT}>
+          <dt className={FACT_LABEL}>Status</dt>
+          <dd className={`${FACT_VALUE} flex items-baseline gap-2`}>
+            <i
+              aria-hidden="true"
+              className={`block size-2 shrink-0 -translate-y-px rounded-full ${
+                status.tone === "soon" ? "bg-soon" : "bg-live"
+              }`}
+            />
+            {status.label}
+          </dd>
+        </div>
+        {facts.map(({ label, value }) => (
+          <div key={label} className={FACT}>
+            <dt className={FACT_LABEL}>{label}</dt>
+            <dd className={FACT_VALUE}>{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+function Row({ screenshot }: { screenshot: Screenshot }) {
+  return (
+    <figure className="mt-20 grid gap-5 md:mt-28 lg:grid-cols-[340px_1fr] lg:items-end lg:gap-20">
+      <figcaption className="text-base leading-[1.55] lg:order-1">
+        {screenshot.title && (
+          <span className={`${H3} mb-3 block`}>{screenshot.title}</span>
+        )}
+        {screenshot.caption}
+      </figcaption>
+      <img
+        src={screenshot.src}
+        alt={screenshot.alt}
+        loading="lazy"
+        decoding="async"
+        className={`${SHOT} lg:order-2`}
+      />
+    </figure>
+  );
+}
+
+function Grid({ screenshots }: { screenshots: Screenshot[] }) {
+  return (
+    <ul
+      className={`mt-14 grid gap-3 md:mt-18 md:gap-5 ${
+        screenshots.length === 3
+          ? "max-w-[880px] grid-cols-3"
+          : "grid-cols-2 md:grid-cols-3"
+      }`}
+    >
+      {screenshots.map((shot) => (
+        <li key={shot.src}>
+          <figure>
+            <img
+              src={shot.src}
+              alt={shot.alt}
+              loading="lazy"
+              decoding="async"
+              className={SHOT}
+            />
+            {shot.caption && (
+              <figcaption className="mt-3 text-sm text-dim">
+                {shot.caption}
+              </figcaption>
+            )}
+          </figure>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+const H3 =
+  "font-display text-lg leading-none font-extrabold text-paper [font-stretch:108%]";
+// The outline keeps a dark screenshot from melting into the black page.
+const SHOT =
+  "block h-auto w-full rounded-md outline outline-1 -outline-offset-1 outline-white/10";
+const FACT = "border-t border-rule py-4";
+const FACT_LABEL = "text-sm text-dim";
+const FACT_VALUE = "mt-1 text-base text-paper";

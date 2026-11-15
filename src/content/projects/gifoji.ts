@@ -23,6 +23,7 @@ export const gifoji: Project = {
   type: "web",
   pitch:
     "Pick a mood and get an AI image or GIF. Profiles, token plans and a moderated public gallery.",
+  tagline: "Pick a mood and get an AI image or GIF.",
   summary:
     "Gifoji turns moods, prompts and styles into images and GIFs you can create, animate, remix and share. It has accounts and profiles, token plans and packs, and a public gallery with reporting and moderation.",
   meta: "Web app with Next.js and Supabase",
@@ -67,5 +68,6 @@ export const gifoji: Project = {
     },
   ],
   screenshots: gallery,
+  screenshotLayout: "grid",
   order: 4,
 };

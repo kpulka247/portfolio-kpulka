@@ -6,8 +6,15 @@ export interface Image {
 }
 
 export interface Screenshot extends Image {
+  // A short heading for the screenshot's row on the project page.
+  title?: string;
   caption?: string;
 }
+
+// How the project page shows the screenshots.
+// "stack": the first one full width, the rest as rows with their captions.
+// "grid": all of them side by side, for phone screens and small tiles.
+export type ScreenshotLayout = "stack" | "grid";
 
 // The square mark next to the project on its cover. Most projects ship an
 // icon file. Polsimer has none, so its cover draws three LEDs instead.
@@ -68,6 +75,8 @@ export interface Project {
   type: ProjectType;
   // One line on the card.
   pitch: string;
+  // The large line under the name on the project page.
+  tagline: string;
   // The paragraph on the project page.
   summary: string;
   // The line under the status on the card, such as "Browser extension for
@@ -75,12 +84,15 @@ export interface Project {
   meta: string;
   platforms: string;
   builtWith: string[];
+  // Facts beyond type, platforms and tools, for the project page.
+  facts?: { label: string; value: string }[];
   links: { github?: string; website?: string; releases?: string };
   sources?: Sources;
   icon: ProjectIcon;
   cover: Cover;
   features: { name: string; text: string }[];
   screenshots: Screenshot[];
+  screenshotLayout: ScreenshotLayout;
   // Newest first. The newest project spans two columns on desktop.
   order: number;
 }

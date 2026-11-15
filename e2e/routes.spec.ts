@@ -24,6 +24,22 @@ const routes = [
   { path: "/", status: 200, title: "Kamil Pułka | Full-stack developer" },
   { path: "/privacy", status: 200, title: "Privacy | Kamil Pułka" },
   { path: "/no-such-page", status: 404, title: "Page not found | Kamil Pułka" },
+  {
+    path: "/projects/no-such-project",
+    status: 404,
+    title: "Page not found | Kamil Pułka",
+  },
+  ...[
+    ["novice", "NoVice"],
+    ["polsimer-f74led", "Polsimer F74LED plugin"],
+    ["do-nothing", "do nothing"],
+    ["gifoji", "Gifoji"],
+    ["dark-connect", "Dark Connect"],
+  ].map(([slug, name]) => ({
+    path: `/projects/${slug}`,
+    status: 200,
+    title: `${name} | Kamil Pułka`,
+  })),
 ];
 
 for (const { path, status, title } of routes) {

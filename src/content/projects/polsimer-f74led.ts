@@ -10,6 +10,7 @@ export const polsimerF74led: Project = {
   type: "plugin",
   pitch:
     "Lights the 12 LEDs on the Polsimer F74LED wheel with every SimHub effect: shift lights, flags, pit limiter.",
+  tagline: "Every SimHub LED effect, on the Polsimer F74LED wheel.",
   summary:
     "The Polsimer F74LED wheel has 12 LEDs, and this plugin lets SimHub drive them. Every effect set up in SimHub's LED Effects Engine shows on the wheel. The plugin runs inside SimHub and talks to the wheel over USB HID, so no other app has to run in the background.",
   meta: "SimHub plugin in C#, talks to the wheel over USB",
@@ -60,9 +61,11 @@ export const polsimerF74led: Project = {
     },
     {
       src: settings,
+      title: "Inside SimHub",
       alt: "The Polsimer F74LED tab in SimHub",
       caption: "The plugin's tab in SimHub.",
     },
   ],
+  screenshotLayout: "stack",
   order: 2,
 };
