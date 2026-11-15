@@ -24,6 +24,7 @@ import {
   storeLinks,
   storesOf,
 } from "../content/status";
+import { pageMeta } from "../seo";
 import NotFound, { meta as notFoundMeta } from "./NotFound";
 
 const TYPE_NAMES: Record<ProjectType, string> = {
@@ -50,10 +51,13 @@ const LONG_NAME = 12;
 export const meta: MetaFunction = (args) => {
   const project = findProject(slugOf(args.location.pathname));
   if (!project) return notFoundMeta(args);
-  return [
-    { title: `${project.name} | Kamil Pułka` },
-    { name: "description", content: project.pitch },
-  ];
+  return pageMeta({
+    title: `${project.name} | Kamil Pułka`,
+    description: project.pitch,
+    path: `/projects/${project.slug}`,
+    image: `/og/${project.slug}.jpg`,
+    imageAlt: `The ${project.name} cover`,
+  });
 };
 
 export default function ProjectPage() {

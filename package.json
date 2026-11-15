@@ -7,7 +7,7 @@
     "dev": "react-router dev --host",
     "stats": "node scripts/fetch-stats.mjs",
     "build": "node scripts/fetch-stats.mjs && react-router typegen && tsc -b && react-router build",
-    "postbuild": "node scripts/copy-404.js",
+    "postbuild": "node scripts/copy-404.js && node scripts/write-sitemap.mjs",
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "playwright test",

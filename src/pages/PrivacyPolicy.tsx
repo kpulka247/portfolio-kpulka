@@ -1,14 +1,16 @@
 import { Link, type MetaFunction } from "react-router";
 
-export const meta: MetaFunction = () => [
-  { title: "Privacy | Kamil Pułka" },
-  {
-    name: "description",
-    content: "What kpulka.com stores, who hosts it, and your rights.",
-  },
-];
+export const meta: MetaFunction = () =>
+  pageMeta({
+    title: "Privacy | Kamil Pułka",
+    description: "What kpulka.com stores, who hosts it, and your rights.",
+    path: "/privacy",
+    image: "/og/home.jpg",
+    imageAlt: "Kamil Pułka, full-stack developer, over a field of pins",
+  });
 import { FaArrowLeft } from "react-icons/fa";
 import Footer from "../components/Footer";
+import { pageMeta } from "../seo";
 
 const PrivacyPolicy = () => {
   return (

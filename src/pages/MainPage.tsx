@@ -6,14 +6,18 @@ import { About } from "../sections/About";
 import { Hero } from "../sections/Hero";
 import { Stack } from "../sections/Stack";
 import { Work } from "../sections/Work";
+import { pageMeta, personJsonLd } from "../seo";
 
 export const meta: MetaFunction = () => [
-  { title: "Kamil Pułka | Full-stack developer" },
-  {
-    name: "description",
-    content:
+  ...pageMeta({
+    title: "Kamil Pułka | Full-stack developer",
+    description:
       "Full-stack developer from Poland. I build and ship web apps, browser extensions and mobile apps that people use every day.",
-  },
+    path: "/",
+    image: "/og/home.jpg",
+    imageAlt: "Kamil Pułka, full-stack developer, over a field of pins",
+  }),
+  personJsonLd,
 ];
 
 export default function MainPage() {

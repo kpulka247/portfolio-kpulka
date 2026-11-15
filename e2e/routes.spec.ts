@@ -53,3 +53,22 @@ for (const { path, status, title } of routes) {
     expect(errors).toEqual([]);
   });
 }
+
+// Link previews read the prerendered HTML, so check that, not the DOM.
+for (const { path } of routes.filter((route) => route.status === 200)) {
+  test(`${path} has a canonical URL and a preview image that loads`, async ({
+    request,
+  }) => {
+    const html = await (await request.get(path)).text();
+    const canonical = html.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
+    expect(canonical).toMatch(
+      /^https:\/\/kpulka\.com\/.*\/$|^https:\/\/kpulka\.com\/$/,
+    );
+    const image = html.match(
+      /<meta property="og:image" content="([^"]+)"/,
+    )?.[1];
+    expect(image).toMatch(/^https:\/\/kpulka\.com\/og\/.+\.jpg$/);
+    const local = new URL(image ?? "").pathname;
+    expect((await request.get(local)).status()).toBe(200);
+  });
+}

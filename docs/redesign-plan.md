@@ -204,7 +204,9 @@ Delete `InteractiveCard.tsx`, `MovingLight.tsx`, `InteractiveBg.tsx`, `src/shade
 
 1. Generate `sitemap.xml` and `robots.txt` from the route list.
 2. Add `Person` JSON-LD on `/` with the name, job title, the GitHub URL and the LinkedIn URL.
-3. Give each project page an Open Graph image: its cover rendered at 1200 by 630 by a Playwright script at build time.
+3. Give each project page an Open Graph image: its cover rendered at 1200 by 630 by a Playwright script.
+
+`src/seo.ts` holds the domain (`https://kpulka.com`, which `www` redirects to) and builds each page's title, description, canonical link and preview tags. `scripts/write-sitemap.mjs` runs after the build and lists every prerendered page that names a canonical URL. `scripts/make-og.mjs` renders the images into `public/og/` from the real components, and the images are committed. It runs by hand, like `scripts/capture-hero.mjs`, so CI does not need a browser to build the site. Rerun it after changing a cover or the hero.
 
 **Check.** The LinkedIn Post Inspector and the Rich Results Test show the right title, description and image for `/` and `/projects/novice`.
 
