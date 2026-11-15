@@ -1,5 +1,63 @@
 @import "tailwindcss";
+@import "@fontsource-variable/anybody/standard.css";
+@import "@fontsource-variable/instrument-sans";
 @plugin "@tailwindcss/typography";
+
+@theme {
+  --color-ground: #e4e5e8;
+  --color-ink: #1b1c1f;
+  --color-ink-dim: #5c5d62;
+  --color-sheet: #000000;
+  --color-raised: #151517;
+  --color-text: #ededee;
+  --color-paper: #fafafa;
+  --color-soft: #c4c5c9;
+  --color-dim: #8a8b90;
+  --color-rule: #2a2b2f;
+  --color-live: #3ecf6e;
+  --color-soon: #f2b33d;
+
+  --font-display: "Anybody Variable", sans-serif;
+  --font-body: "Instrument Sans Variable", sans-serif;
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 17px;
+  --text-md: 21px;
+  --text-lg: 28px;
+  --text-xl: 48px;
+  --text-2xl: 72px;
+  --text-hero: clamp(64px, 13vw, 184px);
+
+  --radius-sm: 6px;
+  --radius-md: 14px;
+  --radius-sheet: 40px;
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+}
+
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: var(--color-ground);
+  font: 600 15px/1 var(--font-body);
+  transform: translateY(-200%);
+  transition: transform 0.2s;
+}
+
+.skip-link:focus-visible {
+  transform: none;
+}
 
 html {
   scroll-behavior: smooth;

@@ -168,7 +168,7 @@ const MainPage = () => {
         className="text-zinc-800 antialiased min-h-screen flex flex-col"
       >
         <Navbar />
-        <main className="flex-grow relative">
+        <main id="main" className="flex-grow relative">
           <div className="relative z-10" style={{ isolation: "isolate" }}>
             <div
               className="fixed inset-0 z-0 pointer-events-none"
@@ -209,7 +209,6 @@ const MainPage = () => {
         </main>
         <Footer />
       </motion.div>
-
     </>
   );
 };

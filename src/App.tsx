@@ -10,6 +10,9 @@ import FullPageLoader from "./components/Loader";
 function App() {
   return (
     <Suspense fallback={<FullPageLoader />}>
+      <a className="skip-link" href="#main">
+        Skip to content
+      </a>
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />

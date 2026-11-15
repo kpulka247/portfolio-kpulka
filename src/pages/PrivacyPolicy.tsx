@@ -12,7 +12,10 @@ const PrivacyPolicy = () => {
       initial="hidden"
       animate="visible"
     >
-      <div className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-20">
+      <main
+        id="main"
+        className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-20"
+      >
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-zinc-300 hover:text-white transition-colors mb-8 group"
@@ -48,8 +51,8 @@ const PrivacyPolicy = () => {
           <h3>a) Hosting</h3>
           <p>
             The Website is hosted on GitHub Pages. GitHub receives your IP
-            address when your browser loads the Website, as every web host
-            does, and keeps it in its server logs for security.
+            address when your browser loads the Website, as every web host does,
+            and keeps it in its server logs for security.
           </p>
 
           <h3>b) Contact Links</h3>
@@ -108,8 +111,8 @@ const PrivacyPolicy = () => {
           <p>
             GitHub, Inc. hosts the Website and processes the server logs
             described in Section 2a under its own privacy statement. If you
-            email me, I keep your message only as long as the conversation
-            needs and never share it.
+            email me, I keep your message only as long as the conversation needs
+            and never share it.
           </p>
 
           <h2>5. Your Privacy Rights</h2>
@@ -139,7 +142,7 @@ const PrivacyPolicy = () => {
             time. Any changes will be posted on this page.
           </p>
         </div>
-      </div>
+      </main>
       <Footer />
     </motion.div>
   );
