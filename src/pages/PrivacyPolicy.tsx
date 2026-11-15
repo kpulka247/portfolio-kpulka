@@ -1,4 +1,12 @@
-import { Link } from "react-router-dom";
+import { Link, type MetaFunction } from "react-router";
+
+export const meta: MetaFunction = () => [
+  { title: "Privacy | Kamil Pułka" },
+  {
+    name: "description",
+    content: "What kpulka.com stores, who hosts it, and your rights.",
+  },
+];
 import { FaArrowLeft } from "react-icons/fa";
 import Footer from "../components/Footer";
 import { motion } from "framer-motion";

@@ -7,6 +7,7 @@ import {
   useCallback,
 } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
+import type { MetaFunction } from "react-router";
 
 import Navbar from "../components/Navbar";
 import Hero from "../sections/Hero";
@@ -21,6 +22,15 @@ const About = lazy(() => import("../sections/About"));
 const Contact = lazy(() => import("../sections/Contact"));
 
 const BACKGROUND_FALLBACK_COLOR = "#eaebef";
+
+export const meta: MetaFunction = () => [
+  { title: "Kamil Pułka | Full-stack developer" },
+  {
+    name: "description",
+    content:
+      "Full-stack developer from Poland. I build and ship web apps, browser extensions and mobile apps that people use every day.",
+  },
+];
 
 interface DeferredSectionProps {
   id: string;
