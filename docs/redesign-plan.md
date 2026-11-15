@@ -238,6 +238,8 @@ Keep two badges: the workflow status and the latest release.
 
 ## Order of pull requests
 
+The redesign ships as version 2.0.0. The last commit on `redesign`, after step 12, is `feat!: launch the redesigned site` with a `BREAKING CHANGE:` footer. semantic-release reads that commit and releases 2.0.0 when `redesign` reaches `main`. A footer on the merge commit is not enough, because merge commit headers do not follow the Conventional Commits format.
+
 Each step above is one pull request into `redesign`, in the order listed. Steps 1 and 9 only delete code, so they are easy to review. Merge `redesign` into `dev`, then into `main`, after step 12 and a pass through the device matrix:
 
 | Device | Browser |
