@@ -3,7 +3,6 @@ import type { MetaFunction } from "react-router";
 import Footer from "../components/Footer";
 import { Navbar } from "../components/Navbar";
 import { About } from "../sections/About";
-import { Contact } from "../sections/Contact";
 import { Hero } from "../sections/Hero";
 import { Stack } from "../sections/Stack";
 import { Work } from "../sections/Work";
@@ -24,11 +23,10 @@ export default function MainPage() {
       <main id="main">
         <Hero />
         <div className="relative z-10 -mt-7 rounded-t-[28px] bg-sheet text-text md:-mt-10 md:rounded-t-sheet">
-          <div className="mx-auto max-w-[1280px] space-y-24 px-5 pt-18 pb-24 md:space-y-32 md:px-16 md:pt-32 md:pb-32">
+          <div className="mx-auto max-w-[1280px] space-y-24 px-5 pt-18 pb-3 md:space-y-32 md:px-16 md:pt-32 md:pb-16">
             <Work />
             <Stack />
             <About />
-            <Contact />
           </div>
         </div>
       </main>
