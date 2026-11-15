@@ -1,9 +1,13 @@
-// Renders the link-preview images that LinkedIn, Slack and others show:
-// the hero for the home page, and each project's cover. They are 1200 by
-// 630 and live in public/og/, where src/seo.ts points. Rerun this after
+// Renders the images that show the site elsewhere. Rerun this after
 // changing a cover or the hero:
 //
-//   node scripts/make-og.mjs
+//   node scripts/make-images.mjs
+//
+// - public/og/: the link previews that LinkedIn, Slack and others show, 1200
+//   by 630. The hero for the home page, and each project's cover. src/seo.ts
+//   points at them.
+// - docs/images/banner.png: the README banner, the home preview with
+//   rounded corners.
 //
 // It starts the dev server and renders the real components, so the images
 // always match the site. Reduced motion keeps the hero on its still image.
@@ -11,10 +15,13 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { chromium } from "@playwright/test";
+import sharp from "sharp";
 import { createServer } from "vite";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const outDir = join(repoRoot, "public", "og");
+const readmeDir = join(repoRoot, "docs", "images");
+const BANNER_RADIUS = 28;
 const SIZE = { width: 1200, height: 630 };
 // Covers are drawn for cards about this size. Rendering them there at twice
 // the pixel density gives 1200 by 630 that looks like the card.
@@ -35,6 +42,19 @@ const ISOLATE = `
   }
 `;
 
+// Cuts the corners of a PNG to transparency, so the banner looks the same
+// on GitHub's light and dark themes.
+async function roundCorners(png, { width, height, radius }) {
+  const mask = Buffer.from(
+    `<svg width="${width}" height="${height}"><rect width="${width}" height="${height}" rx="${radius}" ry="${radius}"/></svg>`,
+  );
+  return sharp(png)
+    .ensureAlpha()
+    .composite([{ input: mask, blend: "dest-in" }])
+    .png()
+    .toBuffer();
+}
+
 async function settle(page) {
   await page.evaluate(async () => {
     await document.fonts.ready;
@@ -48,6 +68,7 @@ async function settle(page) {
 }
 
 await mkdir(outDir, { recursive: true });
+await mkdir(readmeDir, { recursive: true });
 const server = await createServer({
   root: repoRoot,
   server: { port: 5198, strictPort: true },
@@ -75,6 +96,15 @@ try {
     await home.screenshot({ type: "jpeg", quality: QUALITY }),
   );
   console.log("Wrote public/og/home.jpg");
+  // The README banner is the same view, with rounded corners.
+  await writeFile(
+    join(readmeDir, "banner.png"),
+    await roundCorners(await home.screenshot(), {
+      ...SIZE,
+      radius: BANNER_RADIUS,
+    }),
+  );
+  console.log("Wrote docs/images/banner.png");
 
   const page = await browser.newPage({
     viewport: COVER_SIZE,
