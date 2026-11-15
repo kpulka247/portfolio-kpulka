@@ -6,8 +6,8 @@
 // - public/og/: the link previews that LinkedIn, Slack and others show, 1200
 //   by 630. The hero for the home page, and each project's cover. src/seo.ts
 //   points at them.
-// - docs/images/banner.png: the README banner, the home preview with
-//   rounded corners.
+// - docs/images/banner.png: the README banner, the hero with its text
+//   centred and rounded corners.
 //
 // It starts the dev server and renders the real components, so the images
 // always match the site. Reduced motion keeps the hero on its still image.
@@ -21,14 +21,22 @@ import { createServer } from "vite";
 const repoRoot = resolve(import.meta.dirname, "..");
 const outDir = join(repoRoot, "public", "og");
 const readmeDir = join(repoRoot, "docs", "images");
-const BANNER_RADIUS = 28;
-const CENTRED_HERO = `
+// The README banner: wider and shorter than a link preview, with the name
+// and the line under it centred. No buttons, which do nothing in an image,
+// and no small print, which is unreadable when GitHub shrinks the banner.
+const BANNER = { width: 1500, height: 600, radius: 28 };
+const BANNER_HERO = `
+  header, main > :not(section) { visibility: hidden; }
+  section[aria-label="Introduction"] { min-height: 0 !important; padding-bottom: 64px !important; }
   section[aria-label="Introduction"] h1 { text-align: center; margin-left: 0; }
   section[aria-label="Introduction"] h1 + div {
     flex-direction: column;
     align-items: center;
     text-align: center;
   }
+  section[aria-label="Introduction"] h1 + div > div:last-child { display: none !important; }
+  section[aria-label="Introduction"] h1 + div p + p { display: none !important; }
+  section[aria-label="Introduction"] picture img { object-position: 50% 64% !important; }
 `;
 const SIZE = { width: 1200, height: 630 };
 // Covers are drawn for cards about this size. Rendering them there at twice
@@ -104,16 +112,16 @@ try {
     await home.screenshot({ type: "jpeg", quality: QUALITY }),
   );
   console.log("Wrote public/og/home.jpg");
-  // The README banner is the same view with everything centred, since it
-  // stands alone at the top of the README, and with rounded corners.
-  await home.addStyleTag({ content: CENTRED_HERO });
-  await settle(home);
+  const banner = await browser.newPage({
+    viewport: { width: BANNER.width, height: BANNER.height },
+    reducedMotion: "reduce",
+  });
+  await banner.goto("http://localhost:5198/");
+  await banner.addStyleTag({ content: BANNER_HERO });
+  await settle(banner);
   await writeFile(
     join(readmeDir, "banner.png"),
-    await roundCorners(await home.screenshot(), {
-      ...SIZE,
-      radius: BANNER_RADIUS,
-    }),
+    await roundCorners(await banner.screenshot(), BANNER),
   );
   console.log("Wrote docs/images/banner.png");
 

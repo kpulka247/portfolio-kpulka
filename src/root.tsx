@@ -11,7 +11,10 @@ import {
 import { BEACON_SRC, BEACON_TOKEN } from "./analytics";
 import "./index.css";
 
+// The icons come from scripts/make-icons.mjs. Browsers that read SVG
+// icons use favicon.svg, the rest the PNG sizes below.
 export const links: LinksFunction = () => [
+  { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
   { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
   {
     rel: "icon",
