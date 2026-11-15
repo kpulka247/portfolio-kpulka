@@ -1,98 +1,70 @@
-import React, { useState } from "react";
-import { FaGithub, FaLinkedin, FaEnvelope } from "react-icons/fa";
-import SectionHeader from "../components/SectionHeader";
+import { useEffect, useState } from "react";
+import { FaGithub, FaLinkedin } from "react-icons/fa";
 
-const Contact: React.FC = () => {
-  const [isCopied, setIsCopied] = useState(false);
-  const email = "contact@kpulka.com";
+import { EMAIL, GITHUB_URL, LINKEDIN_URL } from "../data/contact";
+import { SectionHeading } from "./SectionHeading";
 
-  const handleCopyEmail = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    navigator.clipboard
-      .writeText(email)
-      .then(() => {
-        setIsCopied(true);
-        setTimeout(() => {
-          setIsCopied(false);
-        }, 2000);
-      })
-      .catch((err) => {
-        console.error("Failed to copy email address: ", err);
-      });
+const COPIED_MS = 2_000;
+
+export function Contact() {
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), COPIED_MS);
+    return () => clearTimeout(timer);
+  }, [copied]);
+
+  const copy = async () => {
+    await navigator.clipboard.writeText(EMAIL);
+    setCopied(true);
   };
 
   return (
-    <section className="py-10 md:py-20">
-      <div className="container mx-auto px-4 max-w-3xl text-center">
-        <SectionHeader
-          title="GET IN TOUCH"
-          subtitle="Let's connect and build something awesome together."
-          fileName="Contact"
-        />
-
-        <p className="text-md mb-10">
-          Whether you want to talk about a project, collaboration, or just say
-          hi, feel free to reach out through any of the platforms below.
-        </p>
-
-        <div className="flex text-zinc-200 justify-center items-center gap-12">
-          {/* Email */}
-          <div className="relative flex items-center group">
-            <div
-              className="absolute right-full top-1/2 -translate-y-1/2 flex items-center gap-3
-                         opacity-0 -translate-x-4 transition-all duration-300
-                         group-hover:opacity-100 group-hover:translate-x-0
-                         pointer-events-none group-hover:pointer-events-auto mr-4"
-            >
-              <span className="font-mono whitespace-nowrap">{email}</span>
-              <button
-                onClick={handleCopyEmail}
-                className={`font-semibold text-sm py-1 px-3 rounded-md transition-all duration-300 ease-in-out ${
-                  isCopied
-                    ? "bg-white text-black"
-                    : "bg-transparent cursor-pointer border border-zinc-300 text-zinc-300 hover:bg-white hover:text-black"
-                }`}
-              >
-                {isCopied ? "Copied!" : "Copy"}
-              </button>
-            </div>
-
-            <div className="absolute right-full top-0 h-full w-4 group-hover:block hidden pointer-events-auto"></div>
-
-            <a
-              href={`mailto:${email}`}
-              aria-label="Send an email or hover to copy"
-              className="transition transform hover:scale-110"
-            >
-              <FaEnvelope className="text-4xl group-hover:text-white transition-colors duration-300" />
-            </a>
-          </div>
-
-          {/* GitHub */}
-          <a
-            href="https://github.com/kpulka247"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex flex-col items-center transition transform hover:scale-110"
-            aria-label="GitHub Profile"
-          >
-            <FaGithub className="text-4xl group-hover:text-white transition-colors duration-300" />
-          </a>
-
-          {/* LinkedIn */}
-          <a
-            href="https://www.linkedin.com/in/kpulka247/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex flex-col items-center transition transform hover:scale-110"
-            aria-label="LinkedIn Profile"
-          >
-            <FaLinkedin className="text-4xl group-hover:text-white transition-colors duration-300" />
-          </a>
-        </div>
+    <section
+      id="contact"
+      aria-labelledby="contact-heading"
+      className="scroll-mt-24"
+    >
+      <SectionHeading id="contact-heading">Contact</SectionHeading>
+      <p className="mt-4 max-w-[40ch] text-base leading-normal text-soft md:mt-5 md:text-md">
+        Email is the fastest way to reach me. I'm open to full-time and contract
+        roles, remote-first.
+      </p>
+      <div className="mt-7 flex flex-col items-start gap-4.5 md:mt-10 md:flex-row md:flex-wrap md:items-center md:gap-7">
+        <a
+          href={`mailto:${EMAIL}`}
+          className="font-display text-[clamp(28px,7.4vw,96px)] leading-none font-extrabold tracking-[-0.02em] text-paper [font-stretch:78%] md:[font-stretch:100%]"
+        >
+          {EMAIL}
+        </a>
+        <button
+          type="button"
+          onClick={copy}
+          className="h-11 cursor-pointer rounded-full bg-paper px-4.5 text-[15px] font-semibold text-sheet transition-colors hover:bg-white"
+        >
+          {copied ? "Copied" : "Copy address"}
+        </button>
+        <span aria-live="polite" className="sr-only">
+          {copied ? "Email address copied" : ""}
+        </span>
+      </div>
+      <div className="mt-8 flex gap-6 md:mt-10 md:gap-7">
+        <a
+          href={LINKEDIN_URL}
+          className="inline-flex min-h-11 items-center gap-2.5 text-paper underline decoration-dim decoration-1 underline-offset-4 hover:decoration-paper"
+        >
+          <FaLinkedin aria-hidden="true" className="size-5.5" />
+          LinkedIn
+        </a>
+        <a
+          href={GITHUB_URL}
+          className="inline-flex min-h-11 items-center gap-2.5 text-paper underline decoration-dim decoration-1 underline-offset-4 hover:decoration-paper"
+        >
+          <FaGithub aria-hidden="true" className="size-5.5" />
+          GitHub
+        </a>
       </div>
     </section>
   );
-};
-
-export default Contact;
+}

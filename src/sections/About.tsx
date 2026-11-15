@@ -1,50 +1,50 @@
-import React from "react";
-import SectionHeader from "../components/SectionHeader";
-import photo1 from "/static/images/photo1.jpg";
+import photo from "/static/images/photo1.jpg";
 
-const About: React.FC = () => {
+import { INSTAGRAM_URL } from "../data/contact";
+import { SectionHeading } from "./SectionHeading";
+
+export function About() {
   return (
-    <section className="py-10 md:py-20">
-      <div className="container mx-auto px-4 max-w-5xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-          <div className="flex justify-center order-2 md:order-1 mt-20 md:mt-0">
-            <img
-              src={photo1}
-              alt="Photo 1"
-              loading="lazy"
-              decoding="async"
-              width={609}
-              height={913}
-              className="opacity-80 rounded-xl shadow-lg w-72 h-auto object-cover"
-            />
-          </div>
-
-          <div className="order-1 md:order-2 text-center md:text-left">
-            <div className="mb-6">
-              <SectionHeader
-                title="ABOUT ME"
-                subtitle="Who am I and what do I do?"
-                fileName="About"
-              />
-            </div>
-            <p className="text-md leading-relaxed mb-4">
-              I’m a passionate web developer from Poland who loves building
-              modern web applications, experimenting with new technologies and
-              creating clean, user-friendly designs. My journey started with
-              simple websites, browser extensions, and now I’m diving deep into
-              frameworks, 3D graphics, and automation.
-            </p>
-            <p className="text-md leading-relaxed">
-              Outside of coding I enjoy computer games, both story-driven and
-              competitive. I also like being active outdoors, from cycling to
-              snowboarding. Coding itself feels a bit like gaming, solving
-              challenges, leveling up skills, and building things I’m proud of.
-            </p>
-          </div>
+    <section
+      id="about"
+      aria-labelledby="about-heading"
+      className="grid scroll-mt-24 items-end gap-x-16 md:grid-cols-[1fr_2fr]"
+    >
+      <img
+        src={photo}
+        alt="Kamil Pułka"
+        width={609}
+        height={913}
+        loading="lazy"
+        decoding="async"
+        className="order-2 mt-6 w-[70%] rounded-md grayscale contrast-[1.05] md:order-1 md:mt-0 md:w-full"
+      />
+      <div className="order-1 md:order-2">
+        <SectionHeading id="about-heading">About</SectionHeading>
+        <div className="mt-6 max-w-[36em] space-y-3.5 text-base leading-[1.55] text-soft md:mt-7 md:space-y-4.5 md:text-md md:leading-normal">
+          <p>
+            I'm Kamil, a developer from Poland. I like taking an idea all the
+            way to a store listing: the design, the code, payments, releases and
+            the support emails that come after.
+          </p>
+          <p>
+            Most of what I ship started as something that annoyed me. A white
+            Garmin dashboard at night, GTA VI spoilers everywhere, a phone I
+            kept picking up.
+          </p>
+          <p>
+            Away from the keyboard I cycle, snowboard, travel and drive in a sim
+            racing rig. The trips end up on{" "}
+            <a
+              href={INSTAGRAM_URL}
+              className="text-paper underline decoration-dim decoration-1 underline-offset-4 hover:decoration-paper"
+            >
+              Instagram
+            </a>
+            .
+          </p>
         </div>
       </div>
     </section>
   );
-};
-
-export default About;
+}

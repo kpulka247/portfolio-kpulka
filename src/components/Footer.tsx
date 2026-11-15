@@ -1,29 +1,27 @@
-import React from "react";
 import { Link } from "react-router";
 
-const Footer: React.FC = () => {
-  const currentYear = new Date().getFullYear();
+import { SOURCE_URL } from "../data/contact";
+
+export default function Footer() {
   return (
-    <footer className="bg-black font-mono text-zinc-600 p-6 text-sm z-10">
-      <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 items-center gap-2 text-center">
-        <div className="md:text-left">
-          <Link to="/" className="hover:text-white underline">
-            Home
-          </Link>
-        </div>
-
-        <div>
-          <p>&copy; {currentYear} kpulka.com</p>
-        </div>
-
-        <div className="md:text-right">
-          <Link to="/privacy" className="hover:text-white underline">
-            Privacy Policy
-          </Link>
-        </div>
+    <footer className="border-t border-rule bg-sheet px-5 pt-6 pb-8 text-sm text-dim md:flex md:items-center md:justify-between md:px-16 md:py-7">
+      <div className="flex gap-6 md:order-2 md:gap-7">
+        <Link
+          to="/privacy"
+          className="underline decoration-dim decoration-1 underline-offset-4 hover:decoration-paper"
+        >
+          Privacy
+        </Link>
+        <a
+          href={SOURCE_URL}
+          className="underline decoration-dim decoration-1 underline-offset-4 hover:decoration-paper"
+        >
+          Source on GitHub
+        </a>
       </div>
+      <p className="mt-3 md:order-1 md:mt-0">
+        © {new Date().getFullYear()} Kamil Pułka
+      </p>
     </footer>
   );
-};
-
-export default Footer;
+}
