@@ -186,7 +186,7 @@ Keep motion to the one hero load sequence. The black sheet slides over the hero 
 - **Name width.** The `wdth` axis of the `h1` follows the car's speed, from 90 to 145.
 - **Size.** Pin count follows the viewport: about 4,100 on desktop and about 1,700 on a phone. Device pixel ratio is capped at 1.5.
 - **Cost.** Rendering stops when the hero leaves the viewport or the tab is hidden.
-- **Fallbacks.** Without WebGL, with `prefers-reduced-motion`, or on a device that reports `navigator.hardwareConcurrency` of 4 or less, the board shows a still image of the pins. The still image is a build-time capture of the board, so it matches the live one.
+- **Fallbacks.** Without WebGL, with `prefers-reduced-motion`, or on a device that reports `navigator.hardwareConcurrency` of 4 or less, the board shows a still image of the pins. The still image is a build-time capture of the board, so it matches the live one. `scripts/capture-hero.mjs` makes it: it opens the home page on the dev server at a desktop and a phone size and saves the canvas to `src/assets/hero/`. Every visitor sees the still image first, and the live board fades in over it once its first frame is drawn.
 - **Height.** The hero uses `100svh`, so it does not jump on iOS.
 
 **Check.** The hero holds 60 fps on a mid-range Android phone in Chrome remote debugging. The Lighthouse performance score on mobile is 90 or more. With reduced motion on, nothing animates.

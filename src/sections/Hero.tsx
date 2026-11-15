@@ -1,56 +1,178 @@
+import { useEffect, useRef, useState } from "react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
+import { PiSteeringWheelBold } from "react-icons/pi";
 
+import boardDesktop from "../assets/hero/board-desktop.webp";
+import boardPhone from "../assets/hero/board-phone.webp";
 import { GITHUB_URL, LINKEDIN_URL } from "../data/contact";
+import type { PinBoard } from "../hero/pinBoard";
 
-// Stays pinned while the black sheet scrolls over it. The pin board scene
-// (step 8 of the redesign plan) mounts behind this copy. The bottom padding
+// The name's width axis follows the car: 90 when it stands, 145 at full
+// speed.
+const NARROW = 90;
+const WIDE = 145;
+
+// The live board needs WebGL 2 and a few spare cores, and stays off for
+// visitors who ask for less motion. Everyone else keeps the still image,
+// which is a capture of the same board (scripts/capture-hero.mjs).
+function canRunBoard(): boolean {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+  if (navigator.hardwareConcurrency <= 4) return false;
+  const gl = document.createElement("canvas").getContext("webgl2");
+  gl?.getExtension("WEBGL_lose_context")?.loseContext();
+  return gl !== null;
+}
+
+function afterFirstPaint(callback: () => void): () => void {
+  if ("requestIdleCallback" in window) {
+    const id = requestIdleCallback(callback, { timeout: 2_000 });
+    return () => cancelIdleCallback(id);
+  }
+  const id = setTimeout(callback, 200);
+  return () => clearTimeout(id);
+}
+
+// Stays pinned while the black sheet scrolls over it. The bottom padding
 // includes the 28 px (phone) or 40 px (desktop) that the sheet overlaps.
 export function Hero() {
+  const hostRef = useRef<HTMLElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const nameRef = useRef<HTMLHeadingElement>(null);
+  const boardRef = useRef<PinBoard | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [live, setLive] = useState(false);
+  const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    const host = hostRef.current;
+    const canvas = canvasRef.current;
+    if (!host || !canvas || !canRunBoard()) return;
+
+    let cancelled = false;
+    const cancelIdle = afterFirstPaint(() => {
+      void import("../hero/pinBoard").then(({ mount }) => {
+        if (cancelled) return;
+        boardRef.current = mount(canvas, host, {
+          onReady: () => setLive(true),
+          onSpeed: (speed) => {
+            nameRef.current?.style.setProperty(
+              "font-stretch",
+              `${NARROW + (WIDE - NARROW) * speed}%`,
+            );
+          },
+          onStop: () => setPlaying(false),
+        });
+        setLoaded(true);
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      cancelIdle();
+      boardRef.current?.dispose();
+      boardRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    boardRef.current?.setPlaying(playing);
+    if (!playing) nameRef.current?.style.removeProperty("font-stretch");
+  }, [playing]);
+
   return (
     <section
+      ref={hostRef}
       aria-label="Introduction"
-      className="sticky top-0 flex h-svh min-h-[560px] flex-col justify-end bg-ground px-5 pb-14 text-ink md:px-10 md:pb-22"
+      className={`sticky top-0 flex h-svh min-h-[560px] flex-col justify-end overflow-hidden bg-ground px-5 pb-14 text-ink md:px-10 md:pb-22 ${
+        playing ? "touch-none" : ""
+      }`}
     >
-      <h1 className="-ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em]">
-        Kamil Pułka
-      </h1>
-      <div className="mt-5 flex flex-wrap items-end justify-between gap-6 md:mt-7">
-        <div className="max-w-[560px]">
-          <p className="text-[17px] leading-[1.4] font-medium md:text-md">
-            Full-stack developer. I build and ship web apps, browser extensions
-            and mobile apps that people use every day.
-          </p>
-          <p className="mt-2 text-sm text-ink-dim md:mt-2.5">
-            Open to full-time and contract roles, remote-first, based in Poland.
-          </p>
-        </div>
-        <div className="flex w-full items-center gap-2.5 md:w-auto">
-          <a
-            href="#work"
-            className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-ink px-5.5 text-[15px] font-semibold text-ground transition-colors hover:bg-sheet md:flex-none"
-          >
-            See my work
-          </a>
-          <a
-            href="#contact"
-            className="inline-flex h-12 flex-1 items-center justify-center rounded-full px-5.5 text-[15px] font-semibold shadow-[inset_0_0_0_1.5px_var(--color-ink)] transition-colors hover:bg-ink/5 md:flex-none"
-          >
-            Get in touch
-          </a>
-          <a
-            href={GITHUB_URL}
-            aria-label="GitHub"
-            className="hidden size-11 items-center justify-center rounded-full transition-colors hover:bg-ink/10 md:inline-flex"
-          >
-            <FaGithub aria-hidden="true" className="size-6" />
-          </a>
-          <a
-            href={LINKEDIN_URL}
-            aria-label="LinkedIn"
-            className="hidden size-11 items-center justify-center rounded-full transition-colors hover:bg-ink/10 md:inline-flex"
-          >
-            <FaLinkedin aria-hidden="true" className="size-6" />
-          </a>
+      <picture aria-hidden="true">
+        <source media="(min-width: 700px)" srcSet={boardDesktop} />
+        <img
+          src={boardPhone}
+          alt=""
+          fetchPriority="high"
+          className="absolute inset-0 size-full object-cover object-bottom"
+        />
+      </picture>
+      <canvas
+        ref={canvasRef}
+        aria-hidden="true"
+        className={`absolute inset-0 size-full transition-opacity duration-700 ${
+          live ? "opacity-100" : "opacity-0"
+        }`}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[62%] bg-linear-to-t from-ground from-38% to-ground/0"
+      />
+
+      <div className="pointer-events-none relative">
+        {loaded && (
+          <div className="pointer-events-auto mb-4 flex flex-wrap items-center gap-x-3.5 gap-y-2 md:mb-5">
+            <button
+              type="button"
+              aria-pressed={playing}
+              onClick={() => setPlaying((on) => !on)}
+              className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-full bg-white/70 pr-4 pl-3 text-sm font-semibold shadow-[inset_0_0_0_1px_rgb(27_28_31/0.18)] backdrop-blur-sm transition-colors hover:bg-white aria-pressed:bg-ink aria-pressed:text-ground"
+            >
+              <PiSteeringWheelBold aria-hidden="true" className="size-5" />
+              Play
+            </button>
+            {playing && (
+              <p className="rounded-full bg-white/70 px-3 py-1.5 text-sm text-ink-dim backdrop-blur-sm">
+                Drive with W A S D or the arrow keys, or hold on the board.
+                Escape stops.
+              </p>
+            )}
+          </div>
+        )}
+        <h1
+          ref={nameRef}
+          className="-ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em] transition-[font-stretch] duration-500"
+        >
+          Kamil Pułka
+        </h1>
+        <div className="mt-5 flex flex-wrap items-end justify-between gap-6 md:mt-7">
+          <div className="max-w-[560px]">
+            <p className="text-[17px] leading-[1.4] font-medium md:text-md">
+              Full-stack developer. I build and ship web apps, browser
+              extensions and mobile apps that people use every day.
+            </p>
+            <p className="mt-2 text-sm text-ink-dim md:mt-2.5">
+              Open to full-time and contract roles, remote-first, based in
+              Poland.
+            </p>
+          </div>
+          <div className="pointer-events-auto flex w-full items-center gap-2.5 md:w-auto">
+            <a
+              href="#work"
+              className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-ink px-5.5 text-[15px] font-semibold text-ground transition-colors hover:bg-sheet md:flex-none"
+            >
+              See my work
+            </a>
+            <a
+              href="#contact"
+              className="inline-flex h-12 flex-1 items-center justify-center rounded-full px-5.5 text-[15px] font-semibold shadow-[inset_0_0_0_1.5px_var(--color-ink)] transition-colors hover:bg-ink/5 md:flex-none"
+            >
+              Get in touch
+            </a>
+            <a
+              href={GITHUB_URL}
+              aria-label="GitHub"
+              className="hidden size-11 items-center justify-center rounded-full transition-colors hover:bg-ink/10 md:inline-flex"
+            >
+              <FaGithub aria-hidden="true" className="size-6" />
+            </a>
+            <a
+              href={LINKEDIN_URL}
+              aria-label="LinkedIn"
+              className="hidden size-11 items-center justify-center rounded-full transition-colors hover:bg-ink/10 md:inline-flex"
+            >
+              <FaLinkedin aria-hidden="true" className="size-6" />
+            </a>
+          </div>
         </div>
       </div>
     </section>

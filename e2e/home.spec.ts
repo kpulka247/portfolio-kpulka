@@ -4,6 +4,10 @@ const WIDTHS = [320, 375, 390, 414, 768, 1024, 1280, 1440, 1920];
 
 test.describe("home page layout", () => {
   test.skip(({ isMobile }) => isMobile, "covers every width from desktop");
+  // The live board renders in software in headless Chromium, which makes
+  // full-page screenshots crawl. Layout does not depend on it, so these
+  // tests use the still image. e2e/hero.spec.ts covers the live board.
+  test.use({ reducedMotion: "reduce" });
 
   for (const width of WIDTHS) {
     test(`no horizontal scroll at ${width}px`, async ({ page }) => {
