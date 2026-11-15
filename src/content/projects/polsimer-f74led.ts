@@ -1,4 +1,5 @@
 import type { Project } from "../schema";
+import sources from "../sources.json";
 import cover from "../../assets/projects/polsimer-f74led/cover.webp";
 import ledEffects from "../../assets/projects/polsimer-f74led/led-effects.webp";
 import settings from "../../assets/projects/polsimer-f74led/settings.webp";
@@ -19,7 +20,7 @@ export const polsimerF74led: Project = {
     releases:
       "https://github.com/kpulka247/polsimer-simhub-plugin/releases/latest",
   },
-  githubRepo: "kpulka247/polsimer-simhub-plugin",
+  sources: sources["polsimer-f74led"],
   icon: { kind: "leds" },
   cover: {
     device: "window",

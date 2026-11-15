@@ -121,13 +121,13 @@ The do nothing repository is private. The images listed above are its public sto
 
 ### 5. Pull store numbers at build time
 
-`scripts/fetch-stats.mjs` runs before `vite build`. It reads the `stores` and `githubRepo` fields of every project and fetches the matching shields.io JSON endpoints:
+`scripts/fetch-stats.mjs` runs at the start of `pnpm build`. It reads the store IDs and GitHub repos from `src/content/sources.json`, the one file the project data and the script share, and fetches the matching shields.io JSON endpoints:
 
 - `chrome-web-store/users/<id>` and `chrome-web-store/rating/<id>`
 - `amo/users/<slug>` and `amo/rating/<slug>`
 - `github/downloads/<repo>/total` and `github/v/release/<repo>`
 
-It writes `src/data/stats.json`. That file is committed, so the build always has the last known values.
+Google Play has no shields.io badge, so the script checks whether the app's store page answers 200 or 404. It writes `src/content/stats.json`, only when a value changed. That file is committed, so the build always has the last known values. `src/content/status.ts` turns the stats into the card status and the store buttons.
 
 The script applies these rules:
 

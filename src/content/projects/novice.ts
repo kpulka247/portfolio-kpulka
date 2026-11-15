@@ -1,4 +1,5 @@
 import type { Project } from "../schema";
+import sources from "../sources.json";
 import acrossTheWeb from "../../assets/projects/novice/across-the-web.webp";
 import cover from "../../assets/projects/novice/cover.webp";
 import icon from "../../assets/projects/novice/icon.png";
@@ -21,8 +22,7 @@ export const novice: Project = {
     github: "https://github.com/kpulka247/novice",
     releases: "https://github.com/kpulka247/novice/releases/latest",
   },
-  stores: { chromeId: "caledcpfdapmmhmflbpjmjnenmjggghp", amoSlug: "novice" },
-  githubRepo: "kpulka247/novice",
+  sources: sources["novice"],
   icon: { kind: "image", image: { src: icon, alt: "" } },
   cover: {
     device: "browser",

@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main
+  # Rebuild every Monday so the store numbers stay current. With no new
+  # commits, semantic-release publishes nothing and the site only redeploys.
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
 
 permissions:
   contents: read

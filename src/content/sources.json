@@ -1,0 +1,18 @@
+{
+  "novice": {
+    "chromeId": "caledcpfdapmmhmflbpjmjnenmjggghp",
+    "amoSlug": "novice",
+    "githubRepo": "kpulka247/novice"
+  },
+  "polsimer-f74led": {
+    "githubRepo": "kpulka247/polsimer-simhub-plugin"
+  },
+  "do-nothing": {
+    "playId": "com.kpulka.donothing"
+  },
+  "dark-connect": {
+    "chromeId": "nadhhgppikppmjacnkebagbgcibnfnob",
+    "amoSlug": "dark-connect",
+    "githubRepo": "kpulka247/dark-connect"
+  }
+}

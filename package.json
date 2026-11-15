@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "react-router dev --host",
-    "build": "react-router typegen && tsc -b && react-router build",
+    "stats": "node scripts/fetch-stats.mjs",
+    "build": "node scripts/fetch-stats.mjs && react-router typegen && tsc -b && react-router build",
     "postbuild": "node scripts/copy-404.js",
     "lint": "eslint .",
     "test": "vitest run",

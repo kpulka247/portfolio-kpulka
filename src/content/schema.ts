@@ -31,13 +31,35 @@ export interface Cover {
   front?: Image;
 }
 
-// Store listings the build looks up for user counts, ratings and status.
-// A project with a store field shows "Coming to <store>" until the listing
+// Where the build looks up a project's numbers. The IDs live in
+// src/content/sources.json, so scripts/fetch-stats.mjs can read them too.
+// A project with a store ID shows "Coming to <store>" until the listing
 // exists.
-export interface Stores {
+export interface Sources {
   chromeId?: string;
   amoSlug?: string;
   playId?: string;
+  // "owner/repo", for the latest release and the download count.
+  githubRepo?: string;
+}
+
+export interface StoreStats {
+  listed: boolean;
+  users?: number;
+  rating?: number;
+}
+
+// What scripts/fetch-stats.mjs last fetched for one project.
+export interface ProjectStats {
+  chrome?: StoreStats;
+  firefox?: StoreStats;
+  play?: { listed: boolean };
+  github?: { release?: string; downloads?: number };
+}
+
+export interface StatsFile {
+  fetchedAt: string;
+  projects: Record<string, ProjectStats>;
 }
 
 export interface Project {
@@ -54,9 +76,7 @@ export interface Project {
   platforms: string;
   builtWith: string[];
   links: { github?: string; website?: string; releases?: string };
-  stores?: Stores;
-  // "owner/repo", for the latest release and the download count.
-  githubRepo?: string;
+  sources?: Sources;
   icon: ProjectIcon;
   cover: Cover;
   features: { name: string; text: string }[];

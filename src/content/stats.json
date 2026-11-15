@@ -1,0 +1,44 @@
+{
+  "fetchedAt": "2026-11-15T18:43:49.891Z",
+  "projects": {
+    "novice": {
+      "chrome": {
+        "listed": false
+      },
+      "firefox": {
+        "listed": false
+      },
+      "github": {
+        "release": "1.2.0",
+        "downloads": 12
+      }
+    },
+    "polsimer-f74led": {
+      "github": {
+        "release": "1.0.0",
+        "downloads": 4
+      }
+    },
+    "do-nothing": {
+      "play": {
+        "listed": false
+      }
+    },
+    "dark-connect": {
+      "chrome": {
+        "listed": true,
+        "users": 1000,
+        "rating": 5
+      },
+      "firefox": {
+        "listed": true,
+        "users": 192,
+        "rating": 5
+      },
+      "github": {
+        "release": "2.7.1",
+        "downloads": 122
+      }
+    }
+  }
+}

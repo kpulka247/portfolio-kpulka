@@ -1,4 +1,5 @@
 import type { Project } from "../schema";
+import sources from "../sources.json";
 import challenges from "../../assets/projects/dark-connect/challenges.webp";
 import cover from "../../assets/projects/dark-connect/cover.webp";
 import hrv from "../../assets/projects/dark-connect/hrv.webp";
@@ -27,11 +28,7 @@ export const darkConnect: Project = {
     github: "https://github.com/kpulka247/dark-connect",
     releases: "https://github.com/kpulka247/dark-connect/releases/latest",
   },
-  stores: {
-    chromeId: "nadhhgppikppmjacnkebagbgcibnfnob",
-    amoSlug: "dark-connect",
-  },
-  githubRepo: "kpulka247/dark-connect",
+  sources: sources["dark-connect"],
   icon: { kind: "image", image: { src: icon, alt: "" } },
   cover: {
     device: "browser",

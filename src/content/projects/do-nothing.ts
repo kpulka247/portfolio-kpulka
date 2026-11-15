@@ -1,4 +1,5 @@
 import type { Project } from "../schema";
+import sources from "../sources.json";
 import cover from "../../assets/projects/do-nothing/cover.webp";
 import done from "../../assets/projects/do-nothing/done.webp";
 import icon from "../../assets/projects/do-nothing/icon.png";
@@ -17,7 +18,7 @@ export const doNothing: Project = {
   platforms: "Android, with iOS to follow",
   builtWith: ["Expo", "React Native", "TypeScript", "Skia", "Reanimated"],
   links: {},
-  stores: { playId: "com.kpulka.donothing" },
+  sources: sources["do-nothing"],
   icon: { kind: "image", image: { src: icon, alt: "" } },
   cover: {
     device: "phone",
