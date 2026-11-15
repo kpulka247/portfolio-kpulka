@@ -7,17 +7,57 @@ import boardPhone from "../assets/hero/board-phone.webp";
 import { GITHUB_URL, LINKEDIN_URL } from "../data/contact";
 import type { PinBoard } from "../hero/pinBoard";
 
-// The name's width axis follows the car: 90 when it stands, 145 at full
-// speed.
+// The name's width axis follows the car: 90 when it stands, up to 145 at
+// full speed.
 const NARROW = 90;
 const WIDE = 145;
 
-// The live board needs WebGL 2 and a few spare cores, and stays off for
-// visitors who ask for less motion. Everyone else keeps the still image,
-// which is a capture of the same board (scripts/capture-hero.mjs).
+interface StretchRange {
+  min: number;
+  max: number;
+}
+
+// The widest the name can get without a line wrapping, and the narrowest
+// it can get without two lines joining. The axis does not widen the glyphs
+// in proportion, so this tries widths on the element itself. It runs in one
+// task, so the visitor never sees the tries.
+function stretchRange(name: HTMLElement): StretchRange {
+  const words = [...name.querySelectorAll("span")];
+  const layout = () => words.map((word) => word.offsetTop).join();
+  const fits = (stretch: number, lines: string) => {
+    name.style.fontStretch = `${stretch}%`;
+    return layout() === lines && name.scrollWidth <= name.clientWidth;
+  };
+
+  const transition = name.style.transition;
+  name.style.transition = "none";
+  name.style.fontStretch = "100%";
+  const lines = layout();
+
+  let max = 100;
+  if (fits(WIDE, lines)) {
+    max = WIDE;
+  } else {
+    let tooWide = WIDE;
+    while (tooWide - max > 1) {
+      const middle = (max + tooWide) / 2;
+      if (fits(middle, lines)) max = middle;
+      else tooWide = middle;
+    }
+  }
+  const min = fits(NARROW, lines) ? NARROW : 100;
+
+  name.style.removeProperty("font-stretch");
+  name.style.transition = transition;
+  return { min, max };
+}
+
+// The live board needs WebGL 2 and stays off for visitors who ask for less
+// motion. The board itself gives up on a device that draws it too slowly.
+// Everyone else keeps the still image, which is a capture of the same
+// board (scripts/capture-hero.mjs).
 function canRunBoard(): boolean {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
-  if (navigator.hardwareConcurrency <= 4) return false;
   const gl = document.createElement("canvas").getContext("webgl2");
   gl?.getExtension("WEBGL_lose_context")?.loseContext();
   return gl !== null;
@@ -39,6 +79,7 @@ export function Hero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const nameRef = useRef<HTMLHeadingElement>(null);
   const boardRef = useRef<PinBoard | null>(null);
+  const rangeRef = useRef<StretchRange>({ min: NARROW, max: WIDE });
   const [loaded, setLoaded] = useState(false);
   const [live, setLive] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -55,12 +96,20 @@ export function Hero() {
         boardRef.current = mount(canvas, host, {
           onReady: () => setLive(true),
           onSpeed: (speed) => {
+            const { min, max } = rangeRef.current;
             nameRef.current?.style.setProperty(
               "font-stretch",
-              `${NARROW + (WIDE - NARROW) * speed}%`,
+              `${min + (max - min) * speed}%`,
             );
           },
           onStop: () => setPlaying(false),
+          onSlow: () => {
+            boardRef.current?.dispose();
+            boardRef.current = null;
+            setPlaying(false);
+            setLive(false);
+            setLoaded(false);
+          },
         });
         setLoaded(true);
       });
@@ -75,8 +124,10 @@ export function Hero() {
   }, []);
 
   useEffect(() => {
+    const name = nameRef.current;
+    if (playing && name) rangeRef.current = stretchRange(name);
     boardRef.current?.setPlaying(playing);
-    if (!playing) nameRef.current?.style.removeProperty("font-stretch");
+    if (!playing) name?.style.removeProperty("font-stretch");
   }, [playing]);
 
   return (
@@ -132,7 +183,8 @@ export function Hero() {
           ref={nameRef}
           className="-ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em] transition-[font-stretch] duration-500"
         >
-          Kamil Pułka
+          {/* Two spans, so stretchRange can measure each word. */}
+          <span>Kamil</span> <span>Pułka</span>
         </h1>
         <div className="mt-5 flex flex-wrap items-end justify-between gap-6 md:mt-7">
           <div className="max-w-[560px]">

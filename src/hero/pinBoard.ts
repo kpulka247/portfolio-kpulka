@@ -11,6 +11,9 @@ export interface PinBoardOptions {
   onSpeed: (speed: number) => void;
   // The visitor pressed Escape.
   onStop: () => void;
+  // The first seconds ran too slowly. The caller should dispose the board
+  // and keep the still image.
+  onSlow: () => void;
 }
 
 export interface PinBoard {
@@ -30,6 +33,14 @@ const IDLE_SECONDS = 4;
 const RECOVERY = 0.25;
 const RECOVERY_PLAYING = 0.55;
 const CAR_DROP = 10;
+// The car stays inside this part of the screen, in normalised device
+// coordinates, so it never drives out of view.
+const SCREEN_EDGE = 0.9;
+// After a short warm-up, frames are timed for this long. If they average
+// slower than SLOW_FRAME, the device is too slow for the board.
+const WARM_UP_FRAMES = 30;
+const TIMED_FRAMES = 90;
+const SLOW_FRAME = 1 / 24;
 const CAR_TOP_SPEED = 13;
 
 interface Grid {
@@ -237,6 +248,16 @@ export function mount(
     wake();
   }
 
+  // On the board and in view.
+  const projected = new THREE.Vector3();
+  function fits(x: number, z: number): boolean {
+    if (x < x0 + 1 || x > -x0 - 1 || z < z0 + 1 || z > -z0 - 1) return false;
+    projected.set(x, 1, z).project(camera);
+    return (
+      Math.abs(projected.x) < SCREEN_EDGE && Math.abs(projected.y) < SCREEN_EDGE
+    );
+  }
+
   function drive(dt: number) {
     let throttle = 0;
     let steer = 0;
@@ -260,16 +281,15 @@ export function mount(
     speed +=
       (throttle * CAR_TOP_SPEED - speed) * dt * (throttle !== 0 ? 1.5 : 2.4);
     heading += steer * dt * 2.6 * THREE.MathUtils.clamp(speed / 7, -1, 1);
-    carX = THREE.MathUtils.clamp(
-      carX + Math.sin(heading) * speed * dt,
-      x0 + 1,
-      -x0 - 1,
-    );
-    carZ = THREE.MathUtils.clamp(
-      carZ + Math.cos(heading) * speed * dt,
-      z0 + 1,
-      -z0 - 1,
-    );
+    const nextX = carX + Math.sin(heading) * speed * dt;
+    const nextZ = carZ + Math.cos(heading) * speed * dt;
+    if (fits(nextX, nextZ)) {
+      carX = nextX;
+      carZ = nextZ;
+    } else {
+      // Bounce off the edge and lose most of the speed.
+      speed *= -0.3;
+    }
     carHeight = Math.max(0, carHeight - dt * 28);
 
     if (carHeight < 0.1) {
@@ -291,9 +311,25 @@ export function mount(
   let lastInput = -Infinity;
   let frameId = 0;
   let ready = false;
+  let framesDrawn = 0;
+  let timedSeconds = 0;
 
   function frame() {
-    const dt = Math.min(clock.getDelta(), 1 / 30);
+    const elapsed = clock.getDelta();
+    const dt = Math.min(elapsed, 1 / 30);
+
+    framesDrawn += 1;
+    // Automated browsers draw the board in software and would always count
+    // as slow, so the end-to-end tests could never reach the live board.
+    if (framesDrawn > WARM_UP_FRAMES && !navigator.webdriver) {
+      if (framesDrawn <= WARM_UP_FRAMES + TIMED_FRAMES) timedSeconds += elapsed;
+      if (framesDrawn === WARM_UP_FRAMES + TIMED_FRAMES) {
+        if (timedSeconds / TIMED_FRAMES > SLOW_FRAME) {
+          options.onSlow();
+          return;
+        }
+      }
+    }
     const t = clock.elapsedTime;
 
     const recovery = (playing ? RECOVERY_PLAYING : RECOVERY) ** dt;
