@@ -1,4 +1,14 @@
+import type { ReactNode } from "react";
+import { PiArrowLeftBold } from "react-icons/pi";
 import { Link, type MetaFunction } from "react-router";
+
+import { BEACON_TOKEN } from "../analytics";
+import Footer from "../components/Footer";
+import { Navbar } from "../components/Navbar";
+import { EMAIL } from "../data/contact";
+import { pageMeta } from "../seo";
+
+const UPDATED = "15 November 2026";
 
 export const meta: MetaFunction = () =>
   pageMeta({
@@ -8,147 +18,148 @@ export const meta: MetaFunction = () =>
     image: "/og/home.jpg",
     imageAlt: "Kamil Pułka, full-stack developer, over a field of pins",
   });
-import { FaArrowLeft } from "react-icons/fa";
-import Footer from "../components/Footer";
-import { pageMeta } from "../seo";
 
-const PrivacyPolicy = () => {
+export default function PrivacyPolicy() {
   return (
-    <div className="bg-black text-zinc-300 min-h-screen flex flex-col">
+    <>
+      <Navbar />
       <main
         id="main"
-        className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-20"
+        className="mx-auto max-w-[1280px] px-5 pt-24 pb-24 text-soft md:px-16 md:pt-32 md:pb-28"
       >
         <Link
           to="/"
-          className="inline-flex items-center gap-2 text-zinc-300 hover:text-white transition-colors mb-8 group"
+          className="inline-flex min-h-11 items-center gap-2 text-sm underline decoration-dim underline-offset-4 hover:text-paper hover:decoration-paper"
         >
-          <FaArrowLeft className="transform group-hover:-translate-x-1 transition-transform" />
-          <span>Back to Home</span>
+          <PiArrowLeftBold aria-hidden="true" className="size-4" />
+          Home
         </Link>
+        <div className="mt-8 grid gap-10 md:mt-10 lg:grid-cols-[340px_minmax(0,640px)] lg:gap-20">
+          <div>
+            <h1 className="font-display text-[48px] leading-[0.95] font-[850] tracking-[-0.02em] text-paper [font-stretch:112%] md:text-2xl">
+              Privacy
+            </h1>
+            <p className="mt-4 text-sm text-dim md:mt-5">
+              Last updated {UPDATED}
+            </p>
+          </div>
 
-        <div className="prose prose-invert prose-headings:text-zinc-200 prose-strong:text-zinc-200 prose-code:text-zinc-200 max-w-none">
-          <h1>Privacy Policy</h1>
-          <p>
-            <strong>Effective Date:</strong> November 15, 2026
-          </p>
-          <p>
-            This Privacy Policy explains how Kamil Pułka ("I", "me", "my")
-            handles information from users ("you", "your") of the website
-            kpulka.com (the "Website") and related software products.
-          </p>
+          <article className="text-base leading-[1.6]">
+            <p className="text-[19px] leading-normal text-paper md:text-md">
+              This site sets no cookies and stores nothing on your device. There
+              is no cookie banner because there is nothing to agree to.
+            </p>
 
-          <h2>1. Who is responsible for your data?</h2>
-          <p>
-            I, Kamil Pułka, am the controller of your personal data. If you have
-            any questions about this policy or your data, you can contact me at:{" "}
-            <strong>contact@kpulka.com</strong>.
-          </p>
+            <Section title="Who runs this site">
+              <p>
+                Kamil Pułka, Poland. Write to{" "}
+                <TextLink href={`mailto:${EMAIL}`}>{EMAIL}</TextLink> about
+                anything on this page.
+              </p>
+            </Section>
 
-          <h2>2. Data Collection on the Website (kpulka.com)</h2>
-          <p>
-            The Website does not use analytics, cookies, or local storage, and
-            it does not track your visits.
-          </p>
+            {BEACON_TOKEN && (
+              <Section title="Visit statistics">
+                <p>
+                  I count visits with Cloudflare Web Analytics. It does not use
+                  cookies, local storage or fingerprinting, and it does not
+                  follow you to other sites. It records the page you opened, the
+                  site that sent you, your browser, operating system and
+                  country, and how fast the page loaded.
+                </p>
+                <p>
+                  The legal basis is my legitimate interest in knowing which
+                  pages people read (Article 6(1)(f) GDPR). Cloudflare processes
+                  this data for me and is certified under the EU-US Data Privacy
+                  Framework.
+                </p>
+              </Section>
+            )}
 
-          <h3>a) Hosting</h3>
-          <p>
-            The Website is hosted on GitHub Pages. GitHub receives your IP
-            address when your browser loads the Website, as every web host does,
-            and keeps it in its server logs for security.
-          </p>
+            <Section title="Hosting">
+              <p>
+                The site is hosted on GitHub Pages. GitHub receives your IP
+                address when your browser loads the page, as every web host
+                does, and keeps it in its server logs for security.
+              </p>
+            </Section>
 
-          <h3>b) Contact Links</h3>
-          <p>
-            The Website links to my GitHub and LinkedIn profiles and to my email
-            address (<code>mailto:</code>). When you use them, you interact
-            directly with those services, which have their own privacy policies.
-            This Website{" "}
-            <strong>
-              does not collect, store, or have access to any personal data
-            </strong>{" "}
-            that you share with them.
-          </p>
+            <Section title="Fonts and scripts">
+              <p>
+                Fonts, images and the site's own code are served from this site.
+                {BEACON_TOKEN
+                  ? " The only third-party file is Cloudflare's analytics script, described above."
+                  : " No file loads from another site."}{" "}
+                Nothing loads from Google.
+              </p>
+            </Section>
 
-          <h2>3. Dark Connect Browser Extension</h2>
-          <p>
-            I am also the developer of the "Dark Connect" browser extension,
-            available via the Chrome Web Store and other platforms. I am
-            committed to transparency regarding this software.
-          </p>
-          <h3>a) No Data Collection</h3>
-          <p>
-            The Dark Connect extension is designed with privacy as a core
-            principle. It{" "}
-            <strong>
-              does not collect, store, transmit, or sell any user data
-            </strong>
-            .
-          </p>
-          <ul>
-            <li>
-              It functions locally on your device to modify the visual
-              appearance (CSS) of the Garmin Connect website.
-            </li>
-            <li>
-              It does not track your browsing activity, health data, login
-              credentials, or any other personal information.
-            </li>
-            <li>
-              No analytics scripts or third-party trackers are embedded within
-              the extension's code.
-            </li>
-          </ul>
+            <Section title="When you email me">
+              <p>
+                I keep your message and address only as long as the conversation
+                needs, and I never share them.
+              </p>
+            </Section>
 
-          <h3>b) Chrome Web Store Analytics</h3>
-          <p>
-            Please note that the platform where you download the extension
-            (e.g., Chrome Web Store) may collect its own aggregated statistics
-            regarding store listing visits and installation counts. This data is
-            governed by the privacy policy of the respective store platform
-            (e.g., Google) and is not collected by the Dark Connect extension
-            software itself.
-          </p>
+            <Section title="Dark Connect">
+              <p>
+                Dark Connect, my browser extension for Garmin Connect, collects
+                no data. It changes how Garmin Connect looks, on your device and
+                only on Garmin's own sites. It does not read or send your
+                browsing, health data or logins, and it contains no analytics or
+                trackers.
+              </p>
+              <p>
+                The store you install it from, such as the Chrome Web Store,
+                counts visits to its listing and installs under its own privacy
+                policy.
+              </p>
+            </Section>
 
-          <h2>4. Who has access to your data?</h2>
-          <p>
-            GitHub, Inc. hosts the Website and processes the server logs
-            described in Section 2a under its own privacy statement. If you
-            email me, I keep your message only as long as the conversation needs
-            and never share it.
-          </p>
+            <Section title="Your rights">
+              <p>
+                You can ask me what I hold about you, ask me to correct or
+                delete it, or object to the processing. You can also complain to
+                the Polish data protection authority, the{" "}
+                <TextLink href="https://uodo.gov.pl/en">
+                  President of the Personal Data Protection Office (UODO)
+                </TextLink>
+                .
+              </p>
+            </Section>
 
-          <h2>5. Your Privacy Rights</h2>
-          <p>You have rights over your data under GDPR, including:</p>
-          <ul>
-            <li>
-              The right to <strong>access</strong>, <strong>correct</strong>, or{" "}
-              <strong>delete</strong> your information.
-            </li>
-            <li>
-              The right to <strong>object to</strong> or{" "}
-              <strong>restrict</strong> processing.
-            </li>
-            <li>
-              The right to <strong>lodge a complaint</strong> with a supervisory
-              authority (like Poland's UODO).
-            </li>
-          </ul>
-          <p>
-            To exercise these rights, please contact me at the email address in
-            Section 1.
-          </p>
-
-          <h2>6. Updates to this Policy</h2>
-          <p>
-            I reserve the right to make changes to this Privacy Policy at any
-            time. Any changes will be posted on this page.
-          </p>
+            <Section title="Changes">
+              <p>
+                When this policy changes, the new version goes on this page with
+                a new date at the top.
+              </p>
+            </Section>
+          </article>
         </div>
       </main>
       <Footer />
-    </div>
+    </>
   );
-};
+}
 
-export default PrivacyPolicy;
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="mt-12 space-y-3.5 md:mt-14">
+      <h2 className="font-display text-[24px] leading-tight font-extrabold text-paper [font-stretch:108%] md:text-lg">
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+function TextLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a
+      href={href}
+      className="text-paper underline decoration-dim decoration-1 underline-offset-4 hover:decoration-paper"
+    >
+      {children}
+    </a>
+  );
+}

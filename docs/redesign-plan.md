@@ -217,7 +217,7 @@ After the redesign is live:
 1. In the Cloudflare dashboard, open **Analytics & Logs**, then **Web Analytics**, then **Add a site**.
 2. Enter `kpulka.com`. DNS stays at OVH, so choose the JavaScript snippet option.
 3. Copy the token. Save it in GitHub as a repository variable named `CF_BEACON_TOKEN` (**Settings**, **Secrets and variables**, **Actions**, **Variables**). It is public in the page source, so it does not need to be a secret.
-4. The build adds the beacon `<script>` only when `CF_BEACON_TOKEN` is set.
+4. The build adds the beacon `<script>` only when `CF_BEACON_TOKEN` is set. The release workflow passes it in as `VITE_CF_BEACON_TOKEN`, and `src/analytics.ts` reads it. The privacy page describes the visit statistics only in a build that has the token, so the page always matches what the site does.
 
 To remove after the switch:
 

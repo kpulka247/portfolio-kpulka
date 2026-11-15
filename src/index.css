@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "@fontsource-variable/anybody/standard.css";
 @import "@fontsource-variable/instrument-sans";
-@plugin "@tailwindcss/typography";
 
 @theme {
   --color-ground: #e4e5e8;

@@ -8,6 +8,7 @@ import {
   type LinksFunction,
 } from "react-router";
 
+import { BEACON_SRC, BEACON_TOKEN } from "./analytics";
 import "./index.css";
 
 export const links: LinksFunction = () => [
@@ -45,6 +46,13 @@ export function Layout({ children }: { children: ReactNode }) {
         {children}
         <ScrollRestoration />
         <Scripts />
+        {BEACON_TOKEN && (
+          <script
+            defer
+            src={BEACON_SRC}
+            data-cf-beacon={JSON.stringify({ token: BEACON_TOKEN })}
+          />
+        )}
       </body>
     </html>
   );

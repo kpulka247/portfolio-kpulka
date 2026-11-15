@@ -43,6 +43,10 @@ jobs:
 
       - name: Build the site
         run: pnpm build
+        env:
+          # Cloudflare Web Analytics. Public in the page source, so it is a
+          # repository variable, not a secret. Unset means no analytics.
+          VITE_CF_BEACON_TOKEN: ${{ vars.CF_BEACON_TOKEN }}
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4
