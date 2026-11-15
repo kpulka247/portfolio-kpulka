@@ -183,8 +183,9 @@ Keep motion to the one hero load sequence. The black sheet slides over the hero 
 
 - **Board.** One `InstancedMesh` of pins plus a height field. The field is a slow swell, a press under the pointer, and a slow automatic press after 4 seconds without input. Pins rise back over about 1 second.
 - **Play.** A `button` with `aria-pressed`. Pressing it drops the car. W A S D and the arrow keys steer it, or the visitor holds on the board. Escape or **Stop** ends the game. The keys work only while the game is on, so they never take over page scrolling.
-- **Name width.** The `wdth` axis of the `h1` follows the car's speed, from 90 to 145, but only as wide as the name still fits on its lines. The car stays inside the visible part of the board and bounces off its edge.
-- **Size.** Pin count follows the viewport: about 4,100 on desktop and about 1,700 on a phone. Device pixel ratio is capped at 1.5.
+- **Car.** The car stays inside the visible part of the board and bounces off its edge. On a touch screen the hint says to hold on the board, and holding does not select text or open the long-press menu.
+- **Presses.** Pins ease towards a press instead of snapping to it. The automatic press fades in over 2 seconds.
+- **Size.** Pin count follows the viewport: about 4,100 on a 16:9 desktop and about 1,700 on a phone. Wider screens, up to 32:9, get more columns, so the board's sides stay off screen. Device pixel ratio is capped at 1.5.
 - **Cost.** Rendering stops when the hero leaves the viewport or the tab is hidden.
 - **Fallbacks.** Without WebGL 2, with `prefers-reduced-motion`, or on a device that draws the board's first frames slower than 24 fps, the board shows a still image of the pins. The speed is measured rather than guessed from `navigator.hardwareConcurrency`, because Safari caps that value and would send every iPhone to the fallback. The still image is a build-time capture of the board, so it matches the live one. `scripts/capture-hero.mjs` makes it: it opens the home page on the dev server at a desktop and a phone size and saves the canvas to `src/assets/hero/`. Every visitor sees the still image first, and the live board fades in over it once its first frame is drawn.
 - **Height.** The hero uses `100svh`, so it does not jump on iOS.

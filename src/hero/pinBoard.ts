@@ -7,8 +7,6 @@ import * as THREE from "three";
 export interface PinBoardOptions {
   // The first frame is on screen, so the still image behind can go.
   onReady: () => void;
-  // The car's speed from 0 to 1, while the game is on.
-  onSpeed: (speed: number) => void;
   // The visitor pressed Escape.
   onStop: () => void;
   // The first seconds ran too slowly. The caller should dispose the board
@@ -27,8 +25,12 @@ const PIN_HIGH = new THREE.Color("#f6f6f7");
 const MAX_PIXEL_RATIO = 1.5;
 // Below this width the board uses the phone grid and camera.
 const PHONE_WIDTH = 700;
-// The automatic press starts after this many seconds without input.
+// The automatic press starts after this many seconds without input, and
+// takes FADE_IN_SECONDS to reach its full depth.
 const IDLE_SECONDS = 4;
+const FADE_IN_SECONDS = 2;
+// How fast pins move towards a press, per second. Higher is snappier.
+const PRESS_RATE = { pointer: 14, car: 30, idle: 5 };
 // Pins rise back to about a fifth of a press in one second.
 const RECOVERY = 0.25;
 const RECOVERY_PLAYING = 0.55;
@@ -49,9 +51,22 @@ interface Grid {
   spacing: number;
 }
 
-// About 4,100 pins on a desktop and 1,700 on a phone.
+// About 4,100 pins on a 16:9 desktop and 1,700 on a phone. Wider screens
+// get more columns (desktopGrid).
 const DESKTOP: Grid = { columns: 90, rows: 46, spacing: 0.62 };
 const PHONE: Grid = { columns: 34, rows: 50, spacing: 0.8 };
+const DESKTOP_CAMERA = { fov: 34, y: 15, z: 26 };
+
+// Enough columns that the board's sides stay off screen at the far edge,
+// where the view is widest, on screens up to 32:9.
+function desktopGrid(aspect: number): Grid {
+  const farEdge = ((DESKTOP.rows - 1) * DESKTOP.spacing) / 2;
+  const distance = Math.hypot(DESKTOP_CAMERA.y, DESKTOP_CAMERA.z + farEdge);
+  const halfAngle = THREE.MathUtils.degToRad(DESKTOP_CAMERA.fov / 2);
+  const visibleWidth = 2 * distance * Math.tan(halfAngle) * aspect * 1.1;
+  const columns = Math.ceil(visibleWidth / DESKTOP.spacing) + 2;
+  return { ...DESKTOP, columns: Math.max(DESKTOP.columns, columns) };
+}
 
 const DRIVE_KEYS = new Set([
   "w",
@@ -73,13 +88,20 @@ const CONTACTS: [number, number, number, number][] = [
   [0, 0, 1.3, 0.9],
 ];
 
+// The share of the way to a press that pins cover in one frame.
+function easeFor(kind: keyof typeof PRESS_RATE, dt: number): number {
+  return 1 - Math.exp(-PRESS_RATE[kind] * dt);
+}
+
 export function mount(
   canvas: HTMLCanvasElement,
   host: HTMLElement,
   options: PinBoardOptions,
 ): PinBoard {
   const phone = host.clientWidth < PHONE_WIDTH;
-  const grid = phone ? PHONE : DESKTOP;
+  const grid = phone
+    ? PHONE
+    : desktopGrid(host.clientWidth / Math.max(1, host.clientHeight));
   const { columns, rows, spacing } = grid;
   const count = columns * rows;
   const x0 = (-(columns - 1) * spacing) / 2;
@@ -95,10 +117,19 @@ export function mount(
   scene.background = new THREE.Color(GROUND);
   scene.fog = new THREE.Fog(GROUND, 30, 70);
 
-  const camera = new THREE.PerspectiveCamera(phone ? 50 : 34, 1, 0.1, 200);
+  const camera = new THREE.PerspectiveCamera(
+    phone ? 50 : DESKTOP_CAMERA.fov,
+    1,
+    0.1,
+    200,
+  );
   // The phone camera looks down more steeply, so the board fills the tall
   // screen above the copy.
-  camera.position.set(0, phone ? 30 : 15, phone ? 20 : 26);
+  camera.position.set(
+    0,
+    phone ? 30 : DESKTOP_CAMERA.y,
+    phone ? 20 : DESKTOP_CAMERA.z,
+  );
   camera.lookAt(0, 0, phone ? -1 : -6);
 
   scene.add(new THREE.HemisphereLight("#ffffff", "#a9abb2", 1.3));
@@ -106,9 +137,10 @@ export function mount(
   sun.position.set(-26, 11, -4);
   sun.castShadow = true;
   sun.shadow.mapSize.setScalar(phone ? 1024 : 2048);
+  const shadowHalfWidth = Math.max(35, (columns * spacing) / 2 + 2);
   Object.assign(sun.shadow.camera, {
-    left: -35,
-    right: 35,
+    left: -shadowHalfWidth,
+    right: shadowHalfWidth,
     top: 30,
     bottom: -30,
     far: 100,
@@ -152,7 +184,16 @@ export function mount(
   const matrix = new THREE.Matrix4();
   const colour = new THREE.Color();
 
-  function press(x: number, z: number, radius: number, amount: number) {
+  // Moves the pins under a round press towards its depth. `ease` is the
+  // share of the way they move this frame, so presses sink in instead of
+  // snapping down.
+  function press(
+    x: number,
+    z: number,
+    radius: number,
+    amount: number,
+    ease: number,
+  ) {
     const i0 = Math.max(0, Math.floor((x - radius - x0) / spacing));
     const i1 = Math.min(columns - 1, Math.ceil((x + radius - x0) / spacing));
     const k0 = Math.max(0, Math.floor((z - radius - z0) / spacing));
@@ -163,7 +204,9 @@ export function mount(
         if (distance >= radius) continue;
         const value = amount * (1 - (distance / radius) ** 2);
         const index = k * columns + i;
-        if (value > depth[index]) depth[index] = value;
+        if (value > depth[index]) {
+          depth[index] += (value - depth[index]) * ease;
+        }
       }
     }
   }
@@ -295,20 +338,23 @@ export function mount(
     if (carHeight < 0.1) {
       const sin = Math.sin(heading);
       const cos = Math.cos(heading);
+      const ease = easeFor("car", dt);
       for (const [dx, dz, radius, amount] of CONTACTS) {
         press(
           carX + dx * cos + dz * sin,
           carZ - dx * sin + dz * cos,
           radius,
           amount,
+          ease,
         );
       }
     }
-    options.onSpeed(Math.min(1, Math.abs(speed) / CAR_TOP_SPEED));
   }
 
   const clock = new THREE.Clock(false);
-  let lastInput = -Infinity;
+  // Counts as input at load, so the automatic press first starts after
+  // IDLE_SECONDS, as in the still image.
+  let lastInput = 0;
   let frameId = 0;
   let ready = false;
   let framesDrawn = 0;
@@ -344,14 +390,21 @@ export function mount(
           pointer.z,
           pointerDown ? 4.2 : 3,
           pointerDown ? 1.6 : 1,
+          easeFor("pointer", dt),
         );
         lastInput = t;
       } else if (t - lastInput > IDLE_SECONDS) {
+        const fadeIn = THREE.MathUtils.smoothstep(
+          t - lastInput - IDLE_SECONDS,
+          0,
+          FADE_IN_SECONDS,
+        );
         press(
           Math.sin(t * 0.23) * x0 * 0.55,
           Math.cos(t * 0.31) * z0 * 0.45 - 3,
           3.4,
-          1.25,
+          1.25 * fadeIn,
+          easeFor("idle", dt),
         );
       }
       carHeight = Math.min(12, carHeight + dt * 20);

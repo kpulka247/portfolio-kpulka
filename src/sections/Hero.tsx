@@ -7,49 +7,11 @@ import boardPhone from "../assets/hero/board-phone.webp";
 import { GITHUB_URL, LINKEDIN_URL } from "../data/contact";
 import type { PinBoard } from "../hero/pinBoard";
 
-// The name's width axis follows the car: 90 when it stands, up to 145 at
-// full speed.
-const NARROW = 90;
-const WIDE = 145;
-
-interface StretchRange {
-  min: number;
-  max: number;
-}
-
-// The widest the name can get without a line wrapping, and the narrowest
-// it can get without two lines joining. The axis does not widen the glyphs
-// in proportion, so this tries widths on the element itself. It runs in one
-// task, so the visitor never sees the tries.
-function stretchRange(name: HTMLElement): StretchRange {
-  const words = [...name.querySelectorAll("span")];
-  const layout = () => words.map((word) => word.offsetTop).join();
-  const fits = (stretch: number, lines: string) => {
-    name.style.fontStretch = `${stretch}%`;
-    return layout() === lines && name.scrollWidth <= name.clientWidth;
-  };
-
-  const transition = name.style.transition;
-  name.style.transition = "none";
-  name.style.fontStretch = "100%";
-  const lines = layout();
-
-  let max = 100;
-  if (fits(WIDE, lines)) {
-    max = WIDE;
-  } else {
-    let tooWide = WIDE;
-    while (tooWide - max > 1) {
-      const middle = (max + tooWide) / 2;
-      if (fits(middle, lines)) max = middle;
-      else tooWide = middle;
-    }
-  }
-  const min = fits(NARROW, lines) ? NARROW : 100;
-
-  name.style.removeProperty("font-stretch");
-  name.style.transition = transition;
-  return { min, max };
+// A finger has no keys, so touch screens get their own hint.
+function controlsHint(): string {
+  return matchMedia("(hover: hover) and (pointer: fine)").matches
+    ? "Drive with W A S D or the arrow keys, or hold on the board. Escape stops."
+    : "Hold on the board to drive towards your finger. Tap Play to stop.";
 }
 
 // The live board needs WebGL 2 and stays off for visitors who ask for less
@@ -77,9 +39,7 @@ function afterFirstPaint(callback: () => void): () => void {
 export function Hero() {
   const hostRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const nameRef = useRef<HTMLHeadingElement>(null);
   const boardRef = useRef<PinBoard | null>(null);
-  const rangeRef = useRef<StretchRange>({ min: NARROW, max: WIDE });
   const [loaded, setLoaded] = useState(false);
   const [live, setLive] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -95,13 +55,6 @@ export function Hero() {
         if (cancelled) return;
         boardRef.current = mount(canvas, host, {
           onReady: () => setLive(true),
-          onSpeed: (speed) => {
-            const { min, max } = rangeRef.current;
-            nameRef.current?.style.setProperty(
-              "font-stretch",
-              `${min + (max - min) * speed}%`,
-            );
-          },
           onStop: () => setPlaying(false),
           onSlow: () => {
             boardRef.current?.dispose();
@@ -124,10 +77,7 @@ export function Hero() {
   }, []);
 
   useEffect(() => {
-    const name = nameRef.current;
-    if (playing && name) rangeRef.current = stretchRange(name);
     boardRef.current?.setPlaying(playing);
-    if (!playing) name?.style.removeProperty("font-stretch");
   }, [playing]);
 
   return (
@@ -135,8 +85,10 @@ export function Hero() {
       ref={hostRef}
       aria-label="Introduction"
       className={`sticky top-0 flex h-svh min-h-[560px] flex-col justify-end overflow-hidden bg-ground px-5 pb-14 text-ink md:px-10 md:pb-22 ${
-        playing ? "touch-none" : ""
+        playing ? "touch-none select-none [-webkit-touch-callout:none]" : ""
       }`}
+      // A long press while driving would open the browser's menu.
+      onContextMenu={playing ? (event) => event.preventDefault() : undefined}
     >
       <picture aria-hidden="true">
         <source media="(min-width: 700px)" srcSet={boardDesktop} />
@@ -173,18 +125,13 @@ export function Hero() {
             </button>
             {playing && (
               <p className="rounded-full bg-white/70 px-3 py-1.5 text-sm text-ink-dim backdrop-blur-sm">
-                Drive with W A S D or the arrow keys, or hold on the board.
-                Escape stops.
+                {controlsHint()}
               </p>
             )}
           </div>
         )}
-        <h1
-          ref={nameRef}
-          className="-ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em] transition-[font-stretch] duration-500"
-        >
-          {/* Two spans, so stretchRange can measure each word. */}
-          <span>Kamil</span> <span>Pułka</span>
+        <h1 className="-ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em]">
+          Kamil Pułka
         </h1>
         <div className="mt-5 flex flex-wrap items-end justify-between gap-6 md:mt-7">
           <div className="max-w-[560px]">
