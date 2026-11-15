@@ -9,17 +9,10 @@ export const meta: MetaFunction = () => [
 ];
 import { FaArrowLeft } from "react-icons/fa";
 import Footer from "../components/Footer";
-import { motion } from "framer-motion";
-import { fadeIn } from "../utils/animations";
 
 const PrivacyPolicy = () => {
   return (
-    <motion.div
-      className="bg-black text-zinc-300 min-h-screen flex flex-col"
-      variants={fadeIn}
-      initial="hidden"
-      animate="visible"
-    >
+    <div className="bg-black text-zinc-300 min-h-screen flex flex-col">
       <main
         id="main"
         className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-20"
@@ -152,7 +145,7 @@ const PrivacyPolicy = () => {
         </div>
       </main>
       <Footer />
-    </motion.div>
+    </div>
   );
 };
 

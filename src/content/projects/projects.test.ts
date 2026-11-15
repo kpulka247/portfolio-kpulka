@@ -19,11 +19,8 @@ function imagesOf(project: Project): Image[] {
 }
 
 describe.each(projects)("$name", (project) => {
-  // Vite inlines files under 4 KB as data URIs, which it can only do after
-  // reading the file, so those count as resolved.
   test("every image resolves to a file in the repo", () => {
     for (const image of imagesOf(project)) {
-      if (image.src.startsWith("data:")) continue;
       expect(existsSync(join(repoRoot, image.src)), image.src).toBe(true);
     }
   });

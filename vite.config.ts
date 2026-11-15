@@ -1,10 +1,14 @@
 import { defineConfig } from "vite";
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
-import glsl from "vite-plugin-glsl";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [tailwindcss(), reactRouter(), glsl()],
+  plugins: [tailwindcss(), reactRouter()],
   base: "/",
+  build: {
+    // Keep every image a file. Inlined as base64, small icons would land in
+    // the JavaScript every page loads up front, where they barely compress.
+    assetsInlineLimit: 0,
+  },
 });

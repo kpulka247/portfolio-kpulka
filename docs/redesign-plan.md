@@ -198,6 +198,8 @@ Delete `InteractiveCard.tsx`, `MovingLight.tsx`, `InteractiveBg.tsx`, `src/shade
 
 **Check.** `pnpm build` passes. The JavaScript loaded before the hero chunk is under 120 KB gzipped. Report the before and after sizes in the pull request.
 
+**Result.** The home page's up-front JavaScript went from 133.6 KB to 123.5 KB gzipped, 3.5 KB over the target. The old code was never on the home page's path, so deleting it saved nothing there. The saving came from `build.assetsInlineLimit: 0`: Vite had inlined three small PNG icons into the shared chunk as base64. Of the 123.5 KB, React and React Router are 98.5 KB, and the Stack section's brand icons are about 5 KB.
+
 ### 10. Search and sharing
 
 1. Generate `sitemap.xml` and `robots.txt` from the route list.
