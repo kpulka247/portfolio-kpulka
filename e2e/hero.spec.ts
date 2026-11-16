@@ -15,7 +15,7 @@ test.describe("live pin board", () => {
     await play.waitFor({ timeout: 20_000 });
     await play.click();
     await expect(play).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByText(/W A S D/)).toBeVisible();
+    await expect(page.getByText(/W to drive/)).toBeVisible();
 
     await page.keyboard.press("Escape");
     await expect(play).toHaveAttribute("aria-pressed", "false");
@@ -27,8 +27,8 @@ test.describe("live pin board", () => {
     const play = page.getByRole("button", { name: "Play" });
     await play.waitFor({ timeout: 20_000 });
     await play.tap();
-    await expect(page.getByText(/Hold on the board/)).toBeVisible();
-    await expect(page.getByText(/W A S D/)).toHaveCount(0);
+    await expect(page.getByText(/Hold the board/)).toBeVisible();
+    await expect(page.getByText(/W to drive/)).toHaveCount(0);
   });
 
   // A cancelled key event would stop the page from scrolling.

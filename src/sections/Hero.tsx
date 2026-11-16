@@ -5,13 +5,32 @@ import { PiSteeringWheelBold } from "react-icons/pi";
 import boardDesktop from "../assets/hero/board-desktop.webp";
 import boardPhone from "../assets/hero/board-phone.webp";
 import { GITHUB_URL, LINKEDIN_URL } from "../data/contact";
-import type { PinBoard } from "../hero/pinBoard";
+import type { PinBoard, RunState } from "../hero/pinBoard";
 
-// A finger has no keys, so touch screens get their own hint.
-function controlsHint(): string {
-  return matchMedia("(hover: hover) and (pointer: fine)").matches
-    ? "Drive with W A S D or the arrow keys, or hold on the board. Escape stops."
-    : "Hold on the board to drive towards your finger. Tap Play to stop.";
+// The hint shows until the run has gone this far.
+const HINT_METRES = 40;
+// The best distance stays in this browser only.
+const BEST_KEY = "kpulka:best-distance";
+
+// A finger has no keys, so touch screens get their own words.
+function hasKeyboard(): boolean {
+  return matchMedia("(hover: hover) and (pointer: fine)").matches;
+}
+
+function readBest(): number {
+  try {
+    return Number(localStorage.getItem(BEST_KEY)) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function saveBest(best: number) {
+  try {
+    localStorage.setItem(BEST_KEY, String(best));
+  } catch {
+    // Private windows can refuse storage. The best then lasts the visit.
+  }
 }
 
 // The live board needs WebGL 2 and stays off for visitors who ask for less
@@ -43,6 +62,9 @@ export function Hero() {
   const [loaded, setLoaded] = useState(false);
   const [live, setLive] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [run, setRun] = useState<RunState>({ distance: 0, crashed: false });
+  const [best, setBest] = useState(0);
+  const [keyboard, setKeyboard] = useState(true);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -56,6 +78,7 @@ export function Hero() {
         boardRef.current = mount(canvas, host, {
           onReady: () => setLive(true),
           onStop: () => setPlaying(false),
+          onRun: setRun,
           onSlow: () => {
             boardRef.current?.dispose();
             boardRef.current = null;
@@ -78,7 +101,28 @@ export function Hero() {
 
   useEffect(() => {
     boardRef.current?.setPlaying(playing);
+    if (playing) {
+      setKeyboard(hasKeyboard());
+      setBest(readBest());
+    }
   }, [playing]);
+
+  // A new best is kept as soon as it happens, so a closed tab keeps it.
+  useEffect(() => {
+    if (run.distance <= best) return;
+    setBest(run.distance);
+    saveBest(run.distance);
+  }, [run.distance, best]);
+
+  const hint = run.crashed
+    ? keyboard
+      ? `Crashed at ${run.distance} m. Press W to go again.`
+      : `Crashed at ${run.distance} m. Tap the board to go again.`
+    : run.distance < HINT_METRES
+      ? keyboard
+        ? "W to drive, A and D to steer, S to brake. Escape stops."
+        : "Hold the board to drive and steer. Tap Play to stop."
+      : null;
 
   return (
     <section
@@ -108,7 +152,9 @@ export function Hero() {
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[62%] bg-linear-to-t from-ground from-38% to-ground/0"
+        className={`pointer-events-none absolute inset-x-0 bottom-0 h-[62%] bg-linear-to-t from-ground from-38% to-ground/0 transition-opacity duration-500 ${
+          playing ? "opacity-0" : ""
+        }`}
       />
 
       <div className="pointer-events-none relative">
@@ -124,53 +170,70 @@ export function Hero() {
               Play
             </button>
             {playing && (
-              <p className="rounded-full bg-white/70 px-3 py-1.5 text-sm text-ink-dim backdrop-blur-sm">
-                {controlsHint()}
+              <p className="inline-flex items-baseline gap-3 rounded-full bg-white/70 px-3.5 py-1.5 text-sm text-ink-dim tabular-nums backdrop-blur-sm">
+                <span className="font-semibold text-ink">{run.distance} m</span>
+                <span>Best {Math.max(best, run.distance)} m</span>
+              </p>
+            )}
+            {playing && hint && (
+              <p
+                aria-live="polite"
+                className="rounded-full bg-white/70 px-3 py-1.5 text-sm text-ink-dim backdrop-blur-sm"
+              >
+                {hint}
               </p>
             )}
           </div>
         )}
-        <h1 className="-ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em]">
-          Kamil Pułka
-        </h1>
-        <div className="mt-5 flex flex-wrap items-end justify-between gap-6 md:mt-7">
-          <div className="max-w-[560px]">
-            <p className="text-[17px] leading-[1.4] font-medium md:text-md">
-              Full-stack developer. I build and ship web apps, browser
-              extensions and mobile apps that people use every day.
-            </p>
-            <p className="mt-2 text-sm text-ink-dim md:mt-2.5">
-              Open to full-time and contract roles, remote-first, based in
-              Poland.
-            </p>
-          </div>
-          <div className="pointer-events-auto flex w-full items-center gap-2.5 md:w-auto">
-            <a
-              href="#work"
-              className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-ink px-5.5 text-[15px] font-semibold text-ground transition-colors hover:bg-sheet md:flex-none"
-            >
-              See my work
-            </a>
-            <a
-              href="#contact"
-              className="inline-flex h-12 flex-1 items-center justify-center rounded-full px-5.5 text-[15px] font-semibold shadow-[inset_0_0_0_1.5px_var(--color-ink)] transition-colors hover:bg-ink/5 md:flex-none"
-            >
-              Get in touch
-            </a>
-            <a
-              href={GITHUB_URL}
-              aria-label="GitHub"
-              className="hidden size-11 items-center justify-center rounded-full transition-colors hover:bg-ink/10 md:inline-flex"
-            >
-              <FaGithub aria-hidden="true" className="size-6" />
-            </a>
-            <a
-              href={LINKEDIN_URL}
-              aria-label="LinkedIn"
-              className="hidden size-11 items-center justify-center rounded-full transition-colors hover:bg-ink/10 md:inline-flex"
-            >
-              <FaLinkedin aria-hidden="true" className="size-6" />
-            </a>
+        {/* While the game is on, the copy fades out and the board is the
+            whole hero. It keeps its space, so nothing moves. */}
+        <div
+          className={`transition-opacity duration-500 ${
+            playing ? "invisible opacity-0" : ""
+          }`}
+        >
+          <h1 className="-ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em]">
+            Kamil Pułka
+          </h1>
+          <div className="mt-5 flex flex-wrap items-end justify-between gap-6 md:mt-7">
+            <div className="max-w-[560px]">
+              <p className="text-[17px] leading-[1.4] font-medium md:text-md">
+                Full-stack developer. I build and ship web apps, browser
+                extensions and mobile apps that people use every day.
+              </p>
+              <p className="mt-2 text-sm text-ink-dim md:mt-2.5">
+                Open to full-time and contract roles, remote-first, based in
+                Poland.
+              </p>
+            </div>
+            <div className="pointer-events-auto flex w-full items-center gap-2.5 md:w-auto">
+              <a
+                href="#work"
+                className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-ink px-5.5 text-[15px] font-semibold text-ground transition-colors hover:bg-sheet md:flex-none"
+              >
+                See my work
+              </a>
+              <a
+                href="#contact"
+                className="inline-flex h-12 flex-1 items-center justify-center rounded-full px-5.5 text-[15px] font-semibold shadow-[inset_0_0_0_1.5px_var(--color-ink)] transition-colors hover:bg-ink/5 md:flex-none"
+              >
+                Get in touch
+              </a>
+              <a
+                href={GITHUB_URL}
+                aria-label="GitHub"
+                className="hidden size-11 items-center justify-center rounded-full transition-colors hover:bg-ink/10 md:inline-flex"
+              >
+                <FaGithub aria-hidden="true" className="size-6" />
+              </a>
+              <a
+                href={LINKEDIN_URL}
+                aria-label="LinkedIn"
+                className="hidden size-11 items-center justify-center rounded-full transition-colors hover:bg-ink/10 md:inline-flex"
+              >
+                <FaLinkedin aria-hidden="true" className="size-6" />
+              </a>
+            </div>
           </div>
         </div>
       </div>

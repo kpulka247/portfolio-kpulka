@@ -1,8 +1,19 @@
 import * as THREE from "three";
 
-// The hero's pin board: a field of pins that swell slowly, dip under the
-// pointer, and carry a toy car when the visitor presses Play. React owns
-// the page around it and talks to it only through this interface.
+import { AXLE, BODY_LIFT, WHEEL_RADIUS, buildJeep } from "./jeep";
+import { type ObstacleRules, obstacleRow, topSpeed } from "./runner";
+
+// The hero's pin board: a field of pins that swell slowly and dip under the
+// pointer. Play drops a jeep on it. The rows then scroll towards the camera
+// as the jeep drives, new rows rise at the horizon, and dark pillars come
+// up that the jeep has to steer around. React owns the page around it and
+// talks to it only through this interface.
+
+export interface RunState {
+  // How far this run has gone, in whole metres.
+  distance: number;
+  crashed: boolean;
+}
 
 export interface PinBoardOptions {
   // The first frame is on screen, so the still image behind can go.
@@ -12,6 +23,8 @@ export interface PinBoardOptions {
   // The first seconds ran too slowly. The caller should dispose the board
   // and keep the still image.
   onSlow: () => void;
+  // The run's distance changed by a metre, or the jeep crashed.
+  onRun: (state: RunState) => void;
 }
 
 export interface PinBoard {
@@ -22,6 +35,7 @@ export interface PinBoard {
 const GROUND = "#e4e5e8";
 const PIN_LOW = new THREE.Color("#b9bbc1");
 const PIN_HIGH = new THREE.Color("#f6f6f7");
+const PILLAR = new THREE.Color("#2e2f34");
 const MAX_PIXEL_RATIO = 1.5;
 // Below this width the board uses the phone grid and camera.
 const PHONE_WIDTH = 700;
@@ -29,21 +43,44 @@ const PHONE_WIDTH = 700;
 // takes FADE_IN_SECONDS to reach its full depth.
 const IDLE_SECONDS = 4;
 const FADE_IN_SECONDS = 2;
-// How fast pins move towards a press, per second. Higher is snappier.
-const PRESS_RATE = { pointer: 14, car: 30, idle: 5 };
+// How fast pins move towards a press, and pillars towards their height,
+// per second. Higher is snappier.
+const RATE = { pointer: 14, car: 30, idle: 5, pillar: 6 };
 // Pins rise back to about a fifth of a press in one second.
 const RECOVERY = 0.25;
 const RECOVERY_PLAYING = 0.55;
-const CAR_DROP = 10;
+// The resting height of a pin top, and how far below it a row that is
+// rising in at the horizon or sinking out at the front starts or ends.
+const PIN_REST = 1.15;
+const PIN_HIDDEN = -1.8;
+const PILLAR_HEIGHT = 2.4;
+// The jeep rides on the pin tops and presses them down only a little,
+// enough to leave tracks.
+const CAR_SINK = 0.15;
+const TRACK_DEPTH = 0.3;
 // The car stays inside this part of the screen, in normalised device
 // coordinates, so it never drives out of view.
-const SCREEN_EDGE = 0.9;
+const SCREEN_EDGE = 0.86;
 // After a short warm-up, frames are timed for this long. If they average
 // slower than SLOW_FRAME, the device is too slow for the board.
 const WARM_UP_FRAMES = 30;
 const TIMED_FRAMES = 90;
 const SLOW_FRAME = 1 / 24;
-const CAR_TOP_SPEED = 13;
+
+// Physics. Distances are world units, about a metre each.
+const GRAVITY = 55;
+const SPRING = { stiffness: 170, damping: 11 };
+const TILT_SPRING = { stiffness: 90, damping: 9 };
+// The body's floor sits this high above the ground at rest.
+const RIDE = WHEEL_RADIUS + BODY_LIFT;
+// How far a wheel can hang below, or push up into, its resting place.
+const WHEEL_TRAVEL = 0.3;
+const DROP_HEIGHT = 9;
+const LEAVE_HEIGHT = 22;
+// Half the jeep's size, for hitting pillars.
+const CAR_HALF = { x: 0.85, z: 1.55 };
+// Press W or tap again this long after a crash to start a new run.
+const RESTART_DELAY = 0.6;
 
 interface Grid {
   columns: number;
@@ -51,11 +88,14 @@ interface Grid {
   spacing: number;
 }
 
-// About 4,100 pins on a 16:9 desktop and 1,700 on a phone. Wider screens
+// About 4,200 pins on a 16:9 desktop and 1,700 on a phone. Wider screens
 // get more columns (desktopGrid).
 const DESKTOP: Grid = { columns: 90, rows: 46, spacing: 0.62 };
 const PHONE: Grid = { columns: 34, rows: 50, spacing: 0.8 };
 const DESKTOP_CAMERA = { fov: 34, y: 15, z: 26 };
+// Where the jeep drives: in the lower part of the board, which the hero's
+// copy leaves free while the game is on, with the whole board ahead of it.
+const CAR_Z = { desktop: 3, phone: 5 };
 
 // Enough columns that the board's sides stay off screen at the far edge,
 // where the view is widest, on screens up to 32:9.
@@ -79,18 +119,29 @@ const DRIVE_KEYS = new Set([
   "arrowright",
 ]);
 
-// The four wheels and the middle of the car, relative to its centre.
-const CONTACTS: [number, number, number, number][] = [
-  [-0.8, 0.95, 0.75, 1.15],
-  [0.8, 0.95, 0.75, 1.15],
-  [-0.8, -0.95, 0.75, 1.15],
-  [0.8, -0.95, 0.75, 1.15],
-  [0, 0, 1.3, 0.9],
-];
+// The share of the way to a target that something covers in one frame.
+function ease(rate: number, dt: number): number {
+  return 1 - Math.exp(-rate * dt);
+}
 
-// The share of the way to a press that pins cover in one frame.
-function easeFor(kind: keyof typeof PRESS_RATE, dt: number): number {
-  return 1 - Math.exp(-PRESS_RATE[kind] * dt);
+// The slow swell of the board at a point of the world.
+function swell(x: number, worldZ: number, t: number): number {
+  return (
+    Math.sin(x * 0.16 + t * 0.5) * 0.42 +
+    Math.sin(worldZ * 0.21 - t * 0.4) * 0.32 +
+    Math.sin((x + worldZ) * 0.08 + t * 0.25) * 0.36
+  );
+}
+
+// A damped spring: returns the new velocity after pulling towards target.
+function spring(
+  value: number,
+  velocity: number,
+  target: number,
+  { stiffness, damping }: { stiffness: number; damping: number },
+  dt: number,
+): number {
+  return velocity + (stiffness * (target - value) - damping * velocity) * dt;
 }
 
 export function mount(
@@ -103,9 +154,12 @@ export function mount(
     ? PHONE
     : desktopGrid(host.clientWidth / Math.max(1, host.clientHeight));
   const { columns, rows, spacing } = grid;
-  const count = columns * rows;
+  // One more row than the board shows: the row rising in at the horizon.
+  const slots = rows + 1;
+  const count = slots * columns;
   const x0 = (-(columns - 1) * spacing) / 2;
   const z0 = (-(rows - 1) * spacing) / 2;
+  const carZ = phone ? CAR_Z.phone : CAR_Z.desktop;
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, MAX_PIXEL_RATIO));
@@ -164,7 +218,7 @@ export function mount(
 
   const baseGeometry = new THREE.PlaneGeometry(
     columns * spacing + 2,
-    rows * spacing + 2,
+    slots * spacing + 2,
   );
   const baseMaterial = new THREE.MeshStandardMaterial({
     color: "#9fa1a8",
@@ -175,38 +229,60 @@ export function mount(
   base.position.y = -0.3;
   scene.add(base);
 
-  const car = buildCar();
-  car.group.visible = false;
-  scene.add(car.group);
+  const jeep = buildJeep();
+  jeep.root.visible = false;
+  scene.add(jeep.root);
 
-  // How far each pin is pressed down, from 0 to about 1.6.
+  // Per pin, by slot: how far it is pressed down, and how tall its pillar
+  // stands. Both move with their row as the board scrolls.
   const depth = new Float32Array(count);
+  const pillar = new Float32Array(count);
   const matrix = new THREE.Matrix4();
   const colour = new THREE.Color();
 
-  // Moves the pins under a round press towards its depth. `ease` is the
-  // share of the way they move this frame, so presses sink in instead of
+  // How far the board has scrolled, and the slot layout that follows.
+  // Slot k sits at z0 + (k - 1) * spacing + phase, and shows world row
+  // `scrolledRows + rows - k`, so rows further away have higher numbers.
+  let scroll = 0;
+  let scrolledRows = 0;
+  const slotZ = (slot: number, phase: number) =>
+    z0 + (slot - 1) * spacing + phase;
+
+  // Shift every slot one row towards the camera. The slot at the horizon
+  // starts empty.
+  function shiftRows() {
+    depth.copyWithin(columns, 0, (slots - 1) * columns);
+    pillar.copyWithin(columns, 0, (slots - 1) * columns);
+    depth.fill(0, 0, columns);
+    pillar.fill(0, 0, columns);
+  }
+
+  // Moves the pins under a round press towards its depth. `share` is how
+  // much of the way they move this frame, so presses sink in instead of
   // snapping down.
   function press(
     x: number,
     z: number,
     radius: number,
     amount: number,
-    ease: number,
+    share: number,
+    phase: number,
   ) {
     const i0 = Math.max(0, Math.floor((x - radius - x0) / spacing));
     const i1 = Math.min(columns - 1, Math.ceil((x + radius - x0) / spacing));
-    const k0 = Math.max(0, Math.floor((z - radius - z0) / spacing));
-    const k1 = Math.min(rows - 1, Math.ceil((z + radius - z0) / spacing));
+    const k0 = Math.max(0, Math.floor((z - radius - z0 - phase) / spacing) + 1);
+    const k1 = Math.min(
+      slots - 1,
+      Math.ceil((z + radius - z0 - phase) / spacing) + 1,
+    );
     for (let k = k0; k <= k1; k++) {
       for (let i = i0; i <= i1; i++) {
-        const distance = Math.hypot(x0 + i * spacing - x, z0 + k * spacing - z);
+        const distance = Math.hypot(x0 + i * spacing - x, slotZ(k, phase) - z);
         if (distance >= radius) continue;
         const value = amount * (1 - (distance / radius) ** 2);
         const index = k * columns + i;
-        if (value > depth[index]) {
-          depth[index] += (value - depth[index]) * ease;
-        }
+        if (value > depth[index])
+          depth[index] += (value - depth[index]) * share;
       }
     }
   }
@@ -237,6 +313,7 @@ export function mount(
     if (event.target !== canvas) return;
     onPointerMove(event);
     pointerDown = true;
+    if (state === "crashed") restartIfReady();
   };
   const onPointerUp = () => {
     pointerDown = false;
@@ -258,97 +335,304 @@ export function mount(
     if (!DRIVE_KEYS.has(key)) return;
     event.preventDefault();
     keys.add(key);
+    if (state === "crashed" && (key === "w" || key === "arrowup")) {
+      restartIfReady();
+    }
   };
   const onKeyUp = (event: KeyboardEvent) => {
     keys.delete(event.key.toLowerCase());
   };
 
-  let playing = false;
-  let heading = 0;
-  let speed = 0;
+  // The jeep. "hidden" off the board, "driving" during a run (including
+  // the drop in), "crashed" after hitting a pillar, "leaving" after Stop.
+  let state: "hidden" | "driving" | "crashed" | "leaving" = "hidden";
   let carX = 0;
-  let carZ = 0;
-  let carHeight = CAR_DROP;
+  let lateral = 0;
+  let speed = 0;
+  let bodyY = 0;
+  let climb = 0;
+  let pitch = 0;
+  let pitchSpeed = 0;
+  let roll = 0;
+  let rollSpeed = 0;
+  let spin = 0;
+  let spinSpeed = 0;
+  let steerShown = 0;
+  let crashedAt = 0;
+
+  // The run.
+  let run: ObstacleRules | null = null;
+  let distance = 0;
+  let reported: RunState = { distance: -1, crashed: false };
+  const obstacles = new Map<number, Uint8Array>();
+  const noObstacles = new Uint8Array(columns);
+
+  function obstaclesFor(worldRow: number): Uint8Array {
+    if (!run) return noObstacles;
+    let mask = obstacles.get(worldRow);
+    if (!mask) {
+      mask = obstacleRow(worldRow, run);
+      obstacles.set(worldRow, mask);
+    }
+    return mask;
+  }
+
+  function report() {
+    const next = {
+      distance: Math.floor(distance),
+      crashed: state === "crashed",
+    };
+    if (
+      next.distance === reported.distance &&
+      next.crashed === reported.crashed
+    ) {
+      return;
+    }
+    reported = next;
+    options.onRun(next);
+  }
+
+  // How far left and right the jeep can go and stay on screen.
+  const projected = new THREE.Vector3();
+  function carLimit(): number {
+    let x = 0;
+    while (x < -x0 - 1) {
+      projected.set(x + CAR_HALF.x, 1, carZ).project(camera);
+      if (projected.x > SCREEN_EDGE) break;
+      x += 0.05;
+    }
+    return x;
+  }
+  let limit = carLimit();
+
+  // A new run: the road ahead is clear for a while, then pillars come.
+  function startRun() {
+    limit = carLimit();
+    const first = Math.max(0, Math.ceil((-limit + 0.4 - x0) / spacing));
+    const last = Math.min(
+      columns - 1,
+      Math.floor((limit - 0.4 - x0) / spacing),
+    );
+    run = {
+      seed: Math.floor(Math.random() * 2 ** 31),
+      columns,
+      playable: [first, last],
+      safeUntil: scrolledRows + rows + 8,
+      minGap: Math.ceil((CAR_HALF.x * 2 + 1.2) / spacing),
+    };
+    obstacles.clear();
+    distance = 0;
+    report();
+  }
+
+  function restartIfReady() {
+    if (clock.elapsedTime - crashedAt < RESTART_DELAY) return;
+    state = "driving";
+    startRun();
+  }
 
   function setPlaying(next: boolean) {
-    if (next === playing) return;
-    playing = next;
+    if (next === (state === "driving" || state === "crashed")) return;
     keys.clear();
-    if (playing) {
+    if (next) {
       window.addEventListener("keydown", onKeyDown);
       window.addEventListener("keyup", onKeyUp);
-      // Above the name, where the big letters do not hide the car.
+      state = "driving";
       carX = 0;
-      carZ = -4;
-      heading = Math.PI;
+      lateral = 0;
       speed = 0;
-      carHeight = CAR_DROP;
-      car.group.visible = true;
+      bodyY = groundUnder(0, 0).mean + RIDE + DROP_HEIGHT;
+      climb = -6;
+      pitch = 0.12;
+      pitchSpeed = 0;
+      roll = 0;
+      rollSpeed = (Math.random() - 0.5) * 1.5;
+      spin = 0;
+      spinSpeed = 0;
+      jeep.root.visible = true;
+      startRun();
     } else {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+      // Launch up and away, nose first.
+      state = "leaving";
+      climb = Math.max(climb, 9);
+      pitchSpeed += 2.5;
+      run = null;
+      obstacles.clear();
     }
     wake();
   }
 
-  // On the board and in view.
-  const projected = new THREE.Vector3();
-  function fits(x: number, z: number): boolean {
-    if (x < x0 + 1 || x > -x0 - 1 || z < z0 + 1 || z > -z0 - 1) return false;
-    projected.set(x, 1, z).project(camera);
-    return (
-      Math.abs(projected.x) < SCREEN_EDGE && Math.abs(projected.y) < SCREEN_EDGE
-    );
+  // The ground under each wheel, from the swell and the pins the jeep
+  // presses down. Returns the four heights and their mean.
+  const wheelGround = [0, 0, 0, 0];
+  function groundUnder(x: number, yaw: number) {
+    const sin = Math.sin(yaw);
+    const cos = Math.cos(yaw);
+    let sum = 0;
+    jeep.wheels.forEach((wheel, n) => {
+      const wx = x + wheel.x * cos + wheel.z * sin;
+      const wz = carZ - wheel.x * sin + wheel.z * cos;
+      wheelGround[n] =
+        PIN_REST + swell(wx, wz - scroll, clock.elapsedTime) - CAR_SINK;
+      sum += wheelGround[n];
+    });
+    return { mean: sum / 4 };
   }
 
-  function drive(dt: number) {
+  // Steering, speed and the sprung body, once a frame.
+  let lastSpeed = 0;
+  function drive(dt: number, phase: number) {
     let throttle = 0;
     let steer = 0;
-    if (keys.has("w") || keys.has("arrowup")) throttle = 1;
-    if (keys.has("s") || keys.has("arrowdown")) throttle = -1;
-    if (keys.has("a") || keys.has("arrowleft")) steer = 1;
-    if (keys.has("d") || keys.has("arrowright")) steer = -1;
-
-    // Holding on the board drives towards the finger.
-    if (pointerDown && pointer) {
-      const wanted = Math.atan2(pointer.x - carX, pointer.z - carZ);
-      const turn = wanted - heading;
-      steer = THREE.MathUtils.clamp(
-        Math.atan2(Math.sin(turn), Math.cos(turn)) * 2,
-        -1,
-        1,
-      );
-      throttle = Math.hypot(pointer.x - carX, pointer.z - carZ) > 1.5 ? 1 : 0;
+    if (state === "driving") {
+      if (keys.has("w") || keys.has("arrowup")) throttle = 1;
+      if (keys.has("s") || keys.has("arrowdown")) throttle = -1;
+      if (keys.has("a") || keys.has("arrowleft")) steer -= 1;
+      if (keys.has("d") || keys.has("arrowright")) steer += 1;
+      // Holding on the board drives towards the finger.
+      if (pointerDown && pointer) {
+        throttle = 1;
+        steer = THREE.MathUtils.clamp((pointer.x - carX) / 1.5, -1, 1);
+      }
     }
 
-    speed +=
-      (throttle * CAR_TOP_SPEED - speed) * dt * (throttle !== 0 ? 1.5 : 2.4);
-    heading += steer * dt * 2.6 * THREE.MathUtils.clamp(speed / 7, -1, 1);
-    const nextX = carX + Math.sin(heading) * speed * dt;
-    const nextZ = carZ + Math.cos(heading) * speed * dt;
-    if (fits(nextX, nextZ)) {
-      carX = nextX;
-      carZ = nextZ;
+    if (state === "driving") {
+      if (throttle > 0) {
+        speed += (topSpeed(distance) - speed) * ease(0.9, dt);
+      } else if (throttle < 0) {
+        speed = Math.max(0, speed - 22 * dt);
+      } else {
+        speed = Math.max(0, speed - 3 * dt);
+      }
     } else {
-      // Bounce off the edge and lose most of the speed.
-      speed *= -0.3;
+      speed *= Math.exp(-(state === "crashed" ? 6 : 3) * dt);
     }
-    carHeight = Math.max(0, carHeight - dt * 28);
+    const accel = (speed - lastSpeed) / Math.max(dt, 1e-3);
+    lastSpeed = speed;
 
-    if (carHeight < 0.1) {
-      const sin = Math.sin(heading);
-      const cos = Math.cos(heading);
-      const ease = easeFor("car", dt);
-      for (const [dx, dz, radius, amount] of CONTACTS) {
+    const grip = 4 + speed * 0.5;
+    lateral += (steer * grip - lateral) * ease(7, dt);
+    carX += lateral * dt;
+    if (Math.abs(carX) > limit) {
+      carX = Math.sign(carX) * limit;
+      lateral = 0;
+    }
+    steerShown += (steer - steerShown) * ease(10, dt);
+
+    // Heading follows the sideways movement, plus any crash spin.
+    spin += spinSpeed * dt;
+    spinSpeed *= Math.exp(-2.5 * dt);
+    const yaw = -Math.atan2(lateral, Math.max(speed, 8)) * 0.6 + spin;
+
+    const { mean } = groundUnder(carX, yaw);
+    const rest = mean + RIDE;
+    if (state === "leaving") {
+      climb += 40 * dt;
+    } else if (bodyY - rest > WHEEL_TRAVEL || climb > 0) {
+      climb -= GRAVITY * dt;
+    } else {
+      climb = spring(bodyY, climb, rest, SPRING, dt);
+    }
+    bodyY += climb * dt;
+    // Full compression: the suspension bottoms out and kicks the body back
+    // up a little, as after a landing.
+    if (state !== "leaving" && bodyY < rest - WHEEL_TRAVEL) {
+      bodyY = rest - WHEEL_TRAVEL;
+      if (climb < 0) climb = -climb * 0.22;
+    }
+    const onGround = bodyY - rest < WHEEL_TRAVEL;
+
+    // The body tilts with the ground under it, squats when speeding up,
+    // dips when braking and leans out of turns.
+    const [frontLeft, frontRight, backLeft, backRight] = wheelGround;
+    const groundPitch = Math.atan2(
+      (frontLeft + frontRight - backLeft - backRight) / 2,
+      AXLE.z * 2,
+    );
+    const groundRoll = Math.atan2(
+      (frontRight + backRight - frontLeft - backLeft) / 2,
+      AXLE.x * 2,
+    );
+    const pitchTarget = onGround
+      ? groundPitch + THREE.MathUtils.clamp(accel * 0.01, -0.12, 0.12)
+      : 0;
+    const rollTarget = onGround ? groundRoll + lateral * 0.025 : 0;
+    pitchSpeed = spring(pitch, pitchSpeed, pitchTarget, TILT_SPRING, dt);
+    rollSpeed = spring(roll, rollSpeed, rollTarget, TILT_SPRING, dt);
+    pitch += pitchSpeed * dt;
+    roll += rollSpeed * dt;
+
+    jeep.root.position.set(carX, 0, carZ);
+    jeep.root.rotation.y = yaw;
+    jeep.body.position.y = bodyY;
+    jeep.body.rotation.set(pitch, 0, roll);
+    jeep.wheels.forEach((wheel, n) => {
+      const hub = bodyY - BODY_LIFT;
+      wheel.pivot.position.y = THREE.MathUtils.clamp(
+        wheelGround[n] + WHEEL_RADIUS,
+        hub - WHEEL_TRAVEL,
+        hub + WHEEL_TRAVEL,
+      );
+      wheel.spinner.rotation.x -= (speed * dt) / WHEEL_RADIUS;
+      if (wheel.front) wheel.pivot.rotation.y = -steerShown * 0.4;
+    });
+
+    // Wheels on the ground press the pins under them.
+    if (onGround && state !== "leaving") {
+      const share = ease(RATE.car, dt);
+      const sin = Math.sin(yaw);
+      const cos = Math.cos(yaw);
+      for (const wheel of jeep.wheels) {
         press(
-          carX + dx * cos + dz * sin,
-          carZ - dx * sin + dz * cos,
-          radius,
-          amount,
-          ease,
+          carX + wheel.x * cos + wheel.z * sin,
+          carZ - wheel.x * sin + wheel.z * cos,
+          0.7,
+          TRACK_DEPTH,
+          share,
+          phase,
         );
       }
     }
+
+    if (state === "driving") distance += speed * dt;
+    if (state === "leaving" && bodyY > LEAVE_HEIGHT) {
+      state = "hidden";
+      jeep.root.visible = false;
+      speed = 0;
+    }
+  }
+
+  // Does the jeep touch a pillar that has risen?
+  function hitsPillar(phase: number): boolean {
+    const reachZ = CAR_HALF.z + spacing * 0.4;
+    const reachX = CAR_HALF.x + spacing * 0.4;
+    for (let k = 0; k < slots; k++) {
+      if (Math.abs(slotZ(k, phase) - carZ) > reachZ) continue;
+      const i0 = Math.max(0, Math.floor((carX - reachX - x0) / spacing));
+      const i1 = Math.min(
+        columns - 1,
+        Math.ceil((carX + reachX - x0) / spacing),
+      );
+      for (let i = i0; i <= i1; i++) {
+        if (Math.abs(x0 + i * spacing - carX) > reachX) continue;
+        if (pillar[k * columns + i] > PILLAR_HEIGHT * 0.4) return true;
+      }
+    }
+    return false;
+  }
+
+  function crash() {
+    state = "crashed";
+    crashedAt = clock.elapsedTime;
+    speed *= 0.3;
+    climb = 7;
+    const side = Math.random() < 0.5 ? -1 : 1;
+    rollSpeed += 6 * side;
+    pitchSpeed += 2;
+    spinSpeed += 3 * side;
+    report();
   }
 
   const clock = new THREE.Clock(false);
@@ -378,19 +662,40 @@ export function mount(
     }
     const t = clock.elapsedTime;
 
-    const recovery = (playing ? RECOVERY_PLAYING : RECOVERY) ** dt;
+    // Scroll the board under the jeep, a row at a time.
+    scroll += speed * dt;
+    const rowsNow = Math.floor(scroll / spacing);
+    for (let n = 0; n < Math.min(slots, rowsNow - scrolledRows); n++) {
+      shiftRows();
+    }
+    if (rowsNow !== scrolledRows) {
+      scrolledRows = rowsNow;
+      for (const row of obstacles.keys()) {
+        if (row < scrolledRows - 2) obstacles.delete(row);
+      }
+    }
+    const phase = scroll - scrolledRows * spacing;
+
+    const recovery =
+      (state === "driving" || state === "crashed"
+        ? RECOVERY_PLAYING
+        : RECOVERY) ** dt;
     for (let i = 0; i < count; i++) depth[i] *= recovery;
 
-    if (playing) {
-      drive(dt);
-    } else {
+    if (state !== "hidden") {
+      drive(dt, phase);
+      if (state === "driving" && hitsPillar(phase)) crash();
+      if (state === "driving" || state === "crashed") report();
+    }
+    if (state === "hidden" || state === "leaving") {
       if (pointer) {
         press(
           pointer.x,
           pointer.z,
           pointerDown ? 4.2 : 3,
           pointerDown ? 1.6 : 1,
-          easeFor("pointer", dt),
+          ease(RATE.pointer, dt),
+          phase,
         );
         lastInput = t;
       } else if (t - lastInput > IDLE_SECONDS) {
@@ -404,37 +709,36 @@ export function mount(
           Math.cos(t * 0.31) * z0 * 0.45 - 3,
           3.4,
           1.25 * fadeIn,
-          easeFor("idle", dt),
+          ease(RATE.idle, dt),
+          phase,
         );
       }
-      carHeight = Math.min(12, carHeight + dt * 20);
-      if (carHeight >= 12) car.group.visible = false;
     }
 
-    car.group.position.set(
-      carX,
-      1 + carHeight - (carHeight < 0.1 ? 1.15 : 0),
-      carZ,
-    );
-    car.group.rotation.y = heading;
-    for (const wheel of car.wheels) wheel.rotation.x += (speed * dt) / 0.34;
-
-    for (let k = 0; k < rows; k++) {
+    // The row at the horizon rises in as it scrolls into place, and the
+    // row at the front sinks away as it leaves.
+    const arriving = THREE.MathUtils.smoothstep(phase / spacing, 0, 1);
+    const pillarShare = ease(RATE.pillar, dt);
+    for (let k = 0; k < slots; k++) {
+      const z = slotZ(k, phase);
+      const worldZ = z - scroll;
+      const mask = obstaclesFor(scrolledRows + rows - k);
+      const shown = k === 0 ? arriving : k === slots - 1 ? 1 - arriving : 1;
       for (let i = 0; i < columns; i++) {
         const index = k * columns + i;
         const x = x0 + i * spacing;
-        const z = z0 + k * spacing;
-        const swell =
-          Math.sin(x * 0.16 + t * 0.5) * 0.42 +
-          Math.sin(z * 0.21 - t * 0.4) * 0.32 +
-          Math.sin((x + z) * 0.08 + t * 0.25) * 0.36;
-        const height = 1.15 + swell - depth[index] * 1.05;
+        const target = mask[i] ? PILLAR_HEIGHT : 0;
+        pillar[index] += (target - pillar[index]) * pillarShare;
+        const surface =
+          PIN_REST + swell(x, worldZ, t) - depth[index] * 1.05 + pillar[index];
+        const height = PIN_HIDDEN + (surface - PIN_HIDDEN) * shown;
         matrix.makeScale(1, height + 1.5, 1);
         matrix.setPosition(x, height, z);
         pins.setMatrixAt(index, matrix);
         colour
           .copy(PIN_LOW)
-          .lerp(PIN_HIGH, THREE.MathUtils.clamp((height - 0.1) / 1.6, 0, 1));
+          .lerp(PIN_HIGH, THREE.MathUtils.clamp((height - 0.1) / 1.6, 0, 1))
+          .lerp(PILLAR, pillar[index] / PILLAR_HEIGHT);
         pins.setColorAt(index, colour);
       }
     }
@@ -475,6 +779,7 @@ export function mount(
     renderer.setSize(clientWidth, clientHeight, false);
     camera.aspect = clientWidth / clientHeight;
     camera.updateProjectionMatrix();
+    limit = carLimit();
   });
   resize.observe(canvas);
 
@@ -483,7 +788,8 @@ export function mount(
   return {
     setPlaying,
     dispose() {
-      setPlaying(false);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
       cancelAnimationFrame(frameId);
       frameId = 0;
       visibility.disconnect();
@@ -497,67 +803,8 @@ export function mount(
       pinMaterial.dispose();
       baseGeometry.dispose();
       baseMaterial.dispose();
-      car.dispose();
+      jeep.dispose();
       renderer.dispose();
-    },
-  };
-}
-
-function buildCar() {
-  const group = new THREE.Group();
-  const geometries = [
-    new THREE.BoxGeometry(1.5, 0.45, 2.8),
-    new THREE.BoxGeometry(1.2, 0.45, 1.2),
-    new THREE.BoxGeometry(0.28, 0.02, 2.82),
-    new THREE.CylinderGeometry(0.34, 0.34, 0.3, 18),
-  ];
-  const [chassisShape, cabinShape, stripeShape, wheelShape] = geometries;
-  const materials = [
-    new THREE.MeshStandardMaterial({
-      color: "#1b1c1f",
-      roughness: 0.35,
-      metalness: 0.3,
-    }),
-    new THREE.MeshStandardMaterial({
-      color: "#9aa0a8",
-      roughness: 0.15,
-      metalness: 0.6,
-    }),
-    new THREE.MeshStandardMaterial({ color: "#f4f4f5" }),
-    new THREE.MeshStandardMaterial({ color: "#2b2c30", roughness: 0.9 }),
-  ];
-  const [paint, glass, stripePaint, tyre] = materials;
-
-  const chassis = new THREE.Mesh(chassisShape, paint);
-  chassis.position.y = 0.5;
-  const cabin = new THREE.Mesh(cabinShape, glass);
-  cabin.position.set(0, 0.95, -0.2);
-  const stripe = new THREE.Mesh(stripeShape, stripePaint);
-  stripe.position.y = 0.735;
-  group.add(chassis, cabin, stripe);
-
-  const wheels = [
-    [-0.8, 0.95],
-    [0.8, 0.95],
-    [-0.8, -0.95],
-    [0.8, -0.95],
-  ].map(([x, z]) => {
-    const wheel = new THREE.Mesh(wheelShape, tyre);
-    wheel.rotation.z = Math.PI / 2;
-    wheel.position.set(x, 0.34, z);
-    group.add(wheel);
-    return wheel;
-  });
-  group.traverse((object) => {
-    if (object instanceof THREE.Mesh) object.castShadow = true;
-  });
-
-  return {
-    group,
-    wheels,
-    dispose() {
-      for (const geometry of geometries) geometry.dispose();
-      for (const material of materials) material.dispose();
     },
   };
 }
