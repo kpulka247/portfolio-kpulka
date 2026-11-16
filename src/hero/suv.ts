@@ -88,7 +88,8 @@ export interface Suv {
 // Per lamp. Two of each together match the single lights of the Doop
 // night frames.
 const HEADLIGHT = {
-  color: "#ffe4b5",
+  // Neutral white, like modern LED headlights.
+  color: "#f4f4f2",
   intensity: 290,
   distance: 34,
   angle: 0.42,

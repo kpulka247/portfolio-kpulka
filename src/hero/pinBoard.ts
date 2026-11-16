@@ -162,11 +162,14 @@ const WHEEL_TRAVEL = 0.06;
 // How fast the SUV climbs away after Stop or a crash.
 const LIFT = 60;
 // A landing from a real fall dents the board under the SUV, about the size
-// of the pointer's dent. It sinks in DENT_IN seconds and springs back at
-// DENT_OUT a second. Softer landings than DENT_MIN_SPEED leave no dent.
-const DENT = { radius: 3, depth: 1.1 };
-const DENT_IN = 0.08;
-const DENT_OUT = 5;
+// of the pointer's dent. The surface behaves like a stiff trampoline: it
+// sinks, rebounds a little above flat, sinks once more and settles, all
+// within about half a second. DENT_WOBBLE is how fast it swings, in
+// radians a second, and DENT_SETTLE how fast the swing dies away. Softer
+// landings than DENT_MIN_SPEED leave no dent.
+const DENT = { radius: 3, depth: 1.4 };
+const DENT_WOBBLE = 22;
+const DENT_SETTLE = 6.5;
 const DENT_MIN_SPEED = 6;
 // The SUV drops in this far above the bottom edge of its area.
 const SPAWN_ABOVE_EDGE = 1.4;
@@ -532,17 +535,18 @@ export function mount(
 
   function dentLevel(): number {
     if (dentAge === Infinity) return 0;
+    // Positive pushes the surface down, negative lifts it.
     return (
       dentStrength *
-      Math.min(1, dentAge / DENT_IN) *
-      Math.exp(-Math.max(0, dentAge - DENT_IN) * DENT_OUT)
+      Math.exp(-dentAge * DENT_SETTLE) *
+      Math.sin(dentAge * DENT_WOBBLE)
     );
   }
 
   // How far the dent pushes a point of the board down. worldZ is the
   // point's z minus the scroll.
   function dentAt(x: number, worldZ: number, level: number): number {
-    if (level < 0.001) return 0;
+    if (Math.abs(level) < 0.001) return 0;
     const distance = Math.hypot(x - dentX, worldZ - dentZ);
     if (distance >= DENT.radius) return 0;
     return DENT.depth * level * (1 - (distance / DENT.radius) ** 2);
@@ -787,7 +791,8 @@ export function mount(
     // up a little, as after a landing.
     if (!launched && state !== "leaving" && bodyY < rest - WHEEL_TRAVEL) {
       bodyY = rest - WHEEL_TRAVEL;
-      if (climb < 0) climb = -climb * 0.22;
+      // Damped, so it rides the surface instead of bouncing off it.
+      if (climb < 0) climb = -climb * 0.1;
     }
     const onGround = bodyY - rest < WHEEL_TRAVEL;
 
