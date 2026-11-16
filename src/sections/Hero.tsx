@@ -227,10 +227,6 @@ export function Hero() {
           live ? "opacity-100" : "opacity-0"
         }`}
       />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[62%] bg-linear-to-t from-ground from-38% to-ground/0"
-      />
 
       {/* The score sits under the site name, out of the way of the board. */}
       {score.mounted && (
@@ -268,14 +264,20 @@ export function Hero() {
             )}
           </div>
         )}
-        <div>
+        {/* The copy sits on a fade that starts at the top of the name, so the
+            board above it, where the SUV drives, is never washed out. */}
+        <div className="relative">
+          <div
+            aria-hidden="true"
+            className="absolute -inset-x-5 top-0 -bottom-14 bg-linear-to-t from-ground from-50% to-ground/0 md:-inset-x-10 md:-bottom-22"
+          />
           <h1
             ref={nameRef}
-            className="-ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em]"
+            className="relative -ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em]"
           >
             Kamil Pułka
           </h1>
-          <div className="mt-5 flex flex-wrap items-end justify-between gap-6 md:mt-7">
+          <div className="relative mt-5 flex flex-wrap items-end justify-between gap-6 md:mt-7">
             <div className="max-w-[560px]">
               <p className="text-[17px] leading-[1.4] font-medium md:text-md">
                 Full-stack developer. I build and ship web apps, browser
