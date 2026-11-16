@@ -82,14 +82,15 @@ export interface Suv {
   dispose: () => void;
 }
 
-// Matched in the Doop night frames.
+// Per lamp. Two of each together match the single lights of the Doop
+// night frames.
 const HEADLIGHT = {
   color: "#ffe4b5",
-  intensity: 520,
+  intensity: 290,
   distance: 34,
-  angle: 0.5,
+  angle: 0.42,
 };
-const TAILLIGHT = { color: "#ff3b30", intensity: 60, distance: 8, angle: 0.95 };
+const TAILLIGHT = { color: "#ff3b30", intensity: 32, distance: 8, angle: 0.9 };
 const LAMP_GLOW = 3;
 
 // A box whose top is smaller than its bottom: four-sided, so it stays
@@ -228,7 +229,11 @@ export function buildSuv(): Suv {
     emissive: TAILLIGHT.color,
     emissiveIntensity: 0,
   });
+  // Each lamp is a light of its own: two warm headlights that throw their
+  // beams and cast shadows, and two red tail lights that glow behind.
   const lampY = height * 0.7;
+  const headlights: THREE.SpotLight[] = [];
+  const taillights: THREE.SpotLight[] = [];
   for (const x of [-width * 0.32, width * 0.32]) {
     const head = new THREE.Mesh(
       new THREE.BoxGeometry(0.16, 0.07, 0.03),
@@ -242,33 +247,34 @@ export function buildSuv(): Suv {
     tail.position.set(x * 1.15, lampY, length / 2 - 0.02);
     geometries.push(head.geometry, tail.geometry);
     body.add(head, tail);
-  }
 
-  // One warm spot between the headlamps throws both beams ahead and casts
-  // the shadows. One red spot throws the tail lights' glow behind.
-  const headlight = new THREE.SpotLight(
-    HEADLIGHT.color,
-    0,
-    HEADLIGHT.distance,
-    HEADLIGHT.angle,
-    0.7,
-    1.5,
-  );
-  headlight.position.set(0, lampY, -length / 2 - 0.05);
-  headlight.target.position.set(0, -1.6, -length / 2 - 13);
-  headlight.shadow.mapSize.setScalar(1024);
-  headlight.shadow.bias = -0.0008;
-  const taillight = new THREE.SpotLight(
-    TAILLIGHT.color,
-    0,
-    TAILLIGHT.distance,
-    TAILLIGHT.angle,
-    1,
-    1.8,
-  );
-  taillight.position.set(0, lampY, length / 2 + 0.05);
-  taillight.target.position.set(0, -1.2, length / 2 + 4);
-  body.add(headlight, headlight.target, taillight, taillight.target);
+    const headlight = new THREE.SpotLight(
+      HEADLIGHT.color,
+      0,
+      HEADLIGHT.distance,
+      HEADLIGHT.angle,
+      0.7,
+      1.5,
+    );
+    headlight.position.set(x, lampY, -length / 2 - 0.05);
+    // Each beam points straight ahead of its own lamp.
+    headlight.target.position.set(x * 1.6, -1.6, -length / 2 - 13);
+    headlight.shadow.mapSize.setScalar(512);
+    headlight.shadow.bias = -0.0008;
+    const taillight = new THREE.SpotLight(
+      TAILLIGHT.color,
+      0,
+      TAILLIGHT.distance,
+      TAILLIGHT.angle,
+      1,
+      1.8,
+    );
+    taillight.position.set(x * 1.15, lampY, length / 2 + 0.05);
+    taillight.target.position.set(x * 1.6, -1.2, length / 2 + 4);
+    body.add(headlight, headlight.target, taillight, taillight.target);
+    headlights.push(headlight);
+    taillights.push(taillight);
+  }
 
   const wheels: Wheel[] = [];
   for (const z of [-size.axle.z, size.axle.z]) {
@@ -315,19 +321,22 @@ export function buildSuv(): Suv {
     setLights(level) {
       headLamp.emissiveIntensity = LAMP_GLOW * level;
       tailLamp.emissiveIntensity = LAMP_GLOW * level;
-      headlight.intensity = HEADLIGHT.intensity * level;
-      taillight.intensity = TAILLIGHT.intensity * level;
-      // A shadow-casting light costs a shadow pass even when dark, so it
-      // casts only while it shines.
-      headlight.castShadow = level > 0.01;
+      for (const light of headlights) {
+        light.intensity = HEADLIGHT.intensity * level;
+        // A shadow-casting light costs a shadow pass even when dark, so it
+        // casts only while it shines.
+        light.castShadow = level > 0.01;
+      }
+      for (const light of taillights) {
+        light.intensity = TAILLIGHT.intensity * level;
+      }
     },
     dispose() {
       for (const geometry of geometries) geometry.dispose();
       for (const found of materials.values()) found.dispose();
       headLamp.dispose();
       tailLamp.dispose();
-      headlight.dispose();
-      taillight.dispose();
+      for (const light of [...headlights, ...taillights]) light.dispose();
     },
   };
 }
