@@ -82,17 +82,18 @@ const DAY: Palette = {
   obstacles: ["#aeb0b6", "#a2a4aa", "#94969c", "#888a90", "#888a90"],
 };
 
+// Warm graphite, picked from the lighter palettes in Doop.
 const NIGHT: Palette = {
-  ground: "#16171a",
-  pinLow: "#25262b",
-  pinHigh: "#4a4c53",
-  base: "#0c0d0f",
-  sky: "#8d97ab",
-  earth: "#0b0c0e",
-  skyIntensity: 1.1,
-  sun: "#b9c4d8",
-  sunIntensity: 1.5,
-  obstacles: ["#34353b", "#303136", "#2c2d32", "#28292d", "#28292d"],
+  ground: "#3b3835",
+  pinLow: "#47433f",
+  pinHigh: "#7c7772",
+  base: "#2a2724",
+  sky: "#c9d0dc",
+  earth: "#15161a",
+  skyIntensity: 1.2,
+  sun: "#dfe5ee",
+  sunIntensity: 1.7,
+  obstacles: ["#5f5a55", "#5a5550", "#55504b", "#504b46", "#504b46"],
 };
 
 const THEME_FADE = 4;

@@ -45,10 +45,11 @@
    and their text turns light. The black sheet is the same in both. */
 [data-theme="dark"] {
   color-scheme: dark;
-  --color-ground: #16171a;
-  --color-ink: #ecedef;
-  --color-ink-dim: #8e9096;
-  --color-edge: #2c2d32;
+  /* Warm graphite, picked in Doop: it sits well with the photo. */
+  --color-ground: #3b3835;
+  --color-ink: #f3f1ee;
+  --color-ink-dim: #b8b3ad;
+  --color-edge: #57524d;
 }
 
 @layer base {
