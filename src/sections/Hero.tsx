@@ -85,7 +85,7 @@ export function Hero() {
   const hostRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const boardRef = useRef<PinBoard | null>(null);
-  const playRowRef = useRef<HTMLDivElement>(null);
+  const nameRef = useRef<HTMLHeadingElement>(null);
   const hintTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [loaded, setLoaded] = useState(false);
   const [live, setLive] = useState(false);
@@ -117,10 +117,11 @@ export function Hero() {
             clearTimeout(hintTimer.current);
             hintTimer.current = setTimeout(() => setShowHint(false), HINT_MS);
           },
+          // The SUV drives down to the top of the name, behind the Play row.
           playBottom: () => {
-            const row = playRowRef.current?.getBoundingClientRect();
+            const name = nameRef.current?.getBoundingClientRect();
             const top = canvas.getBoundingClientRect().top;
-            return row ? row.top - top : canvas.clientHeight * 0.5;
+            return name ? name.top - top : canvas.clientHeight * 0.55;
           },
           onSlow: () => {
             boardRef.current?.dispose();
@@ -178,6 +179,7 @@ export function Hero() {
   const hintPresence = usePresence(playing && hint !== null);
   const fade = (visible: boolean) =>
     visible ? "opacity-100" : "-translate-x-1 opacity-0";
+  const scoreFade = score.visible ? "opacity-100" : "-translate-y-1 opacity-0";
 
   return (
     <section
@@ -210,12 +212,23 @@ export function Hero() {
         className="pointer-events-none absolute inset-x-0 bottom-0 h-[62%] bg-linear-to-t from-ground from-38% to-ground/0"
       />
 
+      {/* The score sits under the site name, out of the way of the board. */}
+      {score.mounted && (
+        <p
+          className={`pointer-events-none absolute top-15 left-5 text-ink tabular-nums transition-[opacity,translate] duration-300 ease-out md:top-19 md:left-10 ${scoreFade}`}
+        >
+          <span className="block font-display text-[28px] leading-none font-extrabold [font-stretch:108%]">
+            {run.distance} m
+          </span>
+          <span className="mt-1 block text-sm text-ink-dim">
+            Best {Math.max(best, run.distance)} m
+          </span>
+        </p>
+      )}
+
       <div className="pointer-events-none relative">
         {loaded && (
-          <div
-            ref={playRowRef}
-            className="pointer-events-auto mb-4 flex flex-wrap items-center gap-x-3.5 gap-y-2 md:mb-5"
-          >
+          <div className="pointer-events-auto mb-4 flex flex-wrap items-center gap-x-3.5 gap-y-2 md:mb-5">
             <button
               type="button"
               aria-pressed={playing}
@@ -225,14 +238,6 @@ export function Hero() {
               <PiSteeringWheelBold aria-hidden="true" className="size-5" />
               Play
             </button>
-            {score.mounted && (
-              <p
-                className={`${PILL} inline-flex items-baseline gap-3 px-3.5 tabular-nums ${fade(score.visible)}`}
-              >
-                <span className="font-semibold text-ink">{run.distance} m</span>
-                <span>Best {Math.max(best, run.distance)} m</span>
-              </p>
-            )}
             {hintPresence.mounted && (
               <p
                 aria-live="polite"
@@ -244,7 +249,10 @@ export function Hero() {
           </div>
         )}
         <div>
-          <h1 className="-ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em]">
+          <h1
+            ref={nameRef}
+            className="-ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em]"
+          >
             Kamil Pułka
           </h1>
           <div className="mt-5 flex flex-wrap items-end justify-between gap-6 md:mt-7">

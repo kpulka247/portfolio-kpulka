@@ -43,14 +43,14 @@ interface Spec {
 const SPEC: Spec = {
   size: {
     wheelRadius: 0.19,
-    // The wheels sit outside the body, so a steered wheel never cuts into it.
-    axle: { x: 0.5, z: 0.54 },
+    // The tyres sit almost flush with the body sides, in cut-out arches.
+    axle: { x: 0.35, z: 0.54 },
     bodyLift: 0.06,
-    halfWidth: 0.56,
+    halfWidth: 0.43,
     halfLength: 0.84,
   },
-  body: [1.66, 0.3, 0.72],
-  cabin: { bottom: [0.7, 1.12], top: [0.54, 0.66], height: 0.32, back: 0.1 },
+  body: [1.66, 0.3, 0.82],
+  cabin: { bottom: [0.78, 1.12], top: [0.6, 0.66], height: 0.32, back: 0.1 },
   colors: {
     body: "#b2b5bb",
     cabin: "#2b2c31",
@@ -105,6 +105,10 @@ function frustum(
   return geometry.toNonIndexed();
 }
 
+const TYRE_WIDTH = 0.16;
+// How far a tyre's edge swings inwards at full steering lock.
+const STEER_SWING = 0.07;
+
 export function buildSuv(): Suv {
   const spec = SPEC;
   const { size, colors } = spec;
@@ -142,13 +146,37 @@ export function buildSuv(): Suv {
   root.add(body);
 
   const [length, height, width] = spec.body;
-  // The body tapers a little towards the bonnet and the tailgate.
+  // The lower body has a cut-out over each wheel: narrower where the
+  // wheels are, so a steered wheel turns inside its arch, not through the
+  // body. The upper body sits over the arches and tapers a little towards
+  // the bonnet and the tailgate.
+  const archTop = size.wheelRadius - size.bodyLift + 0.06;
+  const archHalf = size.wheelRadius + 0.05;
+  const tyreInner = size.axle.x - TYRE_WIDTH / 2 - STEER_SWING;
   mesh(
     body,
-    frustum([width, length], [width * 0.94, length * 0.92], height),
+    frustum([width, length], [width * 0.94, length * 0.92], height - archTop),
     colors.body,
-    [0, 0, 0],
+    [0, archTop, 0],
   );
+  const edges = [
+    -length / 2,
+    -size.axle.z - archHalf,
+    -size.axle.z + archHalf,
+    size.axle.z - archHalf,
+    size.axle.z + archHalf,
+    length / 2,
+  ];
+  for (let n = 0; n < edges.length - 1; n++) {
+    const arch = n % 2 === 1;
+    const depth = edges[n + 1] - edges[n];
+    mesh(
+      body,
+      new THREE.BoxGeometry(arch ? tyreInner * 2 : width, archTop, depth),
+      arch ? colors.trim : colors.body,
+      [0, archTop / 2, (edges[n] + edges[n + 1]) / 2],
+    );
+  }
   const { cabin } = spec;
   mesh(body, frustum(cabin.bottom, cabin.top, cabin.height), colors.cabin, [
     0,
@@ -170,17 +198,6 @@ export function buildSuv(): Suv {
     [0, height + cabin.height * 0.1, cabin.back],
     0.2,
   );
-  // Wheel arches: a flare over each wheel, out to the tyre's outer face.
-  for (const x of [-size.axle.x, size.axle.x]) {
-    for (const z of [-size.axle.z, size.axle.z]) {
-      mesh(body, frustum([0.24, 0.52], [0.2, 0.4], 0.08), colors.trim, [
-        x * 0.96,
-        size.wheelRadius - size.bodyLift + 0.02,
-        z,
-      ]);
-    }
-  }
-
   // Bumpers and lamps.
   const bumper = new THREE.BoxGeometry(width + 0.04, 0.1, 0.08);
   mesh(body, bumper, colors.trim, [0, 0.05, -length / 2 - 0.02]);
@@ -212,7 +229,7 @@ export function buildSuv(): Suv {
       const tyre = new THREE.CylinderGeometry(
         size.wheelRadius,
         size.wheelRadius,
-        0.16,
+        TYRE_WIDTH,
         8,
       );
       tyre.rotateZ(Math.PI / 2);

@@ -65,13 +65,17 @@ const RECOVERY_PLAYING = 0.55;
 // The resting height of a pin top, and how far below it a row that is
 // rising in at the horizon or sinking out at the front starts or ends.
 const PIN_REST = 1.15;
-// A hidden pin sits flush with the base, so nothing shows beneath it.
-const PIN_HIDDEN = -0.3;
-// New rows rise over this many rows at the far edge, so they ease in even
-// at speed. The front row sinks over FALL_ROWS.
-const RISE_ROWS = 7;
+// New rows come up from far below the board at its far edge, as if from
+// a drop with no bottom, and settle within RISE_ROWS. The front row sinks
+// away over FALL_ROWS.
+const PIN_HIDDEN = -16;
+const RISE_ROWS = 1.4;
 const FALL_ROWS = 2;
-const BASE_COLOR = new THREE.Color("#9fa1a8");
+// A rising pin reaches this much further below its top, so it looks like
+// a column coming up, not a floating block. Settled pins stay short, which
+// keeps their shadows and fill cheap.
+const PIN_LENGTH = 20;
+const HAZE = new THREE.Color(GROUND);
 // The SUV rides on the pin tops and presses them only a little, enough to
 // leave tracks.
 const CAR_SINK = 0.1;
@@ -102,7 +106,8 @@ const SLOW_FRAME = 1 / 24;
 const GRAVITY = 60;
 const SPRING = { stiffness: 220, damping: 13 };
 const TILT_SPRING = { stiffness: 110, damping: 10 };
-const WHEEL_TRAVEL = 0.12;
+// Kept small, so a compressed wheel stays inside its arch.
+const WHEEL_TRAVEL = 0.06;
 // How fast the SUV climbs away after Stop or a crash.
 const LIFT = 60;
 const REVERSE_SPEED = 5;
@@ -250,37 +255,16 @@ export function mount(
   for (let i = 0; i < count; i++) pins.setColorAt(i, PIN_HIGH);
   scene.add(pins);
 
-  // The base shows between the pins. It runs far past the board's back
-  // edge and fades to the background there, then into the fog, so the far
-  // edge never shows as a hard line.
+  // The base shows between the pins. It stops short of the rows that are
+  // still rising, so past the far edge there is only the background.
   const baseFront = z0 + slots * spacing + 1;
-  const baseBack = z0 - 45;
+  const baseBack = z0 + RISE_ROWS * spacing;
   const baseGeometry = new THREE.PlaneGeometry(
-    columns * spacing + 60,
+    columns * spacing + 2,
     baseFront - baseBack,
-    1,
-    40,
-  );
-  const baseColors: number[] = [];
-  const basePositions = baseGeometry.getAttribute("position");
-  const fadeColor = new THREE.Color();
-  for (let i = 0; i < basePositions.count; i++) {
-    // Rotated flat below, the plane's y becomes -z.
-    const z = (baseFront + baseBack) / 2 - basePositions.getY(i);
-    const solid = THREE.MathUtils.smoothstep(
-      z,
-      z0 - spacing,
-      z0 + RISE_ROWS * spacing,
-    );
-    fadeColor.set(GROUND).lerp(BASE_COLOR, solid);
-    baseColors.push(fadeColor.r, fadeColor.g, fadeColor.b);
-  }
-  baseGeometry.setAttribute(
-    "color",
-    new THREE.Float32BufferAttribute(baseColors, 3),
   );
   const baseMaterial = new THREE.MeshStandardMaterial({
-    vertexColors: true,
+    color: "#9fa1a8",
     roughness: 0.9,
   });
   const base = new THREE.Mesh(baseGeometry, baseMaterial);
@@ -926,10 +910,10 @@ export function mount(
       const worldRow = scrolledRows + rows - k;
       const worldZ = z - scroll;
       const mask = obstaclesFor(worldRow);
-      const shown = Math.min(
-        THREE.MathUtils.smootherstep((k + along) / RISE_ROWS, 0, 1),
-        THREE.MathUtils.smootherstep((slots - k - along) / FALL_ROWS, 0, 1),
-      );
+      // Rising: fast out of the depth, slowing as it reaches the surface.
+      const rise = Math.min(1, Math.max(0, (k + along) / RISE_ROWS));
+      const fall = Math.min(1, Math.max(0, (slots - k - along) / FALL_ROWS));
+      const shown = Math.min(1 - (1 - rise) ** 3, 1 - (1 - fall) ** 3);
       // Moving walls rise and sink together, each on its own beat.
       const wave = 0.5 + 0.5 * Math.sin(t * 2.4 + worldRow * 0.9);
       for (let i = 0; i < columns; i++) {
@@ -945,15 +929,19 @@ export function mount(
         const surface =
           PIN_REST + swell(x, worldZ, t) - depth[index] * 1.05 + raised[index];
         const height = PIN_HIDDEN + (surface - PIN_HIDDEN) * shown;
-        matrix.makeScale(1, height + 1.5, 1);
+        matrix.makeScale(
+          1,
+          Math.max(0.2, height + 1.5) + (1 - shown) * PIN_LENGTH,
+          1,
+        );
         matrix.setPosition(x, height, z);
         pins.setMatrixAt(index, matrix);
         colour
           .copy(PIN_LOW)
           .lerp(PIN_HIGH, THREE.MathUtils.clamp((height - 0.1) / 1.6, 0, 1));
         if (look) colour.lerp(look.color, Math.min(1, raised[index] / 0.3));
-        // Rising rows come out of the haze at the horizon.
-        colour.lerp(BASE_COLOR, 1 - shown);
+        // Rising rows come out of the haze below the edge.
+        colour.lerp(HAZE, (1 - shown) * 0.7);
         pins.setColorAt(index, colour);
       }
     }

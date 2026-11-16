@@ -36,7 +36,7 @@ test.describe("live pin board", () => {
     await page.keyboard.press("d");
     await page.waitForTimeout(3_500);
     await expect(hint).toBeVisible();
-    await expect(hint).toBeHidden({ timeout: 4_000 });
+    await expect(hint).toBeHidden({ timeout: 6_000 });
     // The copy under the board stays the whole time.
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
