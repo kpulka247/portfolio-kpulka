@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 // Tyre smoke for burnouts, donuts and drifts: a pool of soft puffs drawn
 // as one point cloud, so it costs one draw call. Each puff is lit on the
-// CPU from the scene's light and, at night, from the SUV's own lamps, so
+// CPU from the scene's light and, at night, from the car's own lamps, so
 // smoke behind the car glows red and smoke in the beams glows white.
 
 const POOL = 360;

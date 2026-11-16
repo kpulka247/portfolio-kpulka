@@ -130,7 +130,7 @@ export function Hero() {
             clearTimeout(hintTimer.current);
             hintTimer.current = setTimeout(() => setShowHint(false), HINT_MS);
           },
-          // The SUV drives down to the top of the name, behind the Play row.
+          // The car drives down to the top of the name, behind the Play row.
           playBottom: () => {
             const name = nameRef.current?.getBoundingClientRect();
             const top = canvas.getBoundingClientRect().top;
@@ -271,7 +271,7 @@ export function Hero() {
             )}
           </div>
         )}
-        {/* The copy sits on a fade that starts just above the name: the SUV
+        {/* The copy sits on a fade that starts just above the name: the car
             softens only at the very edge of its area, and stays sharp where
             it drops in. */}
         <div className="relative">

@@ -9,13 +9,13 @@ import {
 } from "./runner";
 import type { Theme } from "../theme";
 import { createSmoke } from "./smoke";
-import { buildSuv } from "./suv";
+import { ARCH_GAP, buildCar } from "./car";
 
 // The hero's pin board: a field of pins that swell slowly and dip under the
-// pointer. Play drops a small SUV on it, which drives like a car on the
+// pointer. Play drops a small sports car on it, which drives like a car on the
 // board above the hero's Play row. Driving forward scrolls the board
 // towards the camera, new rows rise at the horizon, and obstacles of four
-// kinds come up that the SUV has to avoid. React owns the page around it
+// kinds come up that the car has to avoid. React owns the page around it
 // and talks to it only through this interface.
 
 export interface RunState {
@@ -32,14 +32,14 @@ export interface PinBoardOptions {
   // The first seconds ran too slowly. The board keeps its last frame on
   // screen and stops drawing, so the caller should hide Play.
   onSlow: () => void;
-  // The run's distance changed by a metre, or the SUV crashed.
+  // The run's distance changed by a metre, or the car crashed.
   onRun: (state: RunState) => void;
   // A run started, from Play or after a crash.
   onRunStart: () => void;
   // The visitor touched a control for the first time in this run.
   onFirstInput: () => void;
   // The top of the hero's Play row, in pixels from the top of the canvas.
-  // The SUV drives only above it.
+  // The car drives only above it.
   playBottom: () => number;
   // Draw one frame and no animation, for visitors who prefer less motion.
   // The frame is the real board, so it matches every screen.
@@ -55,7 +55,7 @@ export interface PinBoard {
 }
 
 // Day is brushed aluminium in daylight. Night is graphite under a faint
-// cool moon, lit by the SUV's own lights. Both from the Doop frames.
+// cool moon, lit by the car's own lights. Both from the Doop frames.
 interface Palette {
   ground: string;
   pinLow: string;
@@ -132,7 +132,7 @@ const PIN_LENGTH = 20;
 // where its far edge shows on screen.
 const BASE_Y = -4;
 const OLD_BASE_Y = -0.3;
-// The SUV rides on the pin tops and presses them only a little, enough to
+// The car rides on the pin tops and presses them only a little, enough to
 // leave tracks.
 const CAR_SINK = 0.1;
 const TRACK_DEPTH = 0.22;
@@ -145,12 +145,12 @@ const OBSTACLE_HEIGHT: Record<number, number> = {
   [OBSTACLE.gate]: 1.2,
   [OBSTACLE.moving]: 1.4,
 };
-// An obstacle lower than this lets the SUV pass, as when a moving wall
+// An obstacle lower than this lets the car pass, as when a moving wall
 // has sunk.
 const SOLID_HEIGHT = 0.3;
-// The crash check forgives this share of the SUV's width on every side.
+// The crash check forgives this share of the car's width on every side.
 const HIT_MARGIN = 0.1;
-// The SUV stays inside this part of the screen sideways.
+// The car stays inside this part of the screen sideways.
 const SCREEN_EDGE = 0.94;
 // After a short warm-up, frames are timed for this long. If they average
 // slower than SLOW_FRAME, the device is too slow for the board.
@@ -162,13 +162,17 @@ const SLOW_FRAME = 1 / 24;
 const GRAVITY = 60;
 // Critically damped (damping = 2 * sqrt(stiffness)), so the body settles
 // without bouncing on its own and only follows the ground.
-const SPRING = { stiffness: 220, damping: 30 };
-const TILT_SPRING = { stiffness: 110, damping: 19 };
-// Kept small, so a compressed wheel stays inside its arch.
-const WHEEL_TRAVEL = 0.06;
-// How fast the SUV climbs away after Stop or a crash.
+// Stiff, as on a lowered sports car.
+const SPRING = { stiffness: 600, damping: 49 };
+const TILT_SPRING = { stiffness: 260, damping: 32 };
+// The suspension's travel: the gap between a tyre and the top of its
+// arch, so a compressed wheel stays inside it.
+const WHEEL_TRAVEL = ARCH_GAP;
+// Further above the ground than this, the car is in the air.
+const ON_GROUND = 0.06;
+// How fast the car climbs away after Stop or a crash.
 const LIFT = 60;
-// A landing from a real fall dents the board under the SUV, about the size
+// A landing from a real fall dents the board under the car, about the size
 // of the pointer's dent. The surface gives like jelly: it sinks, swells a
 // little above flat once, and settles, in under a second. DENT_WOBBLE is how fast it swings, in
 // radians a second, and DENT_SETTLE how fast the swing dies away. Softer
@@ -177,7 +181,7 @@ const DENT = { radius: 3, depth: 2.2 };
 const DENT_WOBBLE = 9;
 const DENT_SETTLE = 4.5;
 const DENT_MIN_SPEED = 6;
-// Only a real drop dents the board: the SUV must have been at least this
+// Only a real drop dents the board: the car must have been at least this
 // high above the ground while in the air. A dent pulling the ground away
 // under the wheels leaves a far smaller gap, so it cannot set off the next.
 const DENT_MIN_DROP = 0.8;
@@ -185,7 +189,7 @@ const DENT_MIN_DROP = 0.8;
 // drop in from above the screen on a desktop.
 const FULL_DROP = 12;
 const STICK = 0.5;
-// W and S together: the brakes hold the SUV while the rear wheels spin.
+// W and S together: the brakes hold the car while the rear wheels spin.
 // Steering then swings the rear around the front axle, a donut. The spin
 // builds up towards DONUT_RATE radians a second at DONUT_GRIP, and winds
 // down at DONUT_GRIP when the steering is let go, as a sliding car does.
@@ -197,16 +201,16 @@ const BRAKE_AGAINST_ENGINE = 0.3;
 const DONUT_GRIP = 1.1;
 // Puffs a second from each rear wheel while it spins.
 const SMOKE_RATE = 28;
-// The SUV drops in this far above the bottom edge of its area.
+// The car drops in this far above the bottom edge of its area.
 const SPAWN_ABOVE_EDGE = 1.4;
 const REVERSE_SPEED = 5;
 const BRAKE = 22;
 const ROLL_OFF = 4;
 // Steering: the front wheels turn up to MAX_STEER, less at speed, and the
-// SUV turns as a car of this wheelbase would.
+// car turns as one of this wheelbase would.
 const MAX_STEER = 0.6;
 const WHEELBASE = 2.2;
-// After a crash the SUV flies off after this long. A restart asked for
+// After a crash the car flies off after this long. A restart asked for
 // before it has left waits for it.
 const LAUNCH_AFTER = 0.5;
 
@@ -371,15 +375,15 @@ export function mount(
   base.position.set(0, BASE_Y, (baseFront + baseBack) / 2);
   scene.add(base);
 
-  const suv = buildSuv();
+  const car = buildCar();
   const smoke = createSmoke(scene);
-  const smokeHeads = suv.headlights.map(() => new THREE.Vector3());
-  const smokeTails = suv.taillights.map(() => new THREE.Vector3());
+  const smokeHeads = car.headlights.map(() => new THREE.Vector3());
+  const smokeTails = car.taillights.map(() => new THREE.Vector3());
   const smokeAhead = new THREE.Vector3();
-  const { size } = suv;
+  const { size } = car;
   const ride = size.wheelRadius + size.bodyLift;
-  suv.root.visible = false;
-  scene.add(suv.root);
+  car.root.visible = false;
+  scene.add(car.root);
 
   // Per pin, by slot: how far it is pressed down, how tall its obstacle
   // stands, and which kind of obstacle it holds. All three move with their
@@ -465,7 +469,7 @@ export function mount(
     area.sideAtFollow = groundAt(SCREEN_EDGE, followY)?.x ?? -x0;
   }
 
-  // A height at which the SUV, at this point of the board, is just above
+  // A height at which the car, at this point of the board, is just above
   // the top of the screen, so it drops in from out of view.
   function offScreenHeight(x: number, z: number): number {
     for (let y = 2; y < 80; y += 0.5) {
@@ -475,7 +479,7 @@ export function mount(
     return 80;
   }
 
-  // How far the SUV can go sideways at a depth and stay on screen.
+  // How far the car can go sideways at a depth and stay on screen.
   function sideLimit(z: number): number {
     projected.set(0, 1, z).project(camera);
     const x = groundAt(SCREEN_EDGE, projected.y)?.x ?? -x0;
@@ -542,7 +546,7 @@ export function mount(
     keys.delete(event.key.toLowerCase());
   };
 
-  // The SUV. "hidden" off the board, "driving" during a run (including the
+  // The car. "hidden" off the board, "driving" during a run (including the
   // drop in), "crashed" after a hit, "leaving" after Stop.
   let state: "hidden" | "driving" | "crashed" | "leaving" = "hidden";
   let carX = 0;
@@ -568,7 +572,7 @@ export function mount(
   // How fast the donut is turning, in radians a second.
   let donutSpeed = 0;
   let smokeDebt = 0;
-  // How high the SUV has been above the ground since it last touched it.
+  // How high the car has been above the ground since it last touched it.
   let highestGap = 0;
   // Landing dents, in board coordinates so they scroll with the pins.
   // Each plays out on its own, so a landing during an earlier dent adds
@@ -629,7 +633,7 @@ export function mount(
     options.onRun(next);
   }
 
-  // A fresh SUV drops in at the bottom centre of the play area, facing up
+  // A fresh car drops in at the bottom centre of the play area, facing up
   // the screen, and a new run starts with a clear road.
   function startRun() {
     measureArea();
@@ -645,7 +649,7 @@ export function mount(
       minGap: Math.ceil((size.halfWidth * 2 * 2.2) / spacing),
     };
     obstacles.clear();
-    const catching = state === "leaving" && suv.root.visible;
+    const catching = state === "leaving" && car.root.visible;
     state = "driving";
     speed = 0;
     lastSpeed = 0;
@@ -654,7 +658,7 @@ export function mount(
     launched = false;
     restartQueued = false;
     if (catching) {
-      // Play pressed again while the SUV was flying off: it stops climbing
+      // Play pressed again while the car was flying off: it stops climbing
       // and falls back where it is.
       climb = Math.min(climb, 0);
     } else {
@@ -675,15 +679,15 @@ export function mount(
     runScroll = 0;
     distance = 0;
     reported = { distance: -1, crashed: false };
-    suv.root.visible = true;
+    car.root.visible = true;
     keys.clear();
     report();
     options.onRunStart();
   }
 
-  // After a crash, a new run starts once the wrecked SUV has flown off.
+  // After a crash, a new run starts once the wrecked car has flown off.
   function restartIfReady() {
-    if (suv.root.visible) restartQueued = true;
+    if (car.root.visible) restartQueued = true;
     else startRun();
   }
 
@@ -698,7 +702,7 @@ export function mount(
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
       // Launch up and away, nose first, unless already gone.
-      state = suv.root.visible ? "leaving" : "hidden";
+      state = car.root.visible ? "leaving" : "hidden";
       climb = Math.max(climb, 6);
       pitchSpeed += 2;
       restartQueued = false;
@@ -715,7 +719,7 @@ export function mount(
     const sin = Math.sin(yaw);
     const cos = Math.cos(yaw);
     let sum = 0;
-    suv.wheels.forEach((wheel, n) => {
+    car.wheels.forEach((wheel, n) => {
       const wx = carX + wheel.x * cos + wheel.z * sin;
       const wz = carZ - wheel.x * sin + wheel.z * cos;
       wheelGround[n] =
@@ -740,7 +744,7 @@ export function mount(
     if (keys.has("a") || keys.has("arrowleft")) steer -= 1;
     if (keys.has("d") || keys.has("arrowright")) steer += 1;
     // Holding the board drives towards the finger, and reverses towards it
-    // when it is behind the SUV.
+    // when it is behind the car.
     if (pointerDown && pointer) {
       const dx = pointer.x - carX;
       const dz = pointer.z - carZ;
@@ -769,9 +773,9 @@ export function mount(
       state === "driving"
         ? controls()
         : { throttle: 0, steer: 0, burnout: false };
-    const grounded = bodyY - (groundUnder().mean + ride) < WHEEL_TRAVEL;
+    const grounded = bodyY - (groundUnder().mean + ride) < ON_GROUND;
 
-    // W and S together brake gently while the SUV moves, as the engine
+    // W and S together brake gently while the car moves, as the engine
     // fights the brakes. Once it has nearly stopped, the brakes hold it
     // and the rear wheels spin. Letting go of S drives on as normal.
     burning =
@@ -786,7 +790,7 @@ export function mount(
         burnout ||
         (throttle < 0 && speed > 0.3) ||
         (throttle > 0 && speed < 0));
-    suv.setBraking(braking ? 1 : 0);
+    car.setBraking(braking ? 1 : 0);
 
     if (burning) {
       speed -= Math.sign(speed) * Math.min(Math.abs(speed), BRAKE * dt);
@@ -838,7 +842,7 @@ export function mount(
     if (state === "driving") spin -= wrapAngle(spin) * ease(8, dt);
     spinSpeed *= Math.exp(-2.5 * dt);
 
-    // Move. Past the follow line the board scrolls instead of the SUV.
+    // Move. Past the follow line the board scrolls instead of the car.
     if (state === "driving" || state === "crashed") {
       let nextZ = carZ - Math.cos(yaw) * speed * dt;
       let nextX = carX - Math.sin(yaw) * speed * dt;
@@ -860,12 +864,12 @@ export function mount(
 
     const { mean } = groundUnder();
     const rest = mean + ride;
-    // Within STICK of the ground, the suspension holds the SUV to it and
+    // Within STICK of the ground, the suspension holds the car to it and
     // follows it, down into a dent and back up. Only above that does it
     // fall freely. Without this, a dent pulling the ground away would drop
-    // the SUV into a new landing, and a new dent, again and again.
+    // the car into a new landing, and a new dent, again and again.
     const gap = bodyY - rest;
-    const falling = gap > STICK || (climb > 0 && gap > WHEEL_TRAVEL);
+    const falling = gap > STICK || (climb > 0 && gap > ON_GROUND);
     if (falling) highestGap = Math.max(highestGap, gap);
     if (launched || state === "leaving") {
       climb += LIFT * dt;
@@ -883,9 +887,9 @@ export function mount(
       bodyY = rest - WHEEL_TRAVEL;
       if (climb < 0) climb = 0;
     }
-    const onGround = bodyY - rest < WHEEL_TRAVEL;
+    const onGround = bodyY - rest < ON_GROUND;
 
-    // A hard landing from a real drop dents the board under the SUV.
+    // A hard landing from a real drop dents the board under the car.
     const landed = highestGap > 0 && bodyY - rest <= STICK;
     if (
       state === "driving" &&
@@ -921,22 +925,22 @@ export function mount(
       size.axle.x * 2,
     );
     const pitchTarget = onGround
-      ? groundPitch + THREE.MathUtils.clamp(accel * 0.008, -0.1, 0.1)
+      ? groundPitch + THREE.MathUtils.clamp(accel * 0.004, -0.05, 0.05)
       : 0;
     // The body leans away from the turn, as a real car's does.
     const rollTarget = onGround
-      ? groundRoll + THREE.MathUtils.clamp(-turn * speed * 0.012, -0.12, 0.12)
+      ? groundRoll + THREE.MathUtils.clamp(-turn * speed * 0.006, -0.06, 0.06)
       : 0;
     pitchSpeed = spring(pitch, pitchSpeed, pitchTarget, TILT_SPRING, dt);
     rollSpeed = spring(roll, rollSpeed, rollTarget, TILT_SPRING, dt);
     pitch += pitchSpeed * dt;
     roll += rollSpeed * dt;
 
-    suv.root.position.set(carX, 0, carZ);
-    suv.root.rotation.y = yaw + spin;
-    suv.body.position.y = bodyY;
-    suv.body.rotation.set(pitch, 0, roll);
-    suv.wheels.forEach((wheel, n) => {
+    car.root.position.set(carX, 0, carZ);
+    car.root.rotation.y = yaw + spin;
+    car.body.position.y = bodyY;
+    car.body.rotation.set(pitch, 0, roll);
+    car.wheels.forEach((wheel, n) => {
       const hub = bodyY - size.bodyLift;
       wheel.pivot.position.y = THREE.MathUtils.clamp(
         wheelGround[n] + size.wheelRadius,
@@ -961,7 +965,7 @@ export function mount(
       const back = 3;
       while (smokeDebt >= 1) {
         smokeDebt -= 1;
-        for (const wheel of suv.wheels) {
+        for (const wheel of car.wheels) {
           if (wheel.front) continue;
           smoke.emit(
             carX + wheel.x * cos + wheel.z * sin,
@@ -981,7 +985,7 @@ export function mount(
       const share = ease(RATE.car, dt);
       const sin = Math.sin(yaw);
       const cos = Math.cos(yaw);
-      for (const wheel of suv.wheels) {
+      for (const wheel of car.wheels) {
         press(
           carX + wheel.x * cos + wheel.z * sin,
           carZ - wheel.x * sin + wheel.z * cos,
@@ -1009,7 +1013,7 @@ export function mount(
     if ((state === "leaving" || launched) && climb > 0) {
       projected.set(carX, bodyY - 0.6, carZ).project(camera);
       if (projected.y > 1.05) {
-        suv.root.visible = false;
+        car.root.visible = false;
         speed = 0;
         if (state === "leaving") state = "hidden";
         if (state === "crashed" && restartQueued) startRun();
@@ -1017,7 +1021,7 @@ export function mount(
     }
   }
 
-  // Does the SUV touch an obstacle that stands high enough?
+  // Does the car touch an obstacle that stands high enough?
   function hitsObstacle(phase: number): boolean {
     const footprint = {
       x: carX,
@@ -1092,8 +1096,8 @@ export function mount(
     // switches wait about half a second.
     if (nightTarget === 1 && night > LIGHTS_ON_AT) lightsOn = true;
     if (nightTarget === 0 && night < 1 - LIGHTS_ON_AT) lightsOn = false;
-    suv.setLights(lightsOn ? 1 : 0);
-    suv.setDusk(night);
+    car.setLights(lightsOn);
+    car.setDusk(night);
   }
   applyPalette();
 
@@ -1148,14 +1152,15 @@ export function mount(
     const scrollBefore = scroll;
     if (state !== "hidden") drive(dt, phaseBefore);
 
+    car.update(dt);
     // The smoke rides the board and is lit by the scene and the lamps.
-    suv.root.updateMatrixWorld();
-    suv.headlights.forEach((lamp, n) => lamp.getWorldPosition(smokeHeads[n]));
-    suv.taillights.forEach((lamp, n) => lamp.getWorldPosition(smokeTails[n]));
+    car.root.updateMatrixWorld();
+    car.headlights.forEach((lamp, n) => lamp.getWorldPosition(smokeHeads[n]));
+    car.taillights.forEach((lamp, n) => lamp.getWorldPosition(smokeTails[n]));
     smokeAhead.set(-Math.sin(yaw), 0, -Math.cos(yaw));
     smoke.update(dt, scroll - scrollBefore, {
       night,
-      lamps: lightsOn && suv.root.visible,
+      lamps: lightsOn && car.root.visible,
       heads: smokeHeads,
       tails: smokeTails,
       ahead: smokeAhead,
@@ -1339,7 +1344,7 @@ export function mount(
       pinMaterial.dispose();
       baseGeometry.dispose();
       baseMaterial.dispose();
-      suv.dispose();
+      car.dispose();
       smoke.dispose();
       renderer.dispose();
     },
