@@ -163,8 +163,8 @@ const GRAVITY = 60;
 // Critically damped (damping = 2 * sqrt(stiffness)), so the body settles
 // without bouncing on its own and only follows the ground.
 // Stiff, as on a lowered sports car.
-const SPRING = { stiffness: 600, damping: 49 };
-const TILT_SPRING = { stiffness: 260, damping: 32 };
+const SPRING = { stiffness: 1400, damping: 75 };
+const TILT_SPRING = { stiffness: 600, damping: 49 };
 // The suspension's travel: the gap between a tyre and the top of its
 // arch, so a compressed wheel stays inside it.
 const WHEEL_TRAVEL = ARCH_GAP;
@@ -191,9 +191,14 @@ const FULL_DROP = 12;
 const STICK = 0.5;
 // W and S together: the brakes hold the car while the rear wheels spin.
 // Steering then swings the rear around the front axle, a donut. The spin
-// builds up towards DONUT_RATE radians a second at DONUT_GRIP, and winds
-// down at DONUT_GRIP when the steering is let go, as a sliding car does.
+// builds up towards DONUT_RATE radians a second at DONUT_GRIP, and swings
+// over just as smoothly when the steering changes side. Letting go of the
+// steering in a burnout leaves the car sliding round, slowing at
+// DONUT_COAST. Letting go of W or S ends the burnout, and the tyres grip
+// and stop the spin at DONUT_STOP.
 const DONUT_RATE = 2.4;
+const DONUT_COAST = 0.3;
+const DONUT_STOP = 7;
 // Below this speed W and S together start a burnout.
 const BURNOUT_BELOW = 1;
 // Braking with the throttle still pressed is this share of full braking.
@@ -824,10 +829,15 @@ export function mount(
     const turn = (-speed * Math.tan(angle)) / WHEELBASE;
     yaw += turn * dt;
 
-    // A donut: the rear swings around the front axle. The spin builds up
-    // while steering in a burnout, and winds down otherwise.
-    const donutTarget = burning ? -steerShown * DONUT_RATE : 0;
-    donutSpeed += (donutTarget - donutSpeed) * ease(DONUT_GRIP, dt);
+    // A donut: the rear swings around the front axle.
+    const steering = Math.abs(steer) > 0;
+    const donutTarget = burning && steering ? -steerShown * DONUT_RATE : 0;
+    const donutRate = !burning
+      ? DONUT_STOP
+      : steering
+        ? DONUT_GRIP
+        : DONUT_COAST;
+    donutSpeed += (donutTarget - donutSpeed) * ease(donutRate, dt);
     if (Math.abs(donutSpeed) < 0.01 && !burning) donutSpeed = 0;
     if (donutSpeed !== 0) {
       const ahead = size.axle.z;
@@ -925,11 +935,11 @@ export function mount(
       size.axle.x * 2,
     );
     const pitchTarget = onGround
-      ? groundPitch + THREE.MathUtils.clamp(accel * 0.004, -0.05, 0.05)
+      ? groundPitch + THREE.MathUtils.clamp(accel * 0.002, -0.025, 0.025)
       : 0;
     // The body leans away from the turn, as a real car's does.
     const rollTarget = onGround
-      ? groundRoll + THREE.MathUtils.clamp(-turn * speed * 0.006, -0.06, 0.06)
+      ? groundRoll + THREE.MathUtils.clamp(-turn * speed * 0.003, -0.03, 0.03)
       : 0;
     pitchSpeed = spring(pitch, pitchSpeed, pitchTarget, TILT_SPRING, dt);
     rollSpeed = spring(roll, rollSpeed, rollTarget, TILT_SPRING, dt);

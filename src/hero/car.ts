@@ -62,7 +62,7 @@ const FLOOR = 0.06;
 const ARCH = 0.158;
 // Slammed: the body sits so low that the tyres all but touch the top of
 // their arches. The gap left over is the suspension's travel.
-export const ARCH_GAP = 0.012;
+export const ARCH_GAP = 0.006;
 const SLAM = ARCH - R - ARCH_GAP;
 
 const COLORS = {
