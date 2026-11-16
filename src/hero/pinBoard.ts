@@ -761,8 +761,9 @@ export function mount(
     const pitchTarget = onGround
       ? groundPitch + THREE.MathUtils.clamp(accel * 0.008, -0.1, 0.1)
       : 0;
+    // The body leans away from the turn, as a real car's does.
     const rollTarget = onGround
-      ? groundRoll + THREE.MathUtils.clamp(turn * speed * 0.012, -0.12, 0.12)
+      ? groundRoll + THREE.MathUtils.clamp(-turn * speed * 0.012, -0.12, 0.12)
       : 0;
     pitchSpeed = spring(pitch, pitchSpeed, pitchTarget, TILT_SPRING, dt);
     rollSpeed = spring(roll, rollSpeed, rollTarget, TILT_SPRING, dt);
