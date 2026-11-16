@@ -209,7 +209,7 @@ export function buildCar(): Car {
         [-0.6, 0.385],
         [-0.5, 0.358],
       ]),
-      WIDTH * 0.76,
+      WIDTH * 0.9,
     ),
     material(COLORS.glass, { roughness: 0.15, metalness: 0.6 }),
   );
@@ -223,7 +223,7 @@ export function buildCar(): Car {
         [-0.25, 0.52],
         [0.04, 0.51],
       ]),
-      WIDTH * 0.74,
+      WIDTH * 0.88,
     ),
     material(COLORS.paint),
   );
@@ -343,7 +343,7 @@ export function buildCar(): Car {
     popWidth,
   );
   const popUpLens = new THREE.BoxGeometry(0.12, 0.042, 0.01);
-  for (const x of [-0.22, 0.22]) {
+  for (const x of [-0.27, 0.27]) {
     const hinge = new THREE.Group();
     // A hair above the bonnet, so the closed lid shows as a seam.
     hinge.position.set(x, bonnetAt(POP_UP.hinge) + 0.002, POP_UP.hinge);
