@@ -185,7 +185,7 @@ export function Hero() {
       : "Tap to go again"
     : showHint
       ? keyboard
-        ? "W A S D to drive. Escape stops."
+        ? "W A S D to drive. W + S burns out. Esc stops."
         : "Hold to drive"
       : null;
   // The last hint stays on screen while it fades out.

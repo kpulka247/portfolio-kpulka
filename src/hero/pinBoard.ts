@@ -8,6 +8,7 @@ import {
   topSpeed,
 } from "./runner";
 import type { Theme } from "../theme";
+import { createSmoke } from "./smoke";
 import { buildSuv } from "./suv";
 
 // The hero's pin board: a field of pins that swell slowly and dip under the
@@ -127,6 +128,10 @@ const FALL_ROWS = 2;
 // a column coming up, not a floating block. Settled pins stay short, which
 // keeps their shadows and fill cheap.
 const PIN_LENGTH = 20;
+// The base under the pins. OLD_BASE_Y is where it used to be, which sets
+// where its far edge shows on screen.
+const BASE_Y = -4;
+const OLD_BASE_Y = -0.3;
 // The SUV rides on the pin tops and presses them only a little, enough to
 // leave tracks.
 const CAR_SINK = 0.1;
@@ -162,15 +167,25 @@ const WHEEL_TRAVEL = 0.06;
 // How fast the SUV climbs away after Stop or a crash.
 const LIFT = 60;
 // A landing from a real fall dents the board under the SUV, about the size
-// of the pointer's dent. The surface behaves like a stiff trampoline: it
-// sinks, rebounds a little above flat, sinks once more and settles, all
-// within about half a second. DENT_WOBBLE is how fast it swings, in
+// of the pointer's dent. The surface gives like jelly: it sinks, swells a
+// little above flat once, and settles, in under a second. DENT_WOBBLE is how fast it swings, in
 // radians a second, and DENT_SETTLE how fast the swing dies away. Softer
 // landings than DENT_MIN_SPEED leave no dent.
-const DENT = { radius: 3, depth: 1.4 };
-const DENT_WOBBLE = 22;
-const DENT_SETTLE = 6.5;
+const DENT = { radius: 3, depth: 2.2 };
+const DENT_WOBBLE = 9;
+const DENT_SETTLE = 4.5;
 const DENT_MIN_SPEED = 6;
+// W and S together: the brakes hold the SUV while the rear wheels spin.
+// Steering then swings the rear around the front axle, a donut, at
+// DONUT_RATE radians a second. Letting go of S launches it at
+// LAUNCH_SPEED with the rear sliding out, and the slide settles at
+// DRIFT_SETTLE a second.
+const DONUT_RATE = 2.6;
+const LAUNCH_SPEED = 9;
+const DRIFT_SETTLE = 1.6;
+const MAX_SLIP = 0.7;
+// Puffs a second from each rear wheel while it spins or slides.
+const SMOKE_RATE = 34;
 // The SUV drops in this far above the bottom edge of its area.
 const SPAWN_ABOVE_EDGE = 1.4;
 const REVERSE_SPEED = 5;
@@ -327,19 +342,29 @@ export function mount(
 
   // The base shows between the pins. It stops short of the rows that are
   // still rising, so past the far edge there is only the background.
-  const baseFront = z0 + slots * spacing + 1;
-  const baseBack = z0 + RISE_ROWS * spacing;
+  // It sits well below the deepest dent, so a dent never shows it as a
+  // flat patch. Its edges are pushed out along the camera's rays, so its
+  // far edge stays where a base at the old height would have shown it.
+  const reach = (camera.position.y - BASE_Y) / (camera.position.y - OLD_BASE_Y);
+  const alongRay = (z: number) =>
+    camera.position.z + (z - camera.position.z) * reach;
+  const baseFront = alongRay(z0 + slots * spacing + 1);
+  const baseBack = alongRay(z0 + RISE_ROWS * spacing);
   const baseGeometry = new THREE.PlaneGeometry(
-    columns * spacing + 2,
+    (columns * spacing + 2) * reach,
     baseFront - baseBack,
   );
   const baseMaterial = new THREE.MeshStandardMaterial({ roughness: 0.9 });
   const base = new THREE.Mesh(baseGeometry, baseMaterial);
   base.rotation.x = -Math.PI / 2;
-  base.position.set(0, -0.3, (baseFront + baseBack) / 2);
+  base.position.set(0, BASE_Y, (baseFront + baseBack) / 2);
   scene.add(base);
 
   const suv = buildSuv();
+  const smoke = createSmoke(scene);
+  const smokeHeads = suv.headlights.map(() => new THREE.Vector3());
+  const smokeTails = suv.taillights.map(() => new THREE.Vector3());
+  const smokeAhead = new THREE.Vector3();
   const { size } = suv;
   const ride = size.wheelRadius + size.bodyLift;
   suv.root.visible = false;
@@ -527,6 +552,13 @@ export function mount(
   let spinSpeed = 0;
   let crashedAt = 0;
   let launched = false;
+  // Burnout and drift.
+  let burning = false;
+  // The angle between where the SUV points and where it goes.
+  let slip = 0;
+  // How long the rear wheels have been spinning after a launch.
+  let wheelspin = 0;
+  let smokeDebt = 0;
   // The landing dent, in board coordinates so it scrolls with the pins.
   let dentX = 0;
   let dentZ = 0;
@@ -691,6 +723,9 @@ export function mount(
   function controls() {
     let throttle = 0;
     let steer = 0;
+    const burnout =
+      (keys.has("w") || keys.has("arrowup")) &&
+      (keys.has("s") || keys.has("arrowdown"));
     if (keys.has("w") || keys.has("arrowup")) throttle += 1;
     if (keys.has("s") || keys.has("arrowdown")) throttle -= 1;
     if (keys.has("a") || keys.has("arrowleft")) steer -= 1;
@@ -716,15 +751,34 @@ export function mount(
         }
       }
     }
-    return { throttle, steer };
+    return { throttle, steer, burnout };
   }
 
   // Speed, steering, position and the sprung body, once a frame.
   function drive(dt: number, phase: number) {
-    const { throttle, steer } =
-      state === "driving" ? controls() : { throttle: 0, steer: 0 };
+    const { throttle, steer, burnout } =
+      state === "driving"
+        ? controls()
+        : { throttle: 0, steer: 0, burnout: false };
+    const grounded = bodyY - (groundUnder().mean + ride) < WHEEL_TRAVEL;
 
-    if (state === "driving") {
+    if (burnout && grounded) {
+      burning = true;
+    } else if (burning) {
+      burning = false;
+      // Released S with W still held: launch, rear sliding out the way the
+      // donut was turning.
+      if (throttle > 0) {
+        speed = Math.max(speed, LAUNCH_SPEED);
+        slip = THREE.MathUtils.clamp(-steerShown * 0.6, -MAX_SLIP, MAX_SLIP);
+        wheelspin = 0.6;
+      }
+    }
+
+    if (burning) {
+      // The brakes hold it in place.
+      speed -= Math.sign(speed) * Math.min(Math.abs(speed), BRAKE * dt);
+    } else if (state === "driving") {
       if (throttle > 0) {
         speed =
           speed < 0
@@ -744,11 +798,27 @@ export function mount(
     const accel = (speed - lastSpeed) / Math.max(dt, 1e-3);
     lastSpeed = speed;
 
-    // A car turns only while it rolls, and steers less at speed.
+    // A car turns only while it rolls, and steers less at speed. In a slide
+    // it turns more, as the loose rear steps out.
     steerShown += (steer - steerShown) * ease(10, dt);
     const angle = (steerShown * MAX_STEER) / (1 + Math.abs(speed) * 0.06);
-    const turn = (-speed * Math.tan(angle)) / WHEELBASE;
+    const turn =
+      ((-speed * Math.tan(angle)) / WHEELBASE) * (1 + Math.abs(slip) * 1.5);
     yaw += turn * dt;
+
+    // A donut: the rear swings around the front axle.
+    if (burning && Math.abs(steerShown) > 0.05) {
+      const ahead = size.axle.z;
+      const pivotX = carX - Math.sin(yaw) * ahead;
+      const pivotZ = carZ - Math.cos(yaw) * ahead;
+      yaw -= steerShown * DONUT_RATE * dt;
+      carX = pivotX + Math.sin(yaw) * ahead;
+      carZ = pivotZ + Math.cos(yaw) * ahead;
+    }
+    // The slide settles back into normal driving.
+    slip *= Math.exp(-DRIFT_SETTLE * dt);
+    if (Math.abs(slip) < 0.01) slip = 0;
+    wheelspin = Math.max(0, wheelspin - dt);
     spin += spinSpeed * dt;
     // A new run straightens out any spin left from the last one.
     if (state === "driving") spin -= wrapAngle(spin) * ease(8, dt);
@@ -756,8 +826,10 @@ export function mount(
 
     // Move. Past the follow line the board scrolls instead of the SUV.
     if (state === "driving" || state === "crashed") {
-      let nextZ = carZ - Math.cos(yaw) * speed * dt;
-      let nextX = carX - Math.sin(yaw) * speed * dt;
+      // In a slide it moves a little off the way it points.
+      const heading = yaw + slip;
+      let nextZ = carZ - Math.cos(heading) * speed * dt;
+      let nextX = carX - Math.sin(heading) * speed * dt;
       if (nextZ < area.follow) {
         const ahead = area.follow - nextZ;
         scroll += ahead;
@@ -844,11 +916,41 @@ export function mount(
         hub - WHEEL_TRAVEL,
         hub + WHEEL_TRAVEL,
       );
-      wheel.spinner.rotation.x -= (speed * dt) / size.wheelRadius;
+      const spinning = !wheel.front && (burning || wheelspin > 0);
+      wheel.spinner.rotation.x -=
+        ((spinning ? 30 : speed) * dt) / size.wheelRadius;
       // The front wheels show less turn than the steering uses, so
       // they stay under their arches.
       if (wheel.front) wheel.pivot.rotation.y = -steerShown * 0.35;
     });
+
+    // Spinning or sliding rear wheels smoke.
+    const smoking =
+      onGround &&
+      state === "driving" &&
+      (burning || wheelspin > 0 || Math.abs(slip) > 0.15);
+    if (smoking) {
+      smokeDebt += SMOKE_RATE * dt;
+      const sin = Math.sin(yaw);
+      const cos = Math.cos(yaw);
+      // Puffs are thrown back from the tyres.
+      const back = burning ? 3 : 1;
+      while (smokeDebt >= 1) {
+        smokeDebt -= 1;
+        for (const wheel of suv.wheels) {
+          if (wheel.front) continue;
+          smoke.emit(
+            carX + wheel.x * cos + wheel.z * sin,
+            wheel.pivot.position.y - size.wheelRadius * 0.5,
+            carZ - wheel.x * sin + wheel.z * cos,
+            sin * back,
+            cos * back,
+          );
+        }
+      }
+    } else {
+      smokeDebt = 0;
+    }
 
     // Wheels on the ground leave tracks in the pins.
     if (onGround && !launched && state !== "leaving") {
@@ -1019,7 +1121,21 @@ export function mount(
     }
 
     const phaseBefore = scroll - scrolledRows * spacing;
+    const scrollBefore = scroll;
     if (state !== "hidden") drive(dt, phaseBefore);
+
+    // The smoke rides the board and is lit by the scene and the lamps.
+    suv.root.updateMatrixWorld();
+    suv.headlights.forEach((lamp, n) => lamp.getWorldPosition(smokeHeads[n]));
+    suv.taillights.forEach((lamp, n) => lamp.getWorldPosition(smokeTails[n]));
+    smokeAhead.set(-Math.sin(yaw), 0, -Math.cos(yaw));
+    smoke.update(dt, scroll - scrollBefore, {
+      night,
+      lamps: lightsOn && suv.root.visible,
+      heads: smokeHeads,
+      tails: smokeTails,
+      ahead: smokeAhead,
+    });
 
     // Scroll the board a row at a time.
     const rowsNow = Math.floor(scroll / spacing);
@@ -1112,7 +1228,7 @@ export function mount(
         const height = PIN_HIDDEN + (surface - PIN_HIDDEN) * shown;
         matrix.makeScale(
           1,
-          Math.max(0.2, height + 1.5) + (1 - shown) * PIN_LENGTH,
+          Math.max(0.2, height - BASE_Y) + (1 - shown) * PIN_LENGTH,
           1,
         );
         matrix.setPosition(x, height, z);
@@ -1173,6 +1289,7 @@ export function mount(
     renderer.setSize(clientWidth, clientHeight, false);
     camera.aspect = clientWidth / clientHeight;
     camera.updateProjectionMatrix();
+    smoke.resize(clientHeight * renderer.getPixelRatio(), camera.fov);
     measureArea();
     if (frozen) wake();
   });
@@ -1200,6 +1317,7 @@ export function mount(
       baseGeometry.dispose();
       baseMaterial.dispose();
       suv.dispose();
+      smoke.dispose();
       renderer.dispose();
     },
   };

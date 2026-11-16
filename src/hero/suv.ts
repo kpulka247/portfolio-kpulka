@@ -82,6 +82,9 @@ export interface Suv {
   // 0 for day, 1 for night: the paint darkens with the scene, as at dusk.
   // The lamps are left alone.
   setDusk: (level: number) => void;
+  // The lamps, for lighting the tyre smoke.
+  headlights: THREE.Object3D[];
+  taillights: THREE.Object3D[];
   dispose: () => void;
 }
 
@@ -336,6 +339,8 @@ export function buildSuv(): Suv {
     body,
     wheels,
     size,
+    headlights,
+    taillights,
     setDusk(level) {
       for (const { material, day, dusk } of paints) {
         material.color.copy(day).lerp(dusk, level);
