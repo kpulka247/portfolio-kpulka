@@ -95,8 +95,10 @@ const HEADLIGHT = {
 };
 const TAILLIGHT = { color: "#ff3b30", intensity: 32, distance: 8, angle: 0.9 };
 const LAMP_GLOW = 3;
-// How much darker the paint gets at night, matched to the pins.
-const DUSK_DARKEN = 0.55;
+// At night the paint takes the board's neutral warm tint and drops into
+// the pins' brightness, so the SUV belongs to the dusk scene.
+const DUSK_TINT = new THREE.Color("#d2cac1");
+const DUSK_BRIGHTNESS = 0.68;
 
 // A box whose top is smaller than its bottom: four-sided, so it stays
 // low-poly. Its base sits at y = 0.
@@ -311,10 +313,15 @@ export function buildSuv(): Suv {
 
   // Everything casts a shadow except the lamps, which would block their
   // own light.
-  // The paint colours by day, to darken from.
-  const dayColors = new Map(
-    [...materials.values()].map((found) => [found, found.color.clone()]),
-  );
+  // The paint colours by day and at dusk, to fade between.
+  const paints = [...materials.values()].map((found) => ({
+    material: found,
+    day: found.color.clone(),
+    dusk: found.color
+      .clone()
+      .multiply(DUSK_TINT)
+      .multiplyScalar(DUSK_BRIGHTNESS),
+  }));
 
   root.traverse((object) => {
     if (object instanceof THREE.Mesh) {
@@ -329,8 +336,8 @@ export function buildSuv(): Suv {
     wheels,
     size,
     setDusk(level) {
-      for (const [found, color] of dayColors) {
-        found.color.copy(color).multiplyScalar(1 - DUSK_DARKEN * level);
+      for (const { material, day, dusk } of paints) {
+        material.color.copy(day).lerp(dusk, level);
       }
     },
     setLights(level) {
