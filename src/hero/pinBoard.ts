@@ -168,6 +168,8 @@ const TILT_SPRING = { stiffness: 600, damping: 49 };
 // The suspension's travel: the gap between a tyre and the top of its
 // arch, so a compressed wheel stays inside it.
 const WHEEL_TRAVEL = ARCH_GAP;
+// How fast the car takes up the ground's tilt, a second.
+const GROUND_FOLLOW = 40;
 // Further above the ground than this, the car is in the air.
 const ON_GROUND = 0.06;
 // How fast the car climbs away after Stop or a crash.
@@ -568,6 +570,11 @@ export function mount(
   let pitchSpeed = 0;
   let roll = 0;
   let rollSpeed = 0;
+  // The body's lean from the driving alone, on top of pitch and roll.
+  let drivePitch = 0;
+  let drivePitchSpeed = 0;
+  let driveRoll = 0;
+  let driveRollSpeed = 0;
   let spin = 0;
   let spinSpeed = 0;
   let crashedAt = 0;
@@ -678,6 +685,10 @@ export function mount(
       pitchSpeed = 0;
       roll = 0;
       rollSpeed = (Math.random() - 0.5) * 0.8;
+      drivePitch = 0;
+      drivePitchSpeed = 0;
+      driveRoll = 0;
+      driveRollSpeed = 0;
     }
     spawnZ = carZ;
     touched = false;
@@ -885,6 +896,10 @@ export function mount(
       climb += LIFT * dt;
     } else if (falling) {
       climb -= GRAVITY * dt;
+    } else if (state === "driving" && gap < ON_GROUND) {
+      // On its wheels, the car rides the board rigidly: the suspension
+      // does not soak up the board's waves, only the driving.
+      climb = (rest - bodyY) / dt;
     } else {
       climb = spring(bodyY, climb, rest, SPRING, dt);
     }
@@ -923,8 +938,8 @@ export function mount(
       if (dents[n].age * DENT_SETTLE > 7) dents.splice(n, 1);
     }
 
-    // The body follows the ground under it, squats when speeding up, dips
-    // when braking and leans out of turns.
+    // The car lies on the ground under it. On top of that, the body squats
+    // when speeding up, dips when braking and leans out of turns.
     const [frontLeft, frontRight, backLeft, backRight] = wheelGround;
     const groundPitch = Math.atan2(
       (frontLeft + frontRight - backLeft - backRight) / 2,
@@ -934,24 +949,54 @@ export function mount(
       (frontRight + backRight - frontLeft - backLeft) / 2,
       size.axle.x * 2,
     );
-    const pitchTarget = onGround
-      ? groundPitch + THREE.MathUtils.clamp(accel * 0.002, -0.025, 0.025)
+    if (state === "driving" && onGround) {
+      // Follows the ground's tilt closely, without swinging.
+      pitch += (groundPitch - pitch) * ease(GROUND_FOLLOW, dt);
+      roll += (groundRoll - roll) * ease(GROUND_FOLLOW, dt);
+      pitchSpeed = 0;
+      rollSpeed = 0;
+    } else {
+      pitchSpeed = spring(pitch, pitchSpeed, 0, TILT_SPRING, dt);
+      rollSpeed = spring(roll, rollSpeed, 0, TILT_SPRING, dt);
+      pitch += pitchSpeed * dt;
+      roll += rollSpeed * dt;
+    }
+    // At most what the arch gap allows, so a tyre never enters the body.
+    const drivePitchTarget = onGround
+      ? THREE.MathUtils.clamp(accel * 0.002, -0.011, 0.011)
       : 0;
     // The body leans away from the turn, as a real car's does.
-    const rollTarget = onGround
-      ? groundRoll + THREE.MathUtils.clamp(-turn * speed * 0.003, -0.03, 0.03)
+    const driveRollTarget = onGround
+      ? THREE.MathUtils.clamp(-turn * speed * 0.003, -0.018, 0.018)
       : 0;
-    pitchSpeed = spring(pitch, pitchSpeed, pitchTarget, TILT_SPRING, dt);
-    rollSpeed = spring(roll, rollSpeed, rollTarget, TILT_SPRING, dt);
-    pitch += pitchSpeed * dt;
-    roll += rollSpeed * dt;
+    drivePitchSpeed = spring(
+      drivePitch,
+      drivePitchSpeed,
+      drivePitchTarget,
+      TILT_SPRING,
+      dt,
+    );
+    driveRollSpeed = spring(
+      driveRoll,
+      driveRollSpeed,
+      driveRollTarget,
+      TILT_SPRING,
+      dt,
+    );
+    drivePitch += drivePitchSpeed * dt;
+    driveRoll += driveRollSpeed * dt;
 
     car.root.position.set(carX, 0, carZ);
     car.root.rotation.y = yaw + spin;
     car.body.position.y = bodyY;
-    car.body.rotation.set(pitch, 0, roll);
+    car.body.rotation.set(pitch + drivePitch, 0, roll + driveRoll);
     car.wheels.forEach((wheel, n) => {
-      const hub = bodyY - size.bodyLift;
+      // Where the hub would be with the body only lying on the ground.
+      const hub =
+        bodyY -
+        size.bodyLift +
+        wheel.x * Math.sin(roll) * Math.cos(pitch) -
+        wheel.z * Math.sin(pitch);
       wheel.pivot.position.y = THREE.MathUtils.clamp(
         wheelGround[n] + size.wheelRadius,
         hub - WHEEL_TRAVEL,
