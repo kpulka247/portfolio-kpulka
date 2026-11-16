@@ -65,6 +65,26 @@ test.describe("live pin board", () => {
     expect(errors).toEqual([]);
   });
 
+  test("nothing covers Play or the hint", async ({ page }) => {
+    await page.goto("/");
+    const play = page.getByRole("button", { name: "Play" });
+    await play.waitFor({ timeout: 20_000 });
+    await play.click();
+    const hint = page.locator('p[aria-live="polite"]');
+    await expect(hint).toBeVisible();
+    for (const control of [play, hint]) {
+      const onTop = await control.evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        const top = document.elementFromPoint(
+          box.left + box.width / 2,
+          box.top + box.height / 2,
+        );
+        return element.contains(top);
+      });
+      expect(onTop).toBe(true);
+    }
+  });
+
   test("a touch screen gets the touch hint", async ({ page, isMobile }) => {
     test.skip(!isMobile, "needs a touch screen");
     await page.goto("/");

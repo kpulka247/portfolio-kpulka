@@ -244,7 +244,7 @@ export function Hero() {
 
       <div className="pointer-events-none relative">
         {loaded && (
-          <div className="pointer-events-auto mb-4 flex flex-wrap items-center gap-x-3.5 gap-y-2 md:mb-5">
+          <div className="pointer-events-auto relative z-10 mb-4 flex flex-wrap items-center gap-x-3.5 gap-y-2 md:mb-5">
             <button
               type="button"
               aria-pressed={playing}
