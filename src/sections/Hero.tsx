@@ -1,257 +1,307 @@
-import React, { useState, useRef, useEffect } from "react";
-import ScrollLink from "../components/ScrollLink";
-import TypingEffect from "../components/TypingEffect";
+import { useEffect, useRef, useState } from "react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
-import { BsArrowDown } from "react-icons/bs";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { titleContainer, scrollLetterJump } from "../utils/animations";
-import { useTypingEffect } from "../hooks/useTypingEffect";
-import useIsTouchDevice from "../hooks/useIsTouchDevice";
-import { trackEvent } from "../utils/analytics";
+import { PiSteeringWheelBold } from "react-icons/pi";
 
-interface HeroProps {
-  onVisibilityChange: (isVisible: boolean) => void;
+import boardDesktop from "../assets/hero/board-desktop.webp";
+import boardPhone from "../assets/hero/board-phone.webp";
+import { GITHUB_URL, LINKEDIN_URL } from "../data/contact";
+import type { PinBoard, RunState } from "../hero/pinBoard";
+import { currentTheme, useTheme } from "../theme";
+
+const HINT_MS = 5_000;
+const BEST_KEY = "kpulka:best-distance";
+
+const FADE_MS = 300;
+
+function usePresence(show: boolean) {
+  const [mounted, setMounted] = useState(show);
+  const [visible, setVisible] = useState(show);
+  useEffect(() => {
+    if (show) {
+      setMounted(true);
+      const frame = requestAnimationFrame(() =>
+        requestAnimationFrame(() => setVisible(true)),
+      );
+      return () => cancelAnimationFrame(frame);
+    }
+    setVisible(false);
+    const timer = setTimeout(() => setMounted(false), FADE_MS);
+    return () => clearTimeout(timer);
+  }, [show]);
+  return { mounted, visible };
 }
 
-const RepeatScrollAnimation: React.FC<{ text: string }> = ({ text }) => {
-  const [animationKey, setAnimationKey] = useState(0);
+const PILL =
+  "rounded-full bg-white/70 py-1.5 text-sm whitespace-nowrap text-ink-dim shadow-[inset_0_0_0_1px_var(--color-edge)] backdrop-blur-sm transition-[opacity,translate] duration-300 ease-out dark:bg-ground/70";
+
+function hasKeyboard(): boolean {
+  return matchMedia("(hover: hover) and (pointer: fine)").matches;
+}
+
+function readBest(): number {
+  try {
+    return Number(localStorage.getItem(BEST_KEY)) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function saveBest(best: number) {
+  try {
+    localStorage.setItem(BEST_KEY, String(best));
+  } catch {
+    // Private windows can refuse storage. The best then lasts the visit.
+  }
+}
+
+function hasWebGL(): boolean {
+  const gl = document.createElement("canvas").getContext("webgl2");
+  gl?.getExtension("WEBGL_lose_context")?.loseContext();
+  return gl !== null;
+}
+
+function prefersStill(): boolean {
+  return matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function afterFirstPaint(callback: () => void): () => void {
+  if ("requestIdleCallback" in window) {
+    const id = requestIdleCallback(callback, { timeout: 2_000 });
+    return () => cancelIdleCallback(id);
+  }
+  const id = setTimeout(callback, 200);
+  return () => clearTimeout(id);
+}
+
+// Stays pinned while the black sheet scrolls over it. The bottom padding
+// includes the 28 px (phone) or 40 px (desktop) that the sheet overlaps.
+export function Hero() {
+  const hostRef = useRef<HTMLElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const boardRef = useRef<PinBoard | null>(null);
+  const nameRef = useRef<HTMLHeadingElement>(null);
+  const hintTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [loaded, setLoaded] = useState(false);
+  const [live, setLive] = useState(false);
+  const [noWebGL, setNoWebGL] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const [run, setRun] = useState<RunState>({ distance: 0, crashed: false });
+  const [best, setBest] = useState(0);
+  const [keyboard, setKeyboard] = useState(true);
+  const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setAnimationKey((prevKey) => prevKey + 1);
-    }, 3000);
+    const host = hostRef.current;
+    const canvas = canvasRef.current;
+    if (!host || !canvas) return;
+    if (!hasWebGL()) {
+      setNoWebGL(true);
+      return;
+    }
+    const still = prefersStill();
 
-    return () => clearInterval(intervalId);
+    let cancelled = false;
+    const cancelIdle = afterFirstPaint(() => {
+      void import("../hero/pinBoard").then(({ mount }) => {
+        if (cancelled) return;
+        boardRef.current = mount(canvas, host, {
+          still,
+          theme: currentTheme(),
+          onReady: () => setLive(true),
+          onStop: () => setPlaying(false),
+          onRun: setRun,
+          onRunStart: () => {
+            clearTimeout(hintTimer.current);
+            setShowHint(true);
+          },
+          onFirstInput: () => {
+            clearTimeout(hintTimer.current);
+            hintTimer.current = setTimeout(() => setShowHint(false), HINT_MS);
+          },
+          playBottom: () => {
+            const name = nameRef.current?.getBoundingClientRect();
+            const top = canvas.getBoundingClientRect().top;
+            return name ? name.top - top : canvas.clientHeight * 0.55;
+          },
+          onSlow: () => {
+            setPlaying(false);
+            setLoaded(false);
+          },
+        });
+        setLoaded(!still);
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      cancelIdle();
+      clearTimeout(hintTimer.current);
+      boardRef.current?.dispose();
+      boardRef.current = null;
+    };
   }, []);
 
-  const letters = text.split("");
-
-  return (
-    <motion.div
-      key={animationKey}
-      className="font-semibold tracking-wider uppercase text-white flex justify-center"
-      variants={titleContainer}
-      initial="hidden"
-      animate="visible"
-      aria-label={text}
-    >
-      {letters.map((char, index) => (
-        <motion.span
-          key={index}
-          variants={scrollLetterJump}
-          className="inline-block"
-        >
-          {char === " " ? "\u00A0" : char}
-        </motion.span>
-      ))}
-    </motion.div>
-  );
-};
-
-const Hero: React.FC<HeroProps> = ({ onVisibilityChange }) => {
-  const heroRef = useRef<HTMLElement>(null);
-  const animatedText = useTypingEffect();
-  const isTouch = useIsTouchDevice();
-
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-  });
-
-  const opacity = useTransform(scrollYProgress, [0, 0.6, 1], [1, 0.25, 0]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.9]);
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
-
-  const motionStyle = { opacity, y, scale };
+  const theme = useTheme();
+  useEffect(() => {
+    boardRef.current?.setTheme(theme);
+  }, [theme]);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        onVisibilityChange(entry.isIntersecting);
-      },
-      { root: null, rootMargin: "0px", threshold: 0.0 },
-    );
-    const currentRef = heroRef.current;
-    if (currentRef) {
-      observer.observe(currentRef);
+    boardRef.current?.setPlaying(playing);
+    if (playing) {
+      setKeyboard(hasKeyboard());
+      setBest(readBest());
     }
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
-      }
-    };
-  }, [onVisibilityChange]);
+  }, [playing]);
 
   useEffect(() => {
-    if (!isTouch) return;
+    if (run.distance <= best) return;
+    setBest(run.distance);
+    saveBest(run.distance);
+  }, [run.distance, best]);
 
-    const preventScroll = (e: TouchEvent) => e.preventDefault();
-    const body = document.body;
-
-    const handleScroll = () => {
-      if (window.scrollY === 0) {
-        body.addEventListener("touchmove", preventScroll, { passive: false });
-        body.style.overscrollBehavior = "none";
-      } else {
-        body.removeEventListener("touchmove", preventScroll);
-        body.style.overscrollBehavior = "auto";
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      body.removeEventListener("touchmove", preventScroll);
-      body.style.overscrollBehavior = "auto";
-    };
-  }, [isTouch]);
-
-  const handleGitHubClick = () => {
-    trackEvent("Hero", "click_icon", "GitHub");
-  };
-
-  const handleLinkedInClick = () => {
-    trackEvent("Hero", "click_icon", "LinkedIn");
-  };
+  const hint = run.crashed
+    ? keyboard
+      ? "Crashed. Press W to go again."
+      : "Tap to go again"
+    : showHint
+      ? keyboard
+        ? "W A S D to drive. W + S burns out. Esc stops."
+        : "Hold to drive"
+      : null;
+  const [lastHint, setLastHint] = useState("");
+  useEffect(() => {
+    if (hint) setLastHint(hint);
+  }, [hint]);
+  const score = usePresence(playing);
+  const hintPresence = usePresence(playing && hint !== null);
+  const fade = (visible: boolean) =>
+    visible ? "opacity-100" : "-translate-x-1 opacity-0";
+  const scoreFade = score.visible ? "opacity-100" : "-translate-y-1 opacity-0";
 
   return (
-    <section ref={heroRef} id="hello" className="relative h-screen">
-      {/* --- LAYER A: No blend --- */}
-      <motion.div
-        className="fixed inset-0 flex flex-col items-center justify-start pt-[16vh] sm:justify-center sm:pt-0"
-        style={motionStyle}
-      >
-        <div className="pointer-events-auto container mx-auto text-center px-4">
-          <h1 className="flex flex-col md:flex-row justify-center items-center text-4xl xs:text-5xl md:text-6xl lg:text-7xl text-zinc-800 font-extrabold leading-tight mb-4">
-            <span>Hi, I'm&nbsp;</span>
-            <span className="invisible">
-              <TypingEffect text={animatedText} />
-            </span>
-          </h1>
-          <p className="text-lg sm:text-xl md:text-2xl text-zinc-800 mb-8 max-w-2xl mx-auto">
-            A passionate web developer specializing in building modern web
-            applications.
-          </p>
-          <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4">
-            <div className="flex flex-col sm:flex-row gap-4 w-full max-w-3xs sm:max-w-none sm:w-auto">
-              <ScrollLink
-                to="projects"
-                className="bg-zinc-800 hover:bg-black text-white font-bold py-3 px-8 rounded-full transition duration-300 transform hover:scale-105 inline-block"
-              >
-                VIEW MY WORK
-              </ScrollLink>
-              <ScrollLink
-                to="contact"
-                className="border-2 border-zinc-800 text-zinc-800 hover:text-black hover:border-black font-bold py-3 px-8 rounded-full transition duration-300 transform hover:scale-105 inline-block"
-              >
-                CONTACT ME
-              </ScrollLink>
-            </div>
-            <div className="flex space-x-4 mt-4 sm:mt-0">
-              <a
-                href="https://github.com/kpulka247"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-zinc-800 hover:text-black transition duration-300 transform hover:scale-110"
-                aria-label="GitHub Profile"
-                onClick={handleGitHubClick}
-              >
-                <FaGithub size={30} />
-              </a>
-              <a
-                href="https://www.linkedin.com/in/kpulka247/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-zinc-800 hover:text-black transition duration-300 transform hover:scale-110"
-                aria-label="LinkedIn Profile"
-                onClick={handleLinkedInClick}
-              >
-                <FaLinkedin size={30} />
-              </a>
-            </div>
-          </div>
-        </div>
-      </motion.div>
+    <section
+      ref={hostRef}
+      aria-label="Introduction"
+      className={`hero-pin sticky top-0 flex h-svh min-h-[560px] flex-col justify-end overflow-hidden bg-ground px-5 pb-14 text-ink md:px-10 md:pb-22 ${
+        playing ? "touch-none select-none [-webkit-touch-callout:none]" : ""
+      }`}
+      // A long press while driving would open the browser's menu.
+      onContextMenu={playing ? (event) => event.preventDefault() : undefined}
+    >
+      {noWebGL && (
+        <picture aria-hidden="true" className="dark:hidden">
+          <source media="(min-width: 700px)" srcSet={boardDesktop} />
+          <img
+            src={boardPhone}
+            alt=""
+            className="absolute inset-0 size-full object-cover object-bottom"
+          />
+        </picture>
+      )}
+      <canvas
+        ref={canvasRef}
+        aria-hidden="true"
+        className={`absolute inset-0 size-full transition-opacity duration-700 ${
+          live ? "opacity-100" : "opacity-0"
+        }`}
+      />
 
-      {/* --- LAYER B: `mix-blend-mode` --- */}
-      <motion.div
-        className="fixed inset-0 flex flex-col items-center justify-start pt-[16vh] sm:justify-center sm:pt-0 mix-blend-difference pointer-events-none"
-        style={motionStyle}
-      >
-        <div className="container mx-auto text-center px-4">
-          <h1 className="flex flex-col md:flex-row justify-center items-center text-4xl xs:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight mb-4 text-white">
-            <span className="invisible">Hi, I'm&nbsp;</span>
-            <span>
-              <TypingEffect text={animatedText} />
-            </span>
+      {score.mounted && (
+        <p
+          className={`pointer-events-none absolute top-15 left-5 text-ink tabular-nums transition-[opacity,translate] duration-300 ease-out md:top-19 md:left-10 ${scoreFade}`}
+        >
+          <span className="block font-display text-[28px] leading-none font-extrabold [font-stretch:108%]">
+            {run.distance} m
+          </span>
+          <span className="mt-1 block text-sm text-ink-dim">
+            Best {Math.max(best, run.distance)} m
+          </span>
+        </p>
+      )}
+
+      <div className="pointer-events-none relative">
+        {loaded && (
+          <div className="pointer-events-auto relative z-10 mb-4 flex flex-wrap items-center gap-x-3.5 gap-y-2 md:mb-5">
+            <button
+              type="button"
+              aria-pressed={playing}
+              onClick={(event) => {
+                setPlaying((on) => !on);
+                // After a mouse or finger press, give the focus back to the
+                // page: the drive keys would otherwise make the browser show
+                // its keyboard focus ring on Play. A keyboard press (detail
+                // 0) keeps the focus where it is.
+                if (event.detail > 0) event.currentTarget.blur();
+              }}
+              className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-full bg-white/70 pr-4 pl-3 text-sm font-semibold shadow-[inset_0_0_0_1px_var(--color-edge)] backdrop-blur-sm transition-colors hover:bg-white aria-pressed:bg-ink aria-pressed:text-ground dark:bg-ground/70 dark:hover:bg-ground dark:aria-pressed:bg-ink"
+            >
+              <PiSteeringWheelBold aria-hidden="true" className="size-5" />
+              Play
+            </button>
+            {hintPresence.mounted && (
+              <p
+                aria-live="polite"
+                className={`${PILL} px-3 ${fade(hintPresence.visible)}`}
+              >
+                {hint ?? lastHint}
+              </p>
+            )}
+          </div>
+        )}
+        <div className="relative">
+          <div
+            aria-hidden="true"
+            className="absolute -inset-x-5 -top-10 -bottom-14 bg-linear-to-t from-ground from-50% to-ground/0 md:-inset-x-10 md:-top-16 md:-bottom-22"
+          />
+          <h1
+            ref={nameRef}
+            className="relative -ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em]"
+          >
+            Kamil Pułka
           </h1>
-          <p className="text-lg sm:text-xl md:text-2xl mb-8 max-w-2xl mx-auto invisible">
-            A passionate web developer specializing in building modern web
-            applications.
-          </p>
-          <div className="invisible flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4">
-            <div className="flex flex-col sm:flex-row gap-4 w-full max-w-3xs sm:max-w-none sm:w-auto">
-              <ScrollLink
-                to="projects"
-                className="bg-zinc-800 hover:bg-black text-white font-bold py-3 px-8 rounded-full transition duration-300 transform hover:scale-105 inline-block"
-              >
-                VIEW MY WORK
-              </ScrollLink>
-              <ScrollLink
-                to="contact"
-                className="border-2 border-zinc-800 text-zinc-800 hover:text-black hover:border-black font-bold py-3 px-8 rounded-full transition duration-300 transform hover:scale-105 inline-block"
-              >
-                CONTACT ME
-              </ScrollLink>
+          <div className="relative mt-5 flex flex-wrap items-end justify-between gap-6 md:mt-7">
+            <div className="max-w-[560px]">
+              <p className="text-[17px] leading-[1.4] font-medium md:text-md">
+                Full-stack developer. I build and ship web apps, browser
+                extensions and mobile apps that people use every day.
+              </p>
+              <p className="mt-2 text-sm text-ink-dim md:mt-2.5">
+                Open to full-time and contract roles, remote-first, based in
+                Poland.
+              </p>
             </div>
-            <div className="flex space-x-4 mt-4 sm:mt-0">
+            <div className="pointer-events-auto flex w-full items-center gap-2.5 md:w-auto">
               <a
-                href="https://github.com/kpulka247"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="#work"
+                className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-ink px-5.5 text-[15px] font-semibold text-ground transition-colors hover:bg-sheet md:flex-none"
               >
-                <FaGithub size={30} />
+                See my work
               </a>
               <a
-                href="https://www.linkedin.com/in/kpulka247/"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="#contact"
+                className="inline-flex h-12 flex-1 items-center justify-center rounded-full px-5.5 text-[15px] font-semibold shadow-[inset_0_0_0_1.5px_var(--color-ink)] transition-colors hover:bg-ink/5 md:flex-none"
               >
-                <FaLinkedin size={30} />
+                Get in touch
+              </a>
+              <a
+                href={GITHUB_URL}
+                aria-label="GitHub"
+                className="hidden size-11 items-center justify-center rounded-full transition-colors hover:bg-ink/10 md:inline-flex"
+              >
+                <FaGithub aria-hidden="true" className="size-6" />
+              </a>
+              <a
+                href={LINKEDIN_URL}
+                aria-label="LinkedIn"
+                className="hidden size-11 items-center justify-center rounded-full transition-colors hover:bg-ink/10 md:inline-flex"
+              >
+                <FaLinkedin aria-hidden="true" className="size-6" />
               </a>
             </div>
           </div>
         </div>
-        <div className="pointer-events-auto absolute bottom-[12vh] md:bottom-[10vh]">
-          <ScrollLink
-            to="main-page"
-            className="text-white cursor-pointer p-2"
-            aria-label="Scroll to Skills"
-          >
-            {isTouch ? (
-              <RepeatScrollAnimation text="CLICK TO SCROLL" />
-            ) : (
-              <motion.div
-                className="text-white"
-                animate={{ y: [0, 10, 0] }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  repeatType: "loop",
-                  ease: "easeInOut",
-                }}
-              >
-                <BsArrowDown size={30} />
-              </motion.div>
-            )}
-          </ScrollLink>
-        </div>
-      </motion.div>
-      <div aria-hidden className="h-screen" />
+      </div>
     </section>
   );
-};
-
-export default Hero;
+}

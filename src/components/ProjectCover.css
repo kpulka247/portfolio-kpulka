@@ -1,0 +1,210 @@
+/* Ported from the "Project cover" component on the Doop canvas. The layout
+   uses container query units, so it lives in plain CSS. */
+
+.cover {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  container-type: size;
+  isolation: isolate;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      80% 100% at 100% 100%,
+      color-mix(in srgb, var(--tint) 36%, transparent) 0%,
+      color-mix(in srgb, var(--tint) 9%, transparent) 50%,
+      transparent 80%
+    ),
+    #0f0f11;
+}
+
+.cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  pointer-events: none;
+}
+
+/* The icon column is 24 + 44 px wide. The device starts at 92 px, so the
+   two can never touch at any size. */
+.cover__mark {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  z-index: 3;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.cover__mark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+}
+
+.cover__mark > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cover__leds {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  grid-template-columns: repeat(3, 8px);
+  gap: 4px;
+  align-content: center;
+  justify-content: center;
+  background: #17171a;
+}
+
+.cover__leds > i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--led);
+  box-shadow: 0 0 6px var(--led);
+}
+
+.cover__device {
+  position: absolute;
+  top: 56px;
+  left: 92px;
+  z-index: 1;
+  width: 160cqw;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #1b1b1e;
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.09),
+    0 40px 80px -10px rgb(0 0 0 / 0.7);
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.cover[data-depth="shallow"] .cover__device {
+  width: calc(122cqw - 92px);
+}
+
+.cover__bar {
+  display: flex;
+  height: 22px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border-bottom: 1px solid rgb(255 255 255 / 0.06);
+}
+
+.cover[data-device="window"] .cover__bar {
+  height: 18px;
+}
+
+.cover__bar > i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #3b3b40;
+}
+
+.cover__screen > img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.cover[data-device="phone"] .cover__device {
+  top: 40px;
+  right: 12cqw;
+  left: auto;
+  width: auto;
+  height: 125cqh;
+  padding: 7px;
+  border-radius: 34px;
+}
+
+.cover[data-device="phone"] .cover__bar {
+  display: none;
+}
+
+.cover[data-device="phone"] .cover__screen {
+  height: 100%;
+  overflow: hidden;
+  border-radius: 27px;
+}
+
+.cover[data-device="phone"] .cover__screen > img {
+  width: auto;
+  height: 100%;
+}
+
+.cover__gallery {
+  aspect-ratio: 1;
+  overflow: hidden;
+  padding: 14px 14px 0;
+  background: #0b0c0e;
+}
+
+.cover__gallery-wordmark {
+  display: block;
+  width: auto;
+  height: 16px;
+}
+
+.cover__gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.cover__gallery-grid > img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.cover__front {
+  position: absolute;
+  right: 6cqw;
+  bottom: 8cqh;
+  z-index: 2;
+  filter: drop-shadow(0 24px 40px rgb(0 0 0 / 0.55));
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.cover__front > img {
+  display: block;
+  width: auto;
+  max-width: 42cqw;
+  height: min(66cqh, 290px);
+  object-fit: contain;
+  object-position: right bottom;
+}
+
+.project-card:hover .cover__device,
+.project-card:focus-visible .cover__device {
+  transform: translate(-4px, -4px);
+}
+
+.project-card:hover .cover__front,
+.project-card:focus-visible .cover__front {
+  transform: translate(-8px, -8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cover__device,
+  .cover__front {
+    transition: none;
+  }
+}

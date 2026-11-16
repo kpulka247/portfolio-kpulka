@@ -1,33 +1,99 @@
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
+@import "@fontsource-variable/anybody/standard.css";
+@import "@fontsource-variable/instrument-sans";
+
+/* dark: utilities follow the theme on <html>, not the system setting,
+   so the switch can override it. src/theme.ts sets the attribute. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  --color-ground: #e4e5e8;
+  --color-ink: #1b1c1f;
+  --color-ink-dim: #5c5d62;
+  --color-edge: rgb(27 28 31 / 0.18);
+  --color-sheet: #000000;
+  --color-raised: #151517;
+  --color-text: #ededee;
+  --color-paper: #fafafa;
+  --color-soft: #c4c5c9;
+  --color-dim: #8a8b90;
+  --color-rule: #2a2b2f;
+  --color-live: #3ecf6e;
+  --color-soon: #f2b33d;
+
+  --font-display: "Anybody Variable", sans-serif;
+  --font-body: "Instrument Sans Variable", sans-serif;
+  /* Tailwind's base styles set the page font from --font-sans. */
+  --font-sans: var(--font-body);
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 17px;
+  --text-md: 21px;
+  --text-lg: 28px;
+  --text-xl: 48px;
+  --text-2xl: 72px;
+  --text-hero: clamp(64px, 13vw, 184px);
+
+  --radius-sm: 6px;
+  --radius-md: 14px;
+  --radius-sheet: 40px;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --color-ground: #3b3835;
+  --color-ink: #f3f1ee;
+  --color-ink-dim: #b8b3ad;
+  --color-edge: #57524d;
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+}
+
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: var(--color-ground);
+  font: 600 15px/1 var(--font-body);
+  transform: translateY(-200%);
+  transition: transform 0.2s;
+}
+
+.skip-link:focus-visible {
+  transform: none;
+}
 
 html {
   scroll-behavior: smooth;
   position: relative;
 }
 
-@keyframes blink {
-  50% {
-    opacity: 0;
-  }
-}
-
-.blinking-cursor {
-  animation: blink 1s step-end infinite;
-  display: inline-block;
-  margin-left: 2px;
-}
-
-@keyframes loop-scroll {
-  0% {
-    transform: translateX(0%);
+/* The hero stays put while the black sheet scrolls over it. Where the
+   browser has scroll-driven animations, it is held in place by moving it
+   down as fast as the page scrolls, instead of position: sticky. iOS 26
+   Safari colours its bars from sticky elements at the screen edge, and a
+   sticky light hero made them light over the whole black page. */
+@supports (animation-timeline: scroll()) {
+  .hero-pin {
+    position: relative;
+    animation: hero-pin linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 100svh;
   }
 
-  100% {
-    transform: translateX(calc(-50% - 32px));
+  @keyframes hero-pin {
+    to {
+      translate: 0 100svh;
+    }
   }
-}
-
-.animate-loop-scroll {
-  animation: loop-scroll 36s linear infinite;
 }

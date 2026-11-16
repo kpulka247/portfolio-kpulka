@@ -1,207 +1,97 @@
-import { Link } from "react-router-dom";
-import { FaArrowLeft } from "react-icons/fa";
-import Footer from "../components/Footer";
-import { motion } from "framer-motion";
-import { fadeIn } from "../utils/animations";
+import type { MetaFunction } from "react-router";
 
-const PrivacyPolicy = () => {
+import { BEACON_TOKEN } from "../analytics";
+import { LegalPage, LegalSection, TextLink } from "../components/LegalPage";
+import { EMAIL } from "../data/contact";
+import { pageMeta } from "../seo";
+
+const UPDATED = "15 November 2026";
+
+export const meta: MetaFunction = () =>
+  pageMeta({
+    title: "Privacy | Kamil Pułka",
+    description: "What kpulka.com stores, who hosts it, and your rights.",
+    path: "/privacy",
+    image: "/og/home.jpg",
+    imageAlt: "Kamil Pułka, full-stack developer, over a field of pins",
+  });
+
+export default function PrivacyPolicy() {
   return (
-    <motion.div
-      className="bg-black text-zinc-300 min-h-screen flex flex-col"
-      variants={fadeIn}
-      initial="hidden"
-      animate="visible"
+    <LegalPage
+      title="Privacy"
+      updated={UPDATED}
+      back={{ to: "/", label: "Home" }}
+      lead="This site sets no cookies and stores nothing on your device. There is no cookie banner because there is nothing to agree to."
     >
-      <div className="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-20">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 text-zinc-300 hover:text-white transition-colors mb-8 group"
-        >
-          <FaArrowLeft className="transform group-hover:-translate-x-1 transition-transform" />
-          <span>Back to Home</span>
-        </Link>
+      <LegalSection title="Who runs this site">
+        <p>
+          Kamil Pułka, Poland. Write to{" "}
+          <TextLink href={`mailto:${EMAIL}`}>{EMAIL}</TextLink> about anything
+          on this page.
+        </p>
+      </LegalSection>
 
-        <div className="prose prose-invert prose-headings:text-zinc-200 prose-strong:text-zinc-200 prose-code:text-zinc-200 max-w-none">
-          <h1>Privacy Policy</h1>
+      {BEACON_TOKEN && (
+        <LegalSection title="Visit statistics">
           <p>
-            <strong>Effective Date:</strong> November 26, 2025
+            I count visits with Cloudflare Web Analytics. It does not use
+            cookies, local storage or fingerprinting, and it does not follow you
+            to other sites. It records the page you opened, the site that sent
+            you, your browser, operating system and country, and how fast the
+            page loaded.
           </p>
           <p>
-            This Privacy Policy explains how Kamil Pułka ("I", "me", "my")
-            handles information from users ("you", "your") of the website
-            kpulka.com (the "Website") and related software products.
+            The legal basis is my legitimate interest in knowing which pages
+            people read (Article 6(1)(f) GDPR). Cloudflare processes this data
+            for me and is certified under the EU-US Data Privacy Framework.
           </p>
+        </LegalSection>
+      )}
 
-          <h2>1. Who is responsible for your data?</h2>
-          <p>
-            I, Kamil Pułka, am the controller of your personal data. If you have
-            any questions about this policy or your data, you can contact me at:{" "}
-            <strong>contact@kpulka.com</strong>.
-          </p>
+      <LegalSection title="Hosting">
+        <p>
+          The site is hosted on GitHub Pages. GitHub receives your IP address
+          when your browser loads the page, as every web host does, and keeps it
+          in its server logs for security.
+        </p>
+      </LegalSection>
 
-          <h2>2. Data Collection on the Website (kpulka.com)</h2>
-          <p>
-            My goal is to collect minimal data, focusing on what's necessary to
-            improve the Website and allow you to get in touch.
-          </p>
+      <LegalSection title="Fonts and scripts">
+        <p>
+          Fonts, images and the site's own code are served from this site.
+          {BEACON_TOKEN
+            ? " The only third-party file is Cloudflare's analytics script, described above."
+            : " No file loads from another site."}{" "}
+          Nothing loads from Google.
+        </p>
+      </LegalSection>
 
-          <h3>a) Website Analytics & Event Tracking (Google Analytics 4)</h3>
-          <p>
-            I use Google Analytics 4 to understand how visitors interact with
-            the Website. To protect your privacy, I use Google Consent Mode:
-          </p>
-          <ul>
-            <li>
-              <strong>If you decline consent:</strong> I receive only
-              aggregated, anonymous "pings" (e.g., that a page was viewed). No
-              cookies are used, and you cannot be personally identified.
-            </li>
-            <li>
-              <strong>If you accept consent:</strong> Cookies are used to gather
-              more detailed data. This data is pseudonymized, meaning it is tied
-              to a random client identifier, not your personal identity (like
-              name or email). It allows me to understand user journeys across
-              multiple visits. Your IP address is always anonymized by Google
-              Analytics.
-            </li>
-          </ul>
-          <p>
-            I also collect interaction data to understand which content is most
-            engaging. This includes tracking clicks on:
-          </p>
-          <ul>
-            <li>
-              <strong>Project Card:</strong> To see which projects generate the
-              most interest.
-            </li>
-            <li>
-              <strong>Contact Icons:</strong> To know which contact methods
-              (GitHub, LinkedIn, Email) are most frequently used.
-            </li>
-          </ul>
-          <p>
-            This tracking is event-based (e.g., "a click occurred on the GitHub
-            icon"). <strong>If you decline consent</strong>, this event is sent
-            completely anonymously. <strong>If you grant consent</strong>, the
-            event is associated with your pseudonymous identifier to help me
-            analyze user behavior patterns. In either case, it is not tied to
-            your real-world identity.
-          </p>
-          <p>
-            The legal basis for this processing is my legitimate interest (Art.
-            6(1)(f) GDPR) to improve the Website, and your consent (Art. 6(1)(a)
-            GDPR) where you provide it.
-          </p>
+      <LegalSection title="When you email me">
+        <p>
+          I keep your message and address only as long as the conversation
+          needs, and I never share them.
+        </p>
+      </LegalSection>
 
-          <h3>b) Information from Contact Links</h3>
-          <p>
-            The Website provides links to my social profiles (GitHub, LinkedIn)
-            and a direct email (<code>mailto:</code>) link. When you use them,
-            you interact directly with third-party services, which have their
-            own privacy policies.
-          </p>
-          <p>
-            As stated in Section 2a, a click on these links is recorded as an
-            anonymous or pseudonymous event for statistical analysis. However,
-            this Website{" "}
-            <strong>
-              does not collect, store, or have access to any personal data
-            </strong>{" "}
-            that you share with these external services, such as the content of
-            your email or your activity and profile information on social media
-            platforms.
-          </p>
+      <LegalSection title="Your rights">
+        <p>
+          You can ask me what I hold about you, ask me to correct or delete it,
+          or object to the processing. You can also complain to the Polish data
+          protection authority, the{" "}
+          <TextLink href="https://uodo.gov.pl/en">
+            President of the Personal Data Protection Office (UODO)
+          </TextLink>
+          .
+        </p>
+      </LegalSection>
 
-          <h3>c) Remembering Your Choices (Local Storage)</h3>
-          <p>
-            The Website uses your browser's <code>localStorage</code> to save
-            your consent choice (<code>cookie_consent</code>). This is a purely
-            functional step to avoid showing you the consent banner on every
-            visit.
-          </p>
-
-          <h2>3. Dark Connect Browser Extension</h2>
-          <p>
-            I am also the developer of the "Dark Connect" browser extension,
-            available via the Chrome Web Store and other platforms. I am
-            committed to transparency regarding this software.
-          </p>
-          <h3>a) No Data Collection</h3>
-          <p>
-            The Dark Connect extension is designed with privacy as a core
-            principle. It{" "}
-            <strong>
-              does not collect, store, transmit, or sell any user data
-            </strong>
-            .
-          </p>
-          <ul>
-            <li>
-              It functions locally on your device to modify the visual
-              appearance (CSS) of the Garmin Connect website.
-            </li>
-            <li>
-              It does not track your browsing activity, health data, login
-              credentials, or any other personal information.
-            </li>
-            <li>
-              No analytics scripts or third-party trackers are embedded within
-              the extension's code.
-            </li>
-          </ul>
-
-          <h3>b) Chrome Web Store Analytics</h3>
-          <p>
-            Please note that the platform where you download the extension
-            (e.g., Chrome Web Store) may collect its own aggregated statistics
-            regarding store listing visits and installation counts. This data is
-            governed by the privacy policy of the respective store platform
-            (e.g., Google) and is not collected by the Dark Connect extension
-            software itself.
-          </p>
-
-          <h2>4. Who has access to your data?</h2>
-          <p>
-            Regarding data collected via the Website (kpulka.com), your
-            analytics data is processed by Google Ireland Limited. This data may
-            be transferred to servers in the United States. Google uses Standard
-            Contractual Clauses to ensure your data is protected.
-          </p>
-
-          <h2>5. Your Privacy Rights</h2>
-          <p>You have rights over your data under GDPR, including:</p>
-          <ul>
-            <li>
-              The right to <strong>access</strong>, <strong>correct</strong>, or{" "}
-              <strong>delete</strong> your information.
-            </li>
-            <li>
-              The right to <strong>object to</strong> or{" "}
-              <strong>restrict</strong> processing.
-            </li>
-            <li>
-              The right to <strong>withdraw consent</strong> at any time.
-            </li>
-            <li>
-              The right to <strong>lodge a complaint</strong> with a supervisory
-              authority (like Poland's UODO).
-            </li>
-          </ul>
-          <p>
-            To exercise these rights, please contact me at the email address in
-            Section 1.
-          </p>
-
-          <h2>6. Updates to this Policy</h2>
-          <p>
-            I reserve the right to make changes to this Privacy Policy at any
-            time. Any changes will be posted on this page.
-          </p>
-        </div>
-      </div>
-      <Footer />
-    </motion.div>
+      <LegalSection title="Changes">
+        <p>
+          When this policy changes, the new version goes on this page with a new
+          date at the top.
+        </p>
+      </LegalSection>
+    </LegalPage>
   );
-};
-
-export default PrivacyPolicy;
+}
