@@ -5,8 +5,9 @@ import * as THREE from "three";
 // CPU from the scene's light and, at night, from the SUV's own lamps, so
 // smoke behind the car glows red and smoke in the beams glows white.
 
-const POOL = 240;
-const LIFE = 1.7;
+const POOL = 360;
+// Seconds a puff lives. It keeps spreading and thinning the whole time.
+const LIFE = 3.4;
 
 export interface SmokeLights {
   // 0 by day, 1 at night: how dark the ambient light is.
@@ -19,8 +20,9 @@ export interface SmokeLights {
   ahead: THREE.Vector3;
 }
 
-const DAY_SMOKE = new THREE.Color("#cbcac8");
-const NIGHT_SMOKE = new THREE.Color("#55524f");
+// A slightly cool grey, like real tyre smoke, in both themes.
+const DAY_SMOKE = new THREE.Color("#c4c8ce");
+const NIGHT_SMOKE = new THREE.Color("#4c5057");
 const TAIL_GLOW = new THREE.Color("#ff3b30");
 const HEAD_GLOW = new THREE.Color("#f4f4f2");
 // The cosine of the headlights' half angle.
@@ -128,19 +130,20 @@ export function createSmoke(scene: THREE.Scene): Smoke {
         const life = Math.min(1, age[i] / LIFE);
         const j = i * 3;
         // Slows down, rises a little, and rides the scrolling board.
-        const drag = Math.exp(-1.8 * dt);
+        const drag = Math.exp(-1.4 * dt);
         velocity[j] *= drag;
         velocity[j + 2] *= drag;
-        velocity[j + 1] *= Math.exp(-0.8 * dt);
+        velocity[j + 1] *= Math.exp(-0.5 * dt);
         position[j] += velocity[j] * dt;
         position[j + 1] += velocity[j + 1] * dt;
         position[j + 2] += velocity[j + 2] * dt + scrolled;
         // Grows as it spreads, fades in fast and out slowly.
-        size[i] = 0.6 + life * 2.6;
+        // Spreads fast at first, then keeps slowly growing as it thins.
+        size[i] = 0.6 + 4.4 * Math.sqrt(life);
         alpha[i] =
-          Math.min(1, age[i] / 0.12) *
-          (1 - life) ** 1.4 *
-          (0.55 - 0.15 * lights.night);
+          Math.min(1, age[i] / 0.15) *
+          (1 - life) ** 2 *
+          (0.5 - 0.12 * lights.night);
 
         colour.copy(DAY_SMOKE).lerp(NIGHT_SMOKE, lights.night);
         if (lights.lamps) {
