@@ -898,17 +898,17 @@ export function mount(
     obstacleColors.forEach((color, n) =>
       mixColor(color, DAY.obstacles[n], NIGHT.obstacles[n]),
     );
-    suv.setLights(night);
+    // The lights do not fade with the sky: they switch on at once when the
+    // fade to night has finished, and off the moment day begins.
+    suv.setLights(night === 1 && nightTarget === 1 ? 1 : 0);
   }
   applyPalette();
 
   function setTheme(theme: Theme) {
     nightTarget = theme === "dark" ? 1 : 0;
     // A board that does not animate jumps straight to the new palette.
-    if (frozen) {
-      night = nightTarget;
-      applyPalette();
-    }
+    if (frozen) night = nightTarget;
+    applyPalette();
     wake();
   }
 
