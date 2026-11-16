@@ -159,6 +159,8 @@ const TILT_SPRING = { stiffness: 110, damping: 10 };
 const WHEEL_TRAVEL = 0.06;
 // How fast the SUV climbs away after Stop or a crash.
 const LIFT = 60;
+// The SUV drops in this far above the bottom edge of its area.
+const SPAWN_ABOVE_EDGE = 1.4;
 const REVERSE_SPEED = 5;
 const BRAKE = 22;
 const ROLL_OFF = 4;
@@ -580,7 +582,8 @@ export function mount(
       climb = Math.min(climb, 0);
     } else {
       carX = 0;
-      carZ = area.bottom;
+      // A little above the edge of the area, clear of the hero's fade.
+      carZ = area.bottom - SPAWN_ABOVE_EDGE;
       yaw = 0;
       spin = 0;
       bodyY = groundUnder().mean + offScreenHeight(carX, carZ);

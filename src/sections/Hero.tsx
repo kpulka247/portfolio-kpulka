@@ -264,12 +264,13 @@ export function Hero() {
             )}
           </div>
         )}
-        {/* The copy sits on a fade that starts at the top of the name, so the
-            board above it, where the SUV drives, is never washed out. */}
+        {/* The copy sits on a fade that starts just above the name: the SUV
+            softens only at the very edge of its area, and stays sharp where
+            it drops in. */}
         <div className="relative">
           <div
             aria-hidden="true"
-            className="absolute -inset-x-5 top-0 -bottom-14 bg-linear-to-t from-ground from-50% to-ground/0 md:-inset-x-10 md:-bottom-22"
+            className="absolute -inset-x-5 -top-10 -bottom-14 bg-linear-to-t from-ground from-50% to-ground/0 md:-inset-x-10 md:-top-16 md:-bottom-22"
           />
           <h1
             ref={nameRef}
