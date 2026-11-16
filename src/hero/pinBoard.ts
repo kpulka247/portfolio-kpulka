@@ -97,6 +97,8 @@ const NIGHT: Palette = {
 };
 
 const THEME_FADE = 4;
+// How far into the fade the board looks fully dark, or fully light.
+const LIGHTS_ON_AT = 0.9;
 const MAX_PIXEL_RATIO = 1.5;
 // Below this width the board uses the phone grid and camera.
 const PHONE_WIDTH = 700;
@@ -873,6 +875,7 @@ export function mount(
   // 0 is day, 1 is night. It follows `nightTarget` over about a second.
   let night = options.theme === "dark" ? 1 : 0;
   let nightTarget = night;
+  let lightsOn = night === 1;
   const mixColor = (target: THREE.Color, day: string, dark: string) =>
     target.set(day).lerp(scratch.set(dark), night);
   const scratch = new THREE.Color();
@@ -898,9 +901,12 @@ export function mount(
     obstacleColors.forEach((color, n) =>
       mixColor(color, DAY.obstacles[n], NIGHT.obstacles[n]),
     );
-    // The lights do not fade with the sky: they switch on at once when the
-    // fade to night has finished, and off the moment day begins.
-    suv.setLights(night === 1 && nightTarget === 1 ? 1 : 0);
+    // The lights do not fade with the sky. They switch on at once when the
+    // board looks dark, and off at once when it looks light again, so both
+    // switches wait about half a second.
+    if (nightTarget === 1 && night > LIGHTS_ON_AT) lightsOn = true;
+    if (nightTarget === 0 && night < 1 - LIGHTS_ON_AT) lightsOn = false;
+    suv.setLights(lightsOn ? 1 : 0);
   }
   applyPalette();
 
