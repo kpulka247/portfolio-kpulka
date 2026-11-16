@@ -182,6 +182,10 @@ const DENT_MIN_SPEED = 6;
 // builds up towards DONUT_RATE radians a second at DONUT_GRIP, and winds
 // down at DONUT_GRIP when the steering is let go, as a sliding car does.
 const DONUT_RATE = 2.4;
+// Below this speed W and S together start a burnout.
+const BURNOUT_BELOW = 1;
+// Braking with the throttle still pressed is this share of full braking.
+const BRAKE_AGAINST_ENGINE = 0.3;
 const DONUT_GRIP = 1.1;
 // Puffs a second from each rear wheel while it spins.
 const SMOKE_RATE = 28;
@@ -556,29 +560,25 @@ export function mount(
   // How fast the donut is turning, in radians a second.
   let donutSpeed = 0;
   let smokeDebt = 0;
-  // The landing dent, in board coordinates so it scrolls with the pins.
-  let dentX = 0;
-  let dentZ = 0;
-  let dentAge = Infinity;
-  let dentStrength = 0;
+  // Landing dents, in board coordinates so they scroll with the pins.
+  // Each plays out on its own, so a landing during an earlier dent adds
+  // to it instead of cutting it short.
+  const dents: { x: number; z: number; age: number; strength: number }[] = [];
 
-  function dentLevel(): number {
-    if (dentAge === Infinity) return 0;
-    // Positive pushes the surface down, negative lifts it.
-    return (
-      dentStrength *
-      Math.exp(-dentAge * DENT_SETTLE) *
-      Math.sin(dentAge * DENT_WOBBLE)
-    );
-  }
-
-  // How far the dent pushes a point of the board down. worldZ is the
-  // point's z minus the scroll.
-  function dentAt(x: number, worldZ: number, level: number): number {
-    if (Math.abs(level) < 0.001) return 0;
-    const distance = Math.hypot(x - dentX, worldZ - dentZ);
-    if (distance >= DENT.radius) return 0;
-    return DENT.depth * level * (1 - (distance / DENT.radius) ** 2);
+  // How far the dents push a point of the board down, negative where they
+  // lift it. worldZ is the point's z minus the scroll.
+  function dentAt(x: number, worldZ: number): number {
+    let total = 0;
+    for (const dent of dents) {
+      const distance = Math.hypot(x - dent.x, worldZ - dent.z);
+      if (distance >= DENT.radius) continue;
+      const level =
+        dent.strength *
+        Math.exp(-dent.age * DENT_SETTLE) *
+        Math.sin(dent.age * DENT_WOBBLE);
+      total += DENT.depth * level * (1 - (distance / DENT.radius) ** 2);
+    }
+    return total;
   }
   let restartQueued = false;
   let touched = false;
@@ -710,7 +710,7 @@ export function mount(
         PIN_REST +
         swell(wx, wz - scroll, clock.elapsedTime) -
         CAR_SINK -
-        dentAt(wx, wz - scroll, dentLevel());
+        dentAt(wx, wz - scroll);
       sum += wheelGround[n];
     });
     return { mean: sum / 4 };
@@ -759,12 +759,18 @@ export function mount(
         : { throttle: 0, steer: 0, burnout: false };
     const grounded = bodyY - (groundUnder().mean + ride) < WHEEL_TRAVEL;
 
-    // Letting go of S after a burnout just drives on as normal.
-    burning = burnout && grounded;
+    // W and S together brake gently while the SUV moves, as the engine
+    // fights the brakes. Once it has nearly stopped, the brakes hold it
+    // and the rear wheels spin. Letting go of S drives on as normal.
+    burning =
+      burnout && grounded && (burning || Math.abs(speed) < BURNOUT_BELOW);
 
     if (burning) {
-      // The brakes hold it in place.
       speed -= Math.sign(speed) * Math.min(Math.abs(speed), BRAKE * dt);
+    } else if (burnout && state === "driving") {
+      speed -=
+        Math.sign(speed) *
+        Math.min(Math.abs(speed), BRAKE * BRAKE_AGAINST_ENGINE * dt);
     } else if (state === "driving") {
       if (throttle > 0) {
         speed =
@@ -857,12 +863,18 @@ export function mount(
       onGround &&
       fallSpeed > DENT_MIN_SPEED
     ) {
-      dentX = carX;
-      dentZ = carZ - scroll;
-      dentAge = 0;
-      dentStrength = Math.min(1, fallSpeed / 25);
+      dents.push({
+        x: carX,
+        z: carZ - scroll,
+        age: 0,
+        strength: Math.min(1, fallSpeed / 25),
+      });
     }
-    if (dentAge !== Infinity) dentAge += dt;
+    for (const dent of dents) dent.age += dt;
+    // A dent is gone once its swing has died away.
+    for (let n = dents.length - 1; n >= 0; n--) {
+      if (dents[n].age * DENT_SETTLE > 7) dents.splice(n, 1);
+    }
 
     // The body follows the ground under it, squats when speeding up, dips
     // when braking and leans out of turns.
@@ -1172,7 +1184,6 @@ export function mount(
     // the last FALL_ROWS at the front. Both depend on the row's position,
     // not its slot, so nothing jumps when the rows shift.
     const along = phase / spacing;
-    const dent = dentLevel();
     const obstacleShare = ease(RATE.obstacle, dt);
     for (let k = 0; k < slots; k++) {
       const z = slotZ(k, phase);
@@ -1202,7 +1213,7 @@ export function mount(
           PIN_REST +
           swell(x, worldZ, t) -
           depth[index] * 1.05 -
-          dentAt(x, worldZ, dent) +
+          (dents.length ? dentAt(x, worldZ) : 0) +
           raised[index];
         const height = PIN_HIDDEN + (surface - PIN_HIDDEN) * shown;
         matrix.makeScale(

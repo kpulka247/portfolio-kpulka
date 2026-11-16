@@ -20,9 +20,9 @@ export interface SmokeLights {
   ahead: THREE.Vector3;
 }
 
-// A slightly cool grey, like real tyre smoke, in both themes.
-const DAY_SMOKE = new THREE.Color("#c4c8ce");
-const NIGHT_SMOKE = new THREE.Color("#4c5057");
+// A neutral grey, like real tyre smoke, in both themes.
+const DAY_SMOKE = new THREE.Color("#c8c9cb");
+const NIGHT_SMOKE = new THREE.Color("#505153");
 const TAIL_GLOW = new THREE.Color("#ff3b30");
 const HEAD_GLOW = new THREE.Color("#f4f4f2");
 // The cosine of the headlights' half angle.
