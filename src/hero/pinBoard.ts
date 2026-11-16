@@ -7,6 +7,7 @@ import {
   overlaps,
   topSpeed,
 } from "./runner";
+import type { Theme } from "../theme";
 import { buildSuv } from "./suv";
 
 // The hero's pin board: a field of pins that swell slowly and dip under the
@@ -42,16 +43,59 @@ export interface PinBoardOptions {
   // Draw one frame and no animation, for visitors who prefer less motion.
   // The frame is the real board, so it matches every screen.
   still?: boolean;
+  theme: Theme;
 }
 
 export interface PinBoard {
   setPlaying: (playing: boolean) => void;
+  // Fades the board to the day or night palette.
+  setTheme: (theme: Theme) => void;
   dispose: () => void;
 }
 
-const GROUND = "#e4e5e8";
-const PIN_LOW = new THREE.Color("#b9bbc1");
-const PIN_HIGH = new THREE.Color("#f6f6f7");
+// Day is brushed aluminium in daylight. Night is graphite under a faint
+// cool moon, lit by the SUV's own lights. Both from the Doop frames.
+interface Palette {
+  ground: string;
+  pinLow: string;
+  pinHigh: string;
+  base: string;
+  sky: string;
+  earth: string;
+  skyIntensity: number;
+  sun: string;
+  sunIntensity: number;
+  // By obstacle kind, from super easy to hard.
+  obstacles: [string, string, string, string, string];
+}
+
+const DAY: Palette = {
+  ground: "#e4e5e8",
+  pinLow: "#b9bbc1",
+  pinHigh: "#f6f6f7",
+  base: "#9fa1a8",
+  sky: "#ffffff",
+  earth: "#a9abb2",
+  skyIntensity: 1.3,
+  sun: "#ffffff",
+  sunIntensity: 2.8,
+  obstacles: ["#aeb0b6", "#a2a4aa", "#94969c", "#888a90", "#888a90"],
+};
+
+const NIGHT: Palette = {
+  ground: "#16171a",
+  pinLow: "#25262b",
+  pinHigh: "#4a4c53",
+  base: "#0c0d0f",
+  sky: "#8d97ab",
+  earth: "#0b0c0e",
+  skyIntensity: 1.1,
+  sun: "#b9c4d8",
+  sunIntensity: 1.5,
+  obstacles: ["#34353b", "#303136", "#2c2d32", "#28292d", "#28292d"],
+};
+
+const THEME_FADE = 4;
 const MAX_PIXEL_RATIO = 1.5;
 // Below this width the board uses the phone grid and camera.
 const PHONE_WIDTH = 700;
@@ -78,19 +122,18 @@ const FALL_ROWS = 2;
 // a column coming up, not a floating block. Settled pins stay short, which
 // keeps their shadows and fill cheap.
 const PIN_LENGTH = 20;
-const HAZE = new THREE.Color(GROUND);
 // The SUV rides on the pin tops and presses them only a little, enough to
 // leave tracks.
 const CAR_SINK = 0.1;
 const TRACK_DEPTH = 0.22;
-// How tall each kind of obstacle stands above the pins, and its colour:
-// a few steps darker than the board, from super easy to hard.
-const OBSTACLE_LOOK: Record<number, { height: number; color: THREE.Color }> = {
-  [OBSTACLE.bump]: { height: 0.45, color: new THREE.Color("#aeb0b6") },
-  [OBSTACLE.wall]: { height: 0.7, color: new THREE.Color("#a2a4aa") },
-  [OBSTACLE.pillar]: { height: 1.7, color: new THREE.Color("#94969c") },
-  [OBSTACLE.gate]: { height: 1.2, color: new THREE.Color("#888a90") },
-  [OBSTACLE.moving]: { height: 1.4, color: new THREE.Color("#888a90") },
+// How tall each kind of obstacle stands above the pins. Their colours, a
+// few steps darker than the board, are in the palettes.
+const OBSTACLE_HEIGHT: Record<number, number> = {
+  [OBSTACLE.bump]: 0.45,
+  [OBSTACLE.wall]: 0.7,
+  [OBSTACLE.pillar]: 1.7,
+  [OBSTACLE.gate]: 1.2,
+  [OBSTACLE.moving]: 1.4,
 };
 // An obstacle lower than this lets the SUV pass, as when a moving wall
 // has sunk.
@@ -210,8 +253,13 @@ export function mount(
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(GROUND);
-  scene.fog = new THREE.Fog(GROUND, 30, 70);
+  // The colours in use, blended between day and night by `night`.
+  const groundColor = new THREE.Color(DAY.ground);
+  const pinLow = new THREE.Color();
+  const pinHigh = new THREE.Color();
+  const obstacleColors = DAY.obstacles.map(() => new THREE.Color());
+  scene.background = groundColor;
+  scene.fog = new THREE.Fog(groundColor, 30, 70);
 
   const camera = new THREE.PerspectiveCamera(
     phone ? 50 : DESKTOP_CAMERA.fov,
@@ -228,8 +276,10 @@ export function mount(
   );
   camera.lookAt(0, 0, phone ? -1 : -6);
 
-  scene.add(new THREE.HemisphereLight("#ffffff", "#a9abb2", 1.3));
-  const sun = new THREE.DirectionalLight("#ffffff", 2.8);
+  const sky = new THREE.HemisphereLight();
+  scene.add(sky);
+  // The sun by day, the moon by night.
+  const sun = new THREE.DirectionalLight();
   sun.position.set(-26, 11, -4);
   sun.castShadow = true;
   sun.shadow.mapSize.setScalar(phone ? 1024 : 2048);
@@ -255,7 +305,7 @@ export function mount(
   const pins = new THREE.InstancedMesh(pinGeometry, pinMaterial, count);
   pins.castShadow = true;
   pins.receiveShadow = true;
-  for (let i = 0; i < count; i++) pins.setColorAt(i, PIN_HIGH);
+  for (let i = 0; i < count; i++) pins.setColorAt(i, groundColor);
   scene.add(pins);
 
   // The base shows between the pins. It stops short of the rows that are
@@ -266,10 +316,7 @@ export function mount(
     columns * spacing + 2,
     baseFront - baseBack,
   );
-  const baseMaterial = new THREE.MeshStandardMaterial({
-    color: "#9fa1a8",
-    roughness: 0.9,
-  });
+  const baseMaterial = new THREE.MeshStandardMaterial({ roughness: 0.9 });
   const base = new THREE.Mesh(baseGeometry, baseMaterial);
   base.rotation.x = -Math.PI / 2;
   base.position.set(0, -0.3, (baseFront + baseBack) / 2);
@@ -821,6 +868,48 @@ export function mount(
     report();
   }
 
+  // 0 is day, 1 is night. It follows `nightTarget` over about a second.
+  let night = options.theme === "dark" ? 1 : 0;
+  let nightTarget = night;
+  const mixColor = (target: THREE.Color, day: string, dark: string) =>
+    target.set(day).lerp(scratch.set(dark), night);
+  const scratch = new THREE.Color();
+  function applyPalette() {
+    mixColor(groundColor, DAY.ground, NIGHT.ground);
+    (scene.fog as THREE.Fog).color.copy(groundColor);
+    mixColor(pinLow, DAY.pinLow, NIGHT.pinLow);
+    mixColor(pinHigh, DAY.pinHigh, NIGHT.pinHigh);
+    mixColor(baseMaterial.color, DAY.base, NIGHT.base);
+    mixColor(sky.color, DAY.sky, NIGHT.sky);
+    mixColor(sky.groundColor, DAY.earth, NIGHT.earth);
+    sky.intensity = THREE.MathUtils.lerp(
+      DAY.skyIntensity,
+      NIGHT.skyIntensity,
+      night,
+    );
+    mixColor(sun.color, DAY.sun, NIGHT.sun);
+    sun.intensity = THREE.MathUtils.lerp(
+      DAY.sunIntensity,
+      NIGHT.sunIntensity,
+      night,
+    );
+    obstacleColors.forEach((color, n) =>
+      mixColor(color, DAY.obstacles[n], NIGHT.obstacles[n]),
+    );
+    suv.setLights(night);
+  }
+  applyPalette();
+
+  function setTheme(theme: Theme) {
+    nightTarget = theme === "dark" ? 1 : 0;
+    // A board that does not animate jumps straight to the new palette.
+    if (frozen) {
+      night = nightTarget;
+      applyPalette();
+    }
+    wake();
+  }
+
   const clock = new THREE.Clock(false);
   // Counts as input at load, so the automatic press first starts after
   // IDLE_SECONDS, as in the still image.
@@ -849,6 +938,12 @@ export function mount(
       }
     }
     const t = clock.elapsedTime;
+
+    if (night !== nightTarget) {
+      night += (nightTarget - night) * ease(THEME_FADE, dt);
+      if (Math.abs(nightTarget - night) < 0.002) night = nightTarget;
+      applyPalette();
+    }
 
     const phaseBefore = scroll - scrolledRows * spacing;
     if (state !== "hidden") drive(dt, phaseBefore);
@@ -926,8 +1021,8 @@ export function mount(
         const x = x0 + i * spacing;
         const kind = mask[i];
         if (kind) kinds[index] = kind;
-        const look = OBSTACLE_LOOK[kinds[index]];
-        let target = kind && look ? look.height : 0;
+        const kindHeight = OBSTACLE_HEIGHT[kinds[index]];
+        let target = kind && kindHeight ? kindHeight : 0;
         if (kind === OBSTACLE.moving) target *= wave;
         raised[index] += (target - raised[index]) * obstacleShare;
         if (!kind && raised[index] < 0.01) kinds[index] = 0;
@@ -942,11 +1037,16 @@ export function mount(
         matrix.setPosition(x, height, z);
         pins.setMatrixAt(index, matrix);
         colour
-          .copy(PIN_LOW)
-          .lerp(PIN_HIGH, THREE.MathUtils.clamp((height - 0.1) / 1.6, 0, 1));
-        if (look) colour.lerp(look.color, Math.min(1, raised[index] / 0.3));
+          .copy(pinLow)
+          .lerp(pinHigh, THREE.MathUtils.clamp((height - 0.1) / 1.6, 0, 1));
+        if (kindHeight) {
+          colour.lerp(
+            obstacleColors[kinds[index] - 1],
+            Math.min(1, raised[index] / 0.3),
+          );
+        }
         // Rising rows come out of the haze below the edge.
-        colour.lerp(HAZE, (1 - shown) * 0.7);
+        colour.lerp(groundColor, (1 - shown) * 0.7);
         pins.setColorAt(index, colour);
       }
     }
@@ -998,6 +1098,7 @@ export function mount(
 
   return {
     setPlaying,
+    setTheme,
     dispose() {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);

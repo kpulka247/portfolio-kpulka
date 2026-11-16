@@ -5,6 +5,7 @@ import { Link } from "react-router";
 
 import { projects } from "../content/projects";
 import { EMAIL, GITHUB_URL, LINKEDIN_URL } from "../data/contact";
+import { ThemeToggle } from "./ThemeSwitch";
 
 const LINKS = [
   { href: "/#work", label: "Work" },
@@ -29,7 +30,7 @@ export function Navbar() {
         </Link>
         <nav
           aria-label="Main"
-          className="pointer-events-auto hidden gap-8 md:flex"
+          className="pointer-events-auto hidden items-center gap-8 md:flex"
         >
           {LINKS.map((link) => (
             <a
@@ -40,23 +41,27 @@ export function Navbar() {
               {link.label}
             </a>
           ))}
+          <ThemeToggle />
         </nav>
-        <button
-          type="button"
-          aria-label="Open menu"
-          aria-haspopup="dialog"
-          onClick={() => {
-            const menu = menuRef.current;
-            menu?.showModal();
-            // showModal focuses the first link, and Safari then draws its
-            // focus ring around the logo. Focus the dialog itself instead;
-            // Tab still reaches the links.
-            menu?.focus();
-          }}
-          className="pointer-events-auto inline-flex size-11 items-center justify-center md:hidden"
-        >
-          <PiListBold aria-hidden="true" className="size-6" />
-        </button>
+        <div className="pointer-events-auto flex items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <button
+            type="button"
+            aria-label="Open menu"
+            aria-haspopup="dialog"
+            onClick={() => {
+              const menu = menuRef.current;
+              menu?.showModal();
+              // showModal focuses the first link, and Safari then draws its
+              // focus ring around the logo. Focus the dialog itself instead;
+              // Tab still reaches the links.
+              menu?.focus();
+            }}
+            className="inline-flex size-11 items-center justify-center"
+          >
+            <PiListBold aria-hidden="true" className="size-6" />
+          </button>
+        </div>
       </header>
       <MobileMenu menuRef={menuRef} />
     </>

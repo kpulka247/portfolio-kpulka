@@ -6,6 +6,7 @@ import boardDesktop from "../assets/hero/board-desktop.webp";
 import boardPhone from "../assets/hero/board-phone.webp";
 import { GITHUB_URL, LINKEDIN_URL } from "../data/contact";
 import type { PinBoard, RunState } from "../hero/pinBoard";
+import { currentTheme, useTheme } from "../theme";
 
 // The controls hint stays this long after the first touch of a control.
 const HINT_MS = 5_000;
@@ -36,7 +37,7 @@ function usePresence(show: boolean) {
 }
 
 const PILL =
-  "rounded-full bg-white/70 py-1.5 text-sm whitespace-nowrap text-ink-dim backdrop-blur-sm transition-[opacity,translate] duration-300 ease-out";
+  "rounded-full bg-white/70 py-1.5 text-sm whitespace-nowrap text-ink-dim shadow-[inset_0_0_0_1px_var(--color-edge)] backdrop-blur-sm transition-[opacity,translate] duration-300 ease-out dark:bg-ground/70";
 
 // A finger has no keys, so touch screens get their own words.
 function hasKeyboard(): boolean {
@@ -116,6 +117,7 @@ export function Hero() {
         if (cancelled) return;
         boardRef.current = mount(canvas, host, {
           still,
+          theme: currentTheme(),
           onReady: () => setLive(true),
           onStop: () => setPlaying(false),
           onRun: setRun,
@@ -153,6 +155,12 @@ export function Hero() {
       boardRef.current = null;
     };
   }, []);
+
+  // The board fades between day and night with the page.
+  const theme = useTheme();
+  useEffect(() => {
+    boardRef.current?.setTheme(theme);
+  }, [theme]);
 
   useEffect(() => {
     boardRef.current?.setPlaying(playing);
@@ -202,7 +210,8 @@ export function Hero() {
       onContextMenu={playing ? (event) => event.preventDefault() : undefined}
     >
       {noWebGL && (
-        <picture aria-hidden="true">
+        // A capture of the board by day, so it is left out at night.
+        <picture aria-hidden="true" className="dark:hidden">
           <source media="(min-width: 700px)" srcSet={boardDesktop} />
           <img
             src={boardPhone}
@@ -244,7 +253,7 @@ export function Hero() {
               type="button"
               aria-pressed={playing}
               onClick={() => setPlaying((on) => !on)}
-              className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-full bg-white/70 pr-4 pl-3 text-sm font-semibold shadow-[inset_0_0_0_1px_rgb(27_28_31/0.18)] backdrop-blur-sm transition-colors hover:bg-white aria-pressed:bg-ink aria-pressed:text-ground"
+              className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-full bg-white/70 pr-4 pl-3 text-sm font-semibold shadow-[inset_0_0_0_1px_var(--color-edge)] backdrop-blur-sm transition-colors hover:bg-white aria-pressed:bg-ink aria-pressed:text-ground dark:bg-ground/70 dark:hover:bg-ground dark:aria-pressed:bg-ink"
             >
               <PiSteeringWheelBold aria-hidden="true" className="size-5" />
               Play

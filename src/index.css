@@ -2,10 +2,16 @@
 @import "@fontsource-variable/anybody/standard.css";
 @import "@fontsource-variable/instrument-sans";
 
+/* dark: utilities follow the theme on <html>, not the system setting,
+   so the switch can override it. src/theme.ts sets the attribute. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 @theme {
   --color-ground: #e4e5e8;
   --color-ink: #1b1c1f;
   --color-ink-dim: #5c5d62;
+  /* Thin outlines on the ground colour. */
+  --color-edge: rgb(27 28 31 / 0.18);
   --color-sheet: #000000;
   --color-raised: #151517;
   --color-text: #ededee;
@@ -33,6 +39,16 @@
   --radius-sm: 6px;
   --radius-md: 14px;
   --radius-sheet: 40px;
+}
+
+/* Dark mode: the light surfaces (hero, closing panel, 404) turn graphite,
+   and their text turns light. The black sheet is the same in both. */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --color-ground: #16171a;
+  --color-ink: #ecedef;
+  --color-ink-dim: #8e9096;
+  --color-edge: #2c2d32;
 }
 
 @layer base {

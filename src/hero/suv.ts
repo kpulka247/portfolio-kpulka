@@ -76,8 +76,21 @@ export interface Suv {
   body: THREE.Group;
   wheels: Wheel[];
   size: SuvSize;
+  // 0 for daylight, 1 for night: the lamps glow and the headlights and
+  // tail lights shine, the headlights casting shadows. In between fades.
+  setLights: (level: number) => void;
   dispose: () => void;
 }
+
+// Matched in the Doop night frames.
+const HEADLIGHT = {
+  color: "#ffe4b5",
+  intensity: 520,
+  distance: 34,
+  angle: 0.5,
+};
+const TAILLIGHT = { color: "#ff3b30", intensity: 60, distance: 8, angle: 0.95 };
+const LAMP_GLOW = 3;
 
 // A box whose top is smaller than its bottom: four-sided, so it stays
 // low-poly. Its base sits at y = 0.
@@ -202,22 +215,60 @@ export function buildSuv(): Suv {
   const bumper = new THREE.BoxGeometry(width + 0.04, 0.1, 0.08);
   mesh(body, bumper, colors.trim, [0, 0.05, -length / 2 - 0.02]);
   mesh(body, bumper.clone(), colors.trim, [0, 0.05, length / 2 + 0.02]);
+  // The lamps have their own materials, so they can glow at night.
+  const headLamp = new THREE.MeshStandardMaterial({
+    color: "#f6f6f7",
+    roughness: 0.2,
+    emissive: HEADLIGHT.color,
+    emissiveIntensity: 0,
+  });
+  const tailLamp = new THREE.MeshStandardMaterial({
+    color: "#7d7f85",
+    roughness: 0.3,
+    emissive: TAILLIGHT.color,
+    emissiveIntensity: 0,
+  });
+  const lampY = height * 0.7;
   for (const x of [-width * 0.32, width * 0.32]) {
-    mesh(
-      body,
+    const head = new THREE.Mesh(
       new THREE.BoxGeometry(0.16, 0.07, 0.03),
-      "#f6f6f7",
-      [x, height * 0.7, -length / 2 + 0.02],
-      0.2,
+      headLamp,
     );
-    mesh(
-      body,
+    head.position.set(x, lampY, -length / 2 + 0.02);
+    const tail = new THREE.Mesh(
       new THREE.BoxGeometry(0.12, 0.07, 0.03),
-      "#7d7f85",
-      [x * 1.15, height * 0.7, length / 2 - 0.02],
-      0.3,
+      tailLamp,
     );
+    tail.position.set(x * 1.15, lampY, length / 2 - 0.02);
+    geometries.push(head.geometry, tail.geometry);
+    body.add(head, tail);
   }
+
+  // One warm spot between the headlamps throws both beams ahead and casts
+  // the shadows. One red spot throws the tail lights' glow behind.
+  const headlight = new THREE.SpotLight(
+    HEADLIGHT.color,
+    0,
+    HEADLIGHT.distance,
+    HEADLIGHT.angle,
+    0.7,
+    1.5,
+  );
+  headlight.position.set(0, lampY, -length / 2 - 0.05);
+  headlight.target.position.set(0, -1.6, -length / 2 - 13);
+  headlight.shadow.mapSize.setScalar(1024);
+  headlight.shadow.bias = -0.0008;
+  const taillight = new THREE.SpotLight(
+    TAILLIGHT.color,
+    0,
+    TAILLIGHT.distance,
+    TAILLIGHT.angle,
+    1,
+    1.8,
+  );
+  taillight.position.set(0, lampY, length / 2 + 0.05);
+  taillight.target.position.set(0, -1.2, length / 2 + 4);
+  body.add(headlight, headlight.target, taillight, taillight.target);
 
   const wheels: Wheel[] = [];
   for (const z of [-size.axle.z, size.axle.z]) {
@@ -247,8 +298,13 @@ export function buildSuv(): Suv {
     }
   }
 
+  // Everything casts a shadow except the lamps, which would block their
+  // own light.
   root.traverse((object) => {
-    if (object instanceof THREE.Mesh) object.castShadow = true;
+    if (object instanceof THREE.Mesh) {
+      object.castShadow =
+        object.material !== headLamp && object.material !== tailLamp;
+    }
   });
 
   return {
@@ -256,9 +312,22 @@ export function buildSuv(): Suv {
     body,
     wheels,
     size,
+    setLights(level) {
+      headLamp.emissiveIntensity = LAMP_GLOW * level;
+      tailLamp.emissiveIntensity = LAMP_GLOW * level;
+      headlight.intensity = HEADLIGHT.intensity * level;
+      taillight.intensity = TAILLIGHT.intensity * level;
+      // A shadow-casting light costs a shadow pass even when dark, so it
+      // casts only while it shines.
+      headlight.castShadow = level > 0.01;
+    },
     dispose() {
       for (const geometry of geometries) geometry.dispose();
       for (const found of materials.values()) found.dispose();
+      headLamp.dispose();
+      tailLamp.dispose();
+      headlight.dispose();
+      taillight.dispose();
     },
   };
 }

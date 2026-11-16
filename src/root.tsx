@@ -9,6 +9,7 @@ import {
 } from "react-router";
 
 import { BEACON_SRC, BEACON_TOKEN } from "./analytics";
+import { THEME_SCRIPT } from "./theme";
 import "./index.css";
 
 // The icons come from scripts/make-icons.mjs. Browsers that read SVG
@@ -36,8 +37,10 @@ export function Layout({ children }: { children: ReactNode }) {
   return (
     // The page background lives on <html>: iOS 26 Safari tints its bars
     // from it when no fixed or sticky element sits at the screen edge.
-    <html lang="en" className="bg-sheet">
+    // THEME_SCRIPT adds the theme attributes before React hydrates.
+    <html lang="en" className="bg-sheet" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="google" content="notranslate" />
