@@ -177,6 +177,11 @@ const DENT = { radius: 3, depth: 2.2 };
 const DENT_WOBBLE = 9;
 const DENT_SETTLE = 4.5;
 const DENT_MIN_SPEED = 6;
+// Only a real drop dents the board: the SUV must have been at least this
+// high above the ground while in the air. A dent pulling the ground away
+// under the wheels leaves a far smaller gap, so it cannot set off the next.
+const DENT_MIN_DROP = 1.5;
+const STICK = 0.5;
 // W and S together: the brakes hold the SUV while the rear wheels spin.
 // Steering then swings the rear around the front axle, a donut. The spin
 // builds up towards DONUT_RATE radians a second at DONUT_GRIP, and winds
@@ -560,6 +565,8 @@ export function mount(
   // How fast the donut is turning, in radians a second.
   let donutSpeed = 0;
   let smokeDebt = 0;
+  // How high the SUV has been above the ground since it last touched it.
+  let highestGap = 0;
   // Landing dents, in board coordinates so they scroll with the pins.
   // Each plays out on its own, so a landing during an earlier dent adds
   // to it instead of cutting it short.
@@ -578,7 +585,9 @@ export function mount(
         Math.sin(dent.age * DENT_WOBBLE);
       total += DENT.depth * level * (1 - (distance / DENT.radius) ** 2);
     }
-    return total;
+    // However the dents overlap, the board never sinks or lifts more than
+    // one full dent.
+    return THREE.MathUtils.clamp(total, -DENT.depth, DENT.depth);
   }
   let restartQueued = false;
   let touched = false;
@@ -837,10 +846,16 @@ export function mount(
 
     const { mean } = groundUnder();
     const rest = mean + ride;
-    const wasAirborne = bodyY - rest > WHEEL_TRAVEL;
+    // Within STICK of the ground, the suspension holds the SUV to it and
+    // follows it, down into a dent and back up. Only above that does it
+    // fall freely. Without this, a dent pulling the ground away would drop
+    // the SUV into a new landing, and a new dent, again and again.
+    const gap = bodyY - rest;
+    const falling = gap > STICK || (climb > 0 && gap > WHEEL_TRAVEL);
+    if (falling) highestGap = Math.max(highestGap, gap);
     if (launched || state === "leaving") {
       climb += LIFT * dt;
-    } else if (bodyY - rest > WHEEL_TRAVEL || climb > 0) {
+    } else if (falling) {
       climb -= GRAVITY * dt;
     } else {
       climb = spring(bodyY, climb, rest, SPRING, dt);
@@ -856,11 +871,12 @@ export function mount(
     }
     const onGround = bodyY - rest < WHEEL_TRAVEL;
 
-    // A hard landing dents the board under the SUV.
+    // A hard landing from a real drop dents the board under the SUV.
+    const landed = highestGap > 0 && bodyY - rest <= STICK;
     if (
       state === "driving" &&
-      wasAirborne &&
-      onGround &&
+      landed &&
+      highestGap > DENT_MIN_DROP &&
       fallSpeed > DENT_MIN_SPEED
     ) {
       dents.push({
@@ -870,6 +886,7 @@ export function mount(
         strength: Math.min(1, fallSpeed / 25),
       });
     }
+    if (landed) highestGap = 0;
     for (const dent of dents) dent.age += dt;
     // A dent is gone once its swing has died away.
     for (let n = dents.length - 1; n >= 0; n--) {
