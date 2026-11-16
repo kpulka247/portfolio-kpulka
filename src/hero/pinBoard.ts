@@ -912,6 +912,7 @@ export function mount(
     if (nightTarget === 1 && night > LIGHTS_ON_AT) lightsOn = true;
     if (nightTarget === 0 && night < 1 - LIGHTS_ON_AT) lightsOn = false;
     suv.setLights(lightsOn ? 1 : 0);
+    suv.setDusk(night);
   }
   applyPalette();
 

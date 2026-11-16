@@ -79,6 +79,9 @@ export interface Suv {
   // 0 for daylight, 1 for night: the lamps glow and the headlights and
   // tail lights shine, the headlights casting shadows. In between fades.
   setLights: (level: number) => void;
+  // 0 for day, 1 for night: the paint darkens with the scene, as at dusk.
+  // The lamps are left alone.
+  setDusk: (level: number) => void;
   dispose: () => void;
 }
 
@@ -92,6 +95,8 @@ const HEADLIGHT = {
 };
 const TAILLIGHT = { color: "#ff3b30", intensity: 32, distance: 8, angle: 0.9 };
 const LAMP_GLOW = 3;
+// How much darker the paint gets at night, matched to the pins.
+const DUSK_DARKEN = 0.55;
 
 // A box whose top is smaller than its bottom: four-sided, so it stays
 // low-poly. Its base sits at y = 0.
@@ -306,6 +311,11 @@ export function buildSuv(): Suv {
 
   // Everything casts a shadow except the lamps, which would block their
   // own light.
+  // The paint colours by day, to darken from.
+  const dayColors = new Map(
+    [...materials.values()].map((found) => [found, found.color.clone()]),
+  );
+
   root.traverse((object) => {
     if (object instanceof THREE.Mesh) {
       object.castShadow =
@@ -318,6 +328,11 @@ export function buildSuv(): Suv {
     body,
     wheels,
     size,
+    setDusk(level) {
+      for (const [found, color] of dayColors) {
+        found.color.copy(color).multiplyScalar(1 - DUSK_DARKEN * level);
+      }
+    },
     setLights(level) {
       headLamp.emissiveIntensity = LAMP_GLOW * level;
       tailLamp.emissiveIntensity = LAMP_GLOW * level;
