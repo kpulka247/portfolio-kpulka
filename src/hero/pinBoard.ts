@@ -180,7 +180,10 @@ const DENT_MIN_SPEED = 6;
 // Only a real drop dents the board: the SUV must have been at least this
 // high above the ground while in the air. A dent pulling the ground away
 // under the wheels leaves a far smaller gap, so it cannot set off the next.
-const DENT_MIN_DROP = 1.5;
+const DENT_MIN_DROP = 0.8;
+// A drop from this high or higher gives the deepest dent. It is about the
+// drop in from above the screen on a desktop.
+const FULL_DROP = 12;
 const STICK = 0.5;
 // W and S together: the brakes hold the SUV while the rear wheels spin.
 // Steering then swings the rear around the front axle, a donut. The spin
@@ -883,7 +886,9 @@ export function mount(
         x: carX,
         z: carZ - scroll,
         age: 0,
-        strength: Math.min(1, fallSpeed / 25),
+        // In proportion to the height it fell from, the same on every
+        // screen, up to the deepest dent.
+        strength: Math.min(1, highestGap / FULL_DROP),
       });
     }
     if (landed) highestGap = 0;
