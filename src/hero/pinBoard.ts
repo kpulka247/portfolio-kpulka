@@ -161,6 +161,13 @@ const TILT_SPRING = { stiffness: 110, damping: 10 };
 const WHEEL_TRAVEL = 0.06;
 // How fast the SUV climbs away after Stop or a crash.
 const LIFT = 60;
+// A landing from a real fall dents the board under the SUV, about the size
+// of the pointer's dent. It sinks in DENT_IN seconds and springs back at
+// DENT_OUT a second. Softer landings than DENT_MIN_SPEED leave no dent.
+const DENT = { radius: 3, depth: 1.1 };
+const DENT_IN = 0.08;
+const DENT_OUT = 5;
+const DENT_MIN_SPEED = 6;
 // The SUV drops in this far above the bottom edge of its area.
 const SPAWN_ABOVE_EDGE = 1.4;
 const REVERSE_SPEED = 5;
@@ -517,6 +524,29 @@ export function mount(
   let spinSpeed = 0;
   let crashedAt = 0;
   let launched = false;
+  // The landing dent, in board coordinates so it scrolls with the pins.
+  let dentX = 0;
+  let dentZ = 0;
+  let dentAge = Infinity;
+  let dentStrength = 0;
+
+  function dentLevel(): number {
+    if (dentAge === Infinity) return 0;
+    return (
+      dentStrength *
+      Math.min(1, dentAge / DENT_IN) *
+      Math.exp(-Math.max(0, dentAge - DENT_IN) * DENT_OUT)
+    );
+  }
+
+  // How far the dent pushes a point of the board down. worldZ is the
+  // point's z minus the scroll.
+  function dentAt(x: number, worldZ: number, level: number): number {
+    if (level < 0.001) return 0;
+    const distance = Math.hypot(x - dentX, worldZ - dentZ);
+    if (distance >= DENT.radius) return 0;
+    return DENT.depth * level * (1 - (distance / DENT.radius) ** 2);
+  }
   let restartQueued = false;
   let touched = false;
 
@@ -644,7 +674,10 @@ export function mount(
       const wx = carX + wheel.x * cos + wheel.z * sin;
       const wz = carZ - wheel.x * sin + wheel.z * cos;
       wheelGround[n] =
-        PIN_REST + swell(wx, wz - scroll, clock.elapsedTime) - CAR_SINK;
+        PIN_REST +
+        swell(wx, wz - scroll, clock.elapsedTime) -
+        CAR_SINK -
+        dentAt(wx, wz - scroll, dentLevel());
       sum += wheelGround[n];
     });
     return { mean: sum / 4 };
@@ -739,6 +772,7 @@ export function mount(
 
     const { mean } = groundUnder();
     const rest = mean + ride;
+    const wasAirborne = bodyY - rest > WHEEL_TRAVEL;
     if (launched || state === "leaving") {
       climb += LIFT * dt;
     } else if (bodyY - rest > WHEEL_TRAVEL || climb > 0) {
@@ -747,6 +781,8 @@ export function mount(
       climb = spring(bodyY, climb, rest, SPRING, dt);
     }
     bodyY += climb * dt;
+    // Read before the suspension bounces it back up.
+    const fallSpeed = -climb;
     // Full compression: the suspension bottoms out and kicks the body back
     // up a little, as after a landing.
     if (!launched && state !== "leaving" && bodyY < rest - WHEEL_TRAVEL) {
@@ -754,6 +790,20 @@ export function mount(
       if (climb < 0) climb = -climb * 0.22;
     }
     const onGround = bodyY - rest < WHEEL_TRAVEL;
+
+    // A hard landing dents the board under the SUV.
+    if (
+      state === "driving" &&
+      wasAirborne &&
+      onGround &&
+      fallSpeed > DENT_MIN_SPEED
+    ) {
+      dentX = carX;
+      dentZ = carZ - scroll;
+      dentAge = 0;
+      dentStrength = Math.min(1, fallSpeed / 25);
+    }
+    if (dentAge !== Infinity) dentAge += dt;
 
     // The body follows the ground under it, squats when speeding up, dips
     // when braking and leans out of turns.
@@ -1022,6 +1072,7 @@ export function mount(
     // the last FALL_ROWS at the front. Both depend on the row's position,
     // not its slot, so nothing jumps when the rows shift.
     const along = phase / spacing;
+    const dent = dentLevel();
     const obstacleShare = ease(RATE.obstacle, dt);
     for (let k = 0; k < slots; k++) {
       const z = slotZ(k, phase);
@@ -1048,7 +1099,11 @@ export function mount(
         raised[index] += (target - raised[index]) * obstacleShare;
         if (!kind && raised[index] < 0.01) kinds[index] = 0;
         const surface =
-          PIN_REST + swell(x, worldZ, t) - depth[index] * 1.05 + raised[index];
+          PIN_REST +
+          swell(x, worldZ, t) -
+          depth[index] * 1.05 -
+          dentAt(x, worldZ, dent) +
+          raised[index];
         const height = PIN_HIDDEN + (surface - PIN_HIDDEN) * shown;
         matrix.makeScale(
           1,
