@@ -88,10 +88,11 @@ const NIGHT: Palette = {
   pinLow: "#47433f",
   pinHigh: "#7c7772",
   base: "#2a2724",
-  sky: "#c9d0dc",
-  earth: "#15161a",
+  // Warm neutral light, so nothing turns cold against the warm greys.
+  sky: "#e3dbd1",
+  earth: "#1a1714",
   skyIntensity: 1.2,
-  sun: "#dfe5ee",
+  sun: "#ece4d9",
   sunIntensity: 1.7,
   obstacles: ["#5f5a55", "#5a5550", "#55504b", "#504b46", "#504b46"],
 };

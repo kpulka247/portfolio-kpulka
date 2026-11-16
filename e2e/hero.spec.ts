@@ -65,6 +65,19 @@ test.describe("live pin board", () => {
     expect(errors).toEqual([]);
   });
 
+  test("clicking Play leaves no focus ring once the keys are used", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "keyboard test");
+    await page.goto("/");
+    const play = page.getByRole("button", { name: "Play" });
+    await play.waitFor({ timeout: 20_000 });
+    await play.click();
+    await page.keyboard.press("w");
+    await expect(play).not.toBeFocused();
+  });
+
   test("nothing covers Play or the hint", async ({ page }) => {
     await page.goto("/");
     const play = page.getByRole("button", { name: "Play" });

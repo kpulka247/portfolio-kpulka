@@ -248,7 +248,14 @@ export function Hero() {
             <button
               type="button"
               aria-pressed={playing}
-              onClick={() => setPlaying((on) => !on)}
+              onClick={(event) => {
+                setPlaying((on) => !on);
+                // After a mouse or finger press, give the focus back to the
+                // page: the drive keys would otherwise make the browser show
+                // its keyboard focus ring on Play. A keyboard press (detail
+                // 0) keeps the focus where it is.
+                if (event.detail > 0) event.currentTarget.blur();
+              }}
               className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-full bg-white/70 pr-4 pl-3 text-sm font-semibold shadow-[inset_0_0_0_1px_var(--color-edge)] backdrop-blur-sm transition-colors hover:bg-white aria-pressed:bg-ink aria-pressed:text-ground dark:bg-ground/70 dark:hover:bg-ground dark:aria-pressed:bg-ink"
             >
               <PiSteeringWheelBold aria-hidden="true" className="size-5" />
