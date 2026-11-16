@@ -64,3 +64,23 @@ html {
   scroll-behavior: smooth;
   position: relative;
 }
+
+/* The hero stays put while the black sheet scrolls over it. Where the
+   browser has scroll-driven animations, it is held in place by moving it
+   down as fast as the page scrolls, instead of position: sticky. iOS 26
+   Safari colours its bars from sticky elements at the screen edge, and a
+   sticky light hero made them light over the whole black page. */
+@supports (animation-timeline: scroll()) {
+  .hero-pin {
+    position: relative;
+    animation: hero-pin linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 100svh;
+  }
+
+  @keyframes hero-pin {
+    to {
+      translate: 0 100svh;
+    }
+  }
+}

@@ -34,15 +34,19 @@ export const links: LinksFunction = () => [
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    // The page background lives on <html>: iOS 26 Safari tints its bars
+    // from it when no fixed or sticky element sits at the screen edge.
+    <html lang="en" className="bg-sheet">
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="google" content="notranslate" />
+        {/* Older Safari and Chrome on Android tint their bars from this. */}
+        <meta name="theme-color" content="#000000" />
         <Meta />
         <Links />
       </head>
-      <body style={{ backgroundColor: "#000000" }} className="notranslate">
+      <body className="notranslate bg-sheet">
         <a className="skip-link" href="#main">
           Skip to content
         </a>

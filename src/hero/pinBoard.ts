@@ -27,8 +27,8 @@ export interface PinBoardOptions {
   onReady: () => void;
   // The visitor pressed Escape.
   onStop: () => void;
-  // The first seconds ran too slowly. The caller should dispose the board
-  // and keep the still image.
+  // The first seconds ran too slowly. The board keeps its last frame on
+  // screen and stops drawing, so the caller should hide Play.
   onSlow: () => void;
   // The run's distance changed by a metre, or the SUV crashed.
   onRun: (state: RunState) => void;
@@ -39,6 +39,9 @@ export interface PinBoardOptions {
   // The top of the hero's Play row, in pixels from the top of the canvas.
   // The SUV drives only above it.
   playBottom: () => number;
+  // Draw one frame and no animation, for visitors who prefer less motion.
+  // The frame is the real board, so it matches every screen.
+  still?: boolean;
 }
 
 export interface PinBoard {
@@ -838,6 +841,8 @@ export function mount(
       if (framesDrawn <= WARM_UP_FRAMES + TIMED_FRAMES) timedSeconds += elapsed;
       if (framesDrawn === WARM_UP_FRAMES + TIMED_FRAMES) {
         if (timedSeconds / TIMED_FRAMES > SLOW_FRAME) {
+          frozen = true;
+          frameId = 0;
           options.onSlow();
           return;
         }
@@ -953,10 +958,12 @@ export function mount(
       ready = true;
       options.onReady();
     }
-    frameId = requestAnimationFrame(frame);
+    frameId = frozen ? 0 : requestAnimationFrame(frame);
   }
 
-  // Render only while the hero is on screen and the tab is visible.
+  // Render only while the hero is on screen and the tab is visible. A
+  // frozen board draws one frame each time it is woken, and no more.
+  let frozen = options.still ?? false;
   let inView = true;
   function wake() {
     const shouldRun = inView && !document.hidden;
@@ -983,6 +990,7 @@ export function mount(
     camera.aspect = clientWidth / clientHeight;
     camera.updateProjectionMatrix();
     measureArea();
+    if (frozen) wake();
   });
   resize.observe(canvas);
 

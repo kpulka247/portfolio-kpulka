@@ -106,12 +106,15 @@ test.describe("live pin board", () => {
 test.describe("reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
 
-  test("keeps the still image and offers no game", async ({ page }) => {
+  test("shows one still frame of the real board and no game", async ({
+    page,
+  }) => {
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
     const hero = page.locator('section[aria-label="Introduction"]');
-    await expect(hero.locator("picture img")).toBeVisible();
-    await expect(hero.locator("canvas")).toHaveClass(/opacity-0/);
+    await expect(hero.locator("canvas")).toHaveClass(/opacity-100/, {
+      timeout: 20_000,
+    });
+    await expect(hero.locator("picture")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Play" })).toHaveCount(0);
   });
 });

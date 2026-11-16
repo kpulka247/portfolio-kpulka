@@ -45,7 +45,14 @@ export function Navbar() {
           type="button"
           aria-label="Open menu"
           aria-haspopup="dialog"
-          onClick={() => menuRef.current?.showModal()}
+          onClick={() => {
+            const menu = menuRef.current;
+            menu?.showModal();
+            // showModal focuses the first link, and Safari then draws its
+            // focus ring around the logo. Focus the dialog itself instead;
+            // Tab still reaches the links.
+            menu?.focus();
+          }}
           className="pointer-events-auto inline-flex size-11 items-center justify-center md:hidden"
         >
           <PiListBold aria-hidden="true" className="size-6" />
@@ -69,7 +76,8 @@ function MobileMenu({
     <dialog
       ref={menuRef}
       aria-label="Menu"
-      className="m-0 h-dvh max-h-none w-full max-w-none bg-sheet p-0 text-paper backdrop:bg-sheet open:flex"
+      tabIndex={-1}
+      className="m-0 outline-none h-dvh max-h-none w-full max-w-none bg-sheet p-0 text-paper backdrop:bg-sheet open:flex"
     >
       <div className="flex w-full flex-col px-5 pt-4 pb-8">
         <div className="flex items-center justify-between">

@@ -59,15 +59,19 @@ function saveBest(best: number) {
   }
 }
 
-// The live board needs WebGL 2 and stays off for visitors who ask for less
-// motion. The board itself gives up on a device that draws it too slowly.
-// Everyone else keeps the still image, which is a capture of the same
-// board (scripts/capture-hero.mjs).
-function canRunBoard(): boolean {
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+// The board needs WebGL 2. Without it, the hero shows a capture of the
+// board instead (scripts/capture-hero.mjs). The capture is cropped
+// differently on every screen, so it is only for those visitors: everyone
+// else sees the real board fade in.
+function hasWebGL(): boolean {
   const gl = document.createElement("canvas").getContext("webgl2");
   gl?.getExtension("WEBGL_lose_context")?.loseContext();
   return gl !== null;
+}
+
+// Visitors who prefer less motion get one still frame of the real board.
+function prefersStill(): boolean {
+  return matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 function afterFirstPaint(callback: () => void): () => void {
@@ -89,6 +93,7 @@ export function Hero() {
   const hintTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [loaded, setLoaded] = useState(false);
   const [live, setLive] = useState(false);
+  const [noWebGL, setNoWebGL] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [run, setRun] = useState<RunState>({ distance: 0, crashed: false });
   const [best, setBest] = useState(0);
@@ -98,13 +103,19 @@ export function Hero() {
   useEffect(() => {
     const host = hostRef.current;
     const canvas = canvasRef.current;
-    if (!host || !canvas || !canRunBoard()) return;
+    if (!host || !canvas) return;
+    if (!hasWebGL()) {
+      setNoWebGL(true);
+      return;
+    }
+    const still = prefersStill();
 
     let cancelled = false;
     const cancelIdle = afterFirstPaint(() => {
       void import("../hero/pinBoard").then(({ mount }) => {
         if (cancelled) return;
         boardRef.current = mount(canvas, host, {
+          still,
           onReady: () => setLive(true),
           onStop: () => setPlaying(false),
           onRun: setRun,
@@ -123,15 +134,14 @@ export function Hero() {
             const top = canvas.getBoundingClientRect().top;
             return name ? name.top - top : canvas.clientHeight * 0.55;
           },
+          // Too slow to animate: the board keeps its last frame, and the
+          // game goes away.
           onSlow: () => {
-            boardRef.current?.dispose();
-            boardRef.current = null;
             setPlaying(false);
-            setLive(false);
             setLoaded(false);
           },
         });
-        setLoaded(true);
+        setLoaded(!still);
       });
     });
 
@@ -185,21 +195,22 @@ export function Hero() {
     <section
       ref={hostRef}
       aria-label="Introduction"
-      className={`sticky top-0 flex h-svh min-h-[560px] flex-col justify-end overflow-hidden bg-ground px-5 pb-14 text-ink md:px-10 md:pb-22 ${
+      className={`hero-pin sticky top-0 flex h-svh min-h-[560px] flex-col justify-end overflow-hidden bg-ground px-5 pb-14 text-ink md:px-10 md:pb-22 ${
         playing ? "touch-none select-none [-webkit-touch-callout:none]" : ""
       }`}
       // A long press while driving would open the browser's menu.
       onContextMenu={playing ? (event) => event.preventDefault() : undefined}
     >
-      <picture aria-hidden="true">
-        <source media="(min-width: 700px)" srcSet={boardDesktop} />
-        <img
-          src={boardPhone}
-          alt=""
-          fetchPriority="high"
-          className="absolute inset-0 size-full object-cover object-bottom"
-        />
-      </picture>
+      {noWebGL && (
+        <picture aria-hidden="true">
+          <source media="(min-width: 700px)" srcSet={boardDesktop} />
+          <img
+            src={boardPhone}
+            alt=""
+            className="absolute inset-0 size-full object-cover object-bottom"
+          />
+        </picture>
+      )}
       <canvas
         ref={canvasRef}
         aria-hidden="true"
