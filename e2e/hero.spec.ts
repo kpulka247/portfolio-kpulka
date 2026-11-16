@@ -32,12 +32,10 @@ test.describe("live pin board", () => {
     await play.click();
     const hint = page.getByText(/W A S D to drive/);
     await expect(hint).toBeVisible();
-    // Steering alone counts as the first input.
     await page.keyboard.press("d");
     await page.waitForTimeout(3_500);
     await expect(hint).toBeVisible();
     await expect(hint).toBeHidden({ timeout: 6_000 });
-    // The copy under the board stays the whole time.
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
     await page.keyboard.press("Escape");

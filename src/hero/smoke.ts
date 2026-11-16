@@ -1,12 +1,6 @@
 import * as THREE from "three";
 
-// Tyre smoke for burnouts, donuts and drifts: a pool of soft puffs drawn
-// as one point cloud, so it costs one draw call. Each puff is lit on the
-// CPU from the scene's light and, at night, from the car's own lamps, so
-// smoke behind the car glows red and smoke in the beams glows white.
-
 const POOL = 360;
-// Seconds a puff lives. It keeps spreading and thinning the whole time.
 const LIFE = 3.4;
 
 export interface SmokeLights {
@@ -20,12 +14,10 @@ export interface SmokeLights {
   ahead: THREE.Vector3;
 }
 
-// A neutral grey, like real tyre smoke, in both themes.
 const DAY_SMOKE = new THREE.Color("#c8c9cb");
 const NIGHT_SMOKE = new THREE.Color("#505153");
 const TAIL_GLOW = new THREE.Color("#ff3b30");
 const HEAD_GLOW = new THREE.Color("#f4f4f2");
-// The cosine of the headlights' half angle.
 const BEAM = Math.cos(0.42);
 
 const VERTEX = /* glsl */ `
@@ -51,7 +43,6 @@ const FRAGMENT = /* glsl */ `
     vec2 p = gl_PointCoord - 0.5;
     float r = length(p) * 2.0;
     if (r > 1.0) discard;
-    // A soft puff, densest in the middle.
     float a = vAlpha * pow(1.0 - r, 1.6);
     gl_FragColor = vec4(vTint, a);
   }
@@ -129,7 +120,6 @@ export function createSmoke(scene: THREE.Scene): Smoke {
         age[i] += dt;
         const life = Math.min(1, age[i] / LIFE);
         const j = i * 3;
-        // Slows down, rises a little, and rides the scrolling board.
         const drag = Math.exp(-1.4 * dt);
         velocity[j] *= drag;
         velocity[j + 2] *= drag;
@@ -137,8 +127,6 @@ export function createSmoke(scene: THREE.Scene): Smoke {
         position[j] += velocity[j] * dt;
         position[j + 1] += velocity[j + 1] * dt;
         position[j + 2] += velocity[j + 2] * dt + scrolled;
-        // Grows as it spreads, fades in fast and out slowly.
-        // Spreads fast at first, then keeps slowly growing as it thins.
         size[i] = 0.6 + 4.4 * Math.sqrt(life);
         alpha[i] =
           Math.min(1, age[i] / 0.15) *

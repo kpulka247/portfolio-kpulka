@@ -11,7 +11,6 @@ import {
   widestGap,
 } from "./runner";
 
-// A desktop road and a phone road, with their real row spacing.
 const wide: ObstacleRules = {
   seed: 7,
   columns: 140,
@@ -73,7 +72,7 @@ describe.each([
     }
   });
 
-  test("always leaves a gap the jeep fits through", () => {
+  test("always leaves a gap the car fits through", () => {
     for (let row = rowAt(0, rules); row < rowAt(12_000, rules); row++) {
       const gap = widestGap(obstacleRow(row, rules), rules.playable);
       expect(gap, `row ${row}`).toBeGreaterThanOrEqual(rules.minGap);
@@ -148,12 +147,12 @@ describe("overlaps", () => {
   const car = { x: 0, z: 0, halfWidth: 0.45, halfLength: 0.85, yaw: 0 };
   const half = 0.25;
 
-  test("a block just beside the jeep is not a hit", () => {
+  test("a block just beside the car is not a hit", () => {
     expect(overlaps(car, { x: 0.45 + half + 0.01, z: 0, half }, 0)).toBe(false);
     expect(overlaps(car, { x: 0, z: 0.85 + half + 0.01, half }, 0)).toBe(false);
   });
 
-  test("a block that touches the jeep is a hit", () => {
+  test("a block that touches the car is a hit", () => {
     expect(overlaps(car, { x: 0.45 + half - 0.05, z: 0, half }, 0)).toBe(true);
   });
 
@@ -165,14 +164,12 @@ describe("overlaps", () => {
 
   test("a turned jeep is checked along its own sides", () => {
     const turned = { ...car, yaw: Math.PI / 2 };
-    // Turned sideways, the jeep is long in x and narrow in z.
     expect(overlaps(turned, { x: 0.85 + half - 0.05, z: 0, half }, 0)).toBe(
       true,
     );
     expect(overlaps(turned, { x: 0, z: 0.45 + half + 0.01, half }, 0)).toBe(
       false,
     );
-    // At 45 degrees the corner of the box sticks out further than its side.
     const diagonal = { ...car, yaw: Math.PI / 4 };
     expect(overlaps(diagonal, { x: 0.95, z: 0, half: 0.1 }, 0)).toBe(false);
     expect(overlaps(diagonal, { x: 0.85, z: 0.25, half: 0.1 }, 0)).toBe(true);

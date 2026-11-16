@@ -25,7 +25,6 @@ test.describe("theme", () => {
     await page.getByRole("button", { name: "Switch to dark mode" }).click();
     expect(await theme(page)).toBe("dark");
 
-    // Set before the page paints, so a reload never flashes light.
     await page.reload();
     expect(await theme(page)).toBe("dark");
     await expect(

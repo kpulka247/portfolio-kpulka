@@ -11,13 +11,6 @@ import type { Theme } from "../theme";
 import { createSmoke } from "./smoke";
 import { ARCH_GAP, buildCar } from "./car";
 
-// The hero's pin board: a field of pins that swell slowly and dip under the
-// pointer. Play drops a small sports car on it, which drives like a car on the
-// board above the hero's Play row. Driving forward scrolls the board
-// towards the camera, new rows rise at the horizon, and obstacles of four
-// kinds come up that the car has to avoid. React owns the page around it
-// and talks to it only through this interface.
-
 export interface RunState {
   // How far this run has gone, in whole metres.
   distance: number;
@@ -54,8 +47,6 @@ export interface PinBoard {
   dispose: () => void;
 }
 
-// Day is brushed aluminium in daylight. Night is graphite under a faint
-// cool moon, lit by the car's own lights. Both from the Doop frames.
 interface Palette {
   ground: string;
   pinLow: string;
@@ -66,7 +57,6 @@ interface Palette {
   skyIntensity: number;
   sun: string;
   sunIntensity: number;
-  // By obstacle kind, from super easy to hard.
   obstacles: [string, string, string, string, string];
 }
 
@@ -83,14 +73,11 @@ const DAY: Palette = {
   obstacles: ["#aeb0b6", "#a2a4aa", "#94969c", "#888a90", "#888a90"],
 };
 
-// Warm graphite, picked from the lighter palettes in Doop.
 const NIGHT: Palette = {
   ground: "#3b3835",
-  // Only a hint of warmth: the warm light already adds some.
   pinLow: "#454341",
   pinHigh: "#7a7875",
   base: "#292725",
-  // Warm neutral light, so nothing turns cold against the warm greys.
   sky: "#e6e3df",
   earth: "#191817",
   skyIntensity: 1.2,
@@ -100,7 +87,6 @@ const NIGHT: Palette = {
 };
 
 const THEME_FADE = 4;
-// How far into the fade the board looks fully dark, or fully light.
 const LIGHTS_ON_AT = 0.9;
 const MAX_PIXEL_RATIO = 1.5;
 // Below this width the board uses the phone grid and camera.
@@ -109,35 +95,19 @@ const PHONE_WIDTH = 700;
 // takes FADE_IN_SECONDS to reach its full depth.
 const IDLE_SECONDS = 4;
 const FADE_IN_SECONDS = 2;
-// How fast pins move towards a press, and obstacles towards their height,
-// per second. Higher is snappier.
 const RATE = { pointer: 14, car: 30, idle: 5, obstacle: 6 };
 // Pins rise back to about a fifth of a press in one second.
 const RECOVERY = 0.25;
 const RECOVERY_PLAYING = 0.55;
-// The resting height of a pin top, and how far below it a row that is
-// rising in at the horizon or sinking out at the front starts or ends.
 const PIN_REST = 1.15;
-// New rows come up from far below the board at its far edge, as if from
-// a drop with no bottom, and settle within RISE_ROWS. The front row sinks
-// away over FALL_ROWS.
 const PIN_HIDDEN = -16;
 const RISE_ROWS = 1.4;
 const FALL_ROWS = 2;
-// A rising pin reaches this much further below its top, so it looks like
-// a column coming up, not a floating block. Settled pins stay short, which
-// keeps their shadows and fill cheap.
 const PIN_LENGTH = 20;
-// The base under the pins. OLD_BASE_Y is where it used to be, which sets
-// where its far edge shows on screen.
 const BASE_Y = -4;
 const OLD_BASE_Y = -0.3;
-// The car rides on the pin tops and presses them only a little, enough to
-// leave tracks.
 const CAR_SINK = 0.1;
 const TRACK_DEPTH = 0.22;
-// How tall each kind of obstacle stands above the pins. Their colours, a
-// few steps darker than the board, are in the palettes.
 const OBSTACLE_HEIGHT: Record<number, number> = {
   [OBSTACLE.bump]: 0.45,
   [OBSTACLE.wall]: 0.7,
@@ -145,12 +115,8 @@ const OBSTACLE_HEIGHT: Record<number, number> = {
   [OBSTACLE.gate]: 1.2,
   [OBSTACLE.moving]: 1.4,
 };
-// An obstacle lower than this lets the car pass, as when a moving wall
-// has sunk.
 const SOLID_HEIGHT = 0.3;
-// The crash check forgives this share of the car's width on every side.
 const HIT_MARGIN = 0.1;
-// The car stays inside this part of the screen sideways.
 const SCREEN_EDGE = 0.94;
 // After a short warm-up, frames are timed for this long. If they average
 // slower than SLOW_FRAME, the device is too slow for the board.
@@ -158,67 +124,33 @@ const WARM_UP_FRAMES = 30;
 const TIMED_FRAMES = 90;
 const SLOW_FRAME = 1 / 24;
 
-// Driving. Distances are world units, about a metre each.
 const GRAVITY = 60;
-// Critically damped (damping = 2 * sqrt(stiffness)), so the body settles
-// without bouncing on its own and only follows the ground.
-// Stiff, as on a lowered sports car.
 const SPRING = { stiffness: 1400, damping: 75 };
 const TILT_SPRING = { stiffness: 600, damping: 49 };
-// The suspension's travel: the gap between a tyre and the top of its
-// arch, so a compressed wheel stays inside it.
 const WHEEL_TRAVEL = ARCH_GAP;
-// How fast the car takes up the ground's tilt, a second.
 const GROUND_FOLLOW = 40;
-// Further above the ground than this, the car is in the air.
 const ON_GROUND = 0.06;
-// How fast the car climbs away after Stop or a crash.
 const LIFT = 60;
-// A landing from a real fall dents the board under the car, about the size
-// of the pointer's dent. The surface gives like jelly: it sinks, swells a
-// little above flat once, and settles, in under a second. DENT_WOBBLE is how fast it swings, in
-// radians a second, and DENT_SETTLE how fast the swing dies away. Softer
-// landings than DENT_MIN_SPEED leave no dent.
 const DENT = { radius: 3, depth: 2.2 };
 const DENT_WOBBLE = 9;
 const DENT_SETTLE = 4.5;
 const DENT_MIN_SPEED = 6;
-// Only a real drop dents the board: the car must have been at least this
-// high above the ground while in the air. A dent pulling the ground away
-// under the wheels leaves a far smaller gap, so it cannot set off the next.
 const DENT_MIN_DROP = 0.8;
-// A drop from this high or higher gives the deepest dent. It is about the
-// drop in from above the screen on a desktop.
 const FULL_DROP = 12;
 const STICK = 0.5;
-// W and S together: the brakes hold the car while the rear wheels spin.
-// Steering then swings the rear around the front axle, a donut. The spin
-// builds up towards DONUT_RATE radians a second at DONUT_GRIP, and swings
-// over just as smoothly when the steering changes side. Letting go of the
-// steering in a burnout leaves the car sliding round, slowing at
-// DONUT_COAST. Letting go of W or S ends the burnout, and the tyres grip
-// and stop the spin at DONUT_STOP.
 const DONUT_RATE = 2.4;
 const DONUT_COAST = 0.3;
 const DONUT_STOP = 7;
-// Below this speed W and S together start a burnout.
 const BURNOUT_BELOW = 1;
-// Braking with the throttle still pressed is this share of full braking.
 const BRAKE_AGAINST_ENGINE = 0.3;
 const DONUT_GRIP = 1.1;
-// Puffs a second from each rear wheel while it spins.
 const SMOKE_RATE = 28;
-// The car drops in this far above the bottom edge of its area.
 const SPAWN_ABOVE_EDGE = 1.4;
 const REVERSE_SPEED = 5;
 const BRAKE = 22;
 const ROLL_OFF = 4;
-// Steering: the front wheels turn up to MAX_STEER, less at speed, and the
-// car turns as one of this wheelbase would.
 const MAX_STEER = 0.6;
 const WHEELBASE = 2.2;
-// After a crash the car flies off after this long. A restart asked for
-// before it has left waits for it.
 const LAUNCH_AFTER = 0.5;
 
 interface Grid {
@@ -227,8 +159,6 @@ interface Grid {
   spacing: number;
 }
 
-// About 4,200 pins on a 16:9 desktop and 1,700 on a phone. Wider screens
-// get more columns (desktopGrid).
 const DESKTOP: Grid = { columns: 90, rows: 46, spacing: 0.62 };
 const PHONE: Grid = { columns: 34, rows: 50, spacing: 0.8 };
 const DESKTOP_CAMERA = { fov: 34, y: 15, z: 26 };
@@ -255,12 +185,10 @@ const DRIVE_KEYS = new Set([
   "arrowright",
 ]);
 
-// The share of the way to a target that something covers in one frame.
 function ease(rate: number, dt: number): number {
   return 1 - Math.exp(-rate * dt);
 }
 
-// The slow swell of the board at a point of the world.
 function swell(x: number, worldZ: number, t: number): number {
   return (
     Math.sin(x * 0.16 + t * 0.5) * 0.42 +
@@ -269,7 +197,6 @@ function swell(x: number, worldZ: number, t: number): number {
   );
 }
 
-// A damped spring: returns the new velocity after pulling towards target.
 function spring(
   value: number,
   velocity: number,
@@ -294,7 +221,6 @@ export function mount(
     ? PHONE
     : desktopGrid(host.clientWidth / Math.max(1, host.clientHeight));
   const { columns, rows, spacing } = grid;
-  // One more row than the board shows: the row rising in at the horizon.
   const slots = rows + 1;
   const count = slots * columns;
   const x0 = (-(columns - 1) * spacing) / 2;
@@ -307,13 +233,13 @@ export function mount(
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
   const scene = new THREE.Scene();
-  // The colours in use, blended between day and night by `night`.
   const groundColor = new THREE.Color(DAY.ground);
   const pinLow = new THREE.Color();
   const pinHigh = new THREE.Color();
   const obstacleColors = DAY.obstacles.map(() => new THREE.Color());
   scene.background = groundColor;
-  scene.fog = new THREE.Fog(groundColor, 30, 70);
+  const fog = new THREE.Fog(groundColor, 30, 70);
+  scene.fog = fog;
 
   const camera = new THREE.PerspectiveCamera(
     phone ? 50 : DESKTOP_CAMERA.fov,
@@ -332,7 +258,6 @@ export function mount(
 
   const sky = new THREE.HemisphereLight();
   scene.add(sky);
-  // The sun by day, the moon by night.
   const sun = new THREE.DirectionalLight();
   sun.position.set(-26, 11, -4);
   sun.castShadow = true;
@@ -362,11 +287,6 @@ export function mount(
   for (let i = 0; i < count; i++) pins.setColorAt(i, groundColor);
   scene.add(pins);
 
-  // The base shows between the pins. It stops short of the rows that are
-  // still rising, so past the far edge there is only the background.
-  // It sits well below the deepest dent, so a dent never shows it as a
-  // flat patch. Its edges are pushed out along the camera's rays, so its
-  // far edge stays where a base at the old height would have shown it.
   const reach = (camera.position.y - BASE_Y) / (camera.position.y - OLD_BASE_Y);
   const alongRay = (z: number) =>
     camera.position.z + (z - camera.position.z) * reach;
@@ -392,25 +312,17 @@ export function mount(
   car.root.visible = false;
   scene.add(car.root);
 
-  // Per pin, by slot: how far it is pressed down, how tall its obstacle
-  // stands, and which kind of obstacle it holds. All three move with their
-  // row as the board scrolls.
   const depth = new Float32Array(count);
   const raised = new Float32Array(count);
   const kinds = new Uint8Array(count);
   const matrix = new THREE.Matrix4();
   const colour = new THREE.Color();
 
-  // How far the board has scrolled, and the slot layout that follows.
-  // Slot k sits at z0 + (k - 1) * spacing + phase, and shows world row
-  // `scrolledRows + rows - k`, so rows further away have higher numbers.
   let scroll = 0;
   let scrolledRows = 0;
   const slotZ = (slot: number, phase: number) =>
     z0 + (slot - 1) * spacing + phase;
 
-  // Shift every slot one row towards the camera. The slot at the horizon
-  // starts empty.
   function shiftRows() {
     for (const values of [depth, raised, kinds]) {
       values.copyWithin(columns, 0, (slots - 1) * columns);
@@ -418,9 +330,6 @@ export function mount(
     }
   }
 
-  // Moves the pins under a round press towards its depth. `share` is how
-  // much of the way they move this frame, so presses sink in instead of
-  // snapping down.
   function press(
     x: number,
     z: number,
@@ -448,7 +357,6 @@ export function mount(
     }
   }
 
-  // Screen and ground. The pin tops are about one unit up.
   const ndc = new THREE.Vector2();
   const raycaster = new THREE.Raycaster();
   const topPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -1);
@@ -461,9 +369,6 @@ export function mount(
     return raycaster.ray.intersectPlane(topPlane, hit);
   }
 
-  // The play area: from the Play row up to the follow line, a third of the
-  // way to the board's far edge on screen. Recomputed on every resize and
-  // at the start of every run.
   const area = { bottom: 0, follow: 0, sideAtFollow: 0 };
   function measureArea() {
     const height = canvas.clientHeight || 1;
@@ -476,8 +381,6 @@ export function mount(
     area.sideAtFollow = groundAt(SCREEN_EDGE, followY)?.x ?? -x0;
   }
 
-  // A height at which the car, at this point of the board, is just above
-  // the top of the screen, so it drops in from out of view.
   function offScreenHeight(x: number, z: number): number {
     for (let y = 2; y < 80; y += 0.5) {
       projected.set(x, y - 0.6, z).project(camera);
@@ -486,14 +389,12 @@ export function mount(
     return 80;
   }
 
-  // How far the car can go sideways at a depth and stay on screen.
   function sideLimit(z: number): number {
     projected.set(0, 1, z).project(camera);
     const x = groundAt(SCREEN_EDGE, projected.y)?.x ?? -x0;
     return Math.min(x, -x0 - 1) - size.halfWidth;
   }
 
-  // Pointer, projected onto the plane of the pin tops.
   let pointer: THREE.Vector3 | null = null;
   let pointerDown = false;
   const onPointerMove = (event: PointerEvent) => {
@@ -524,8 +425,6 @@ export function mount(
   host.addEventListener("pointerdown", onPointerDown);
   window.addEventListener("pointerup", onPointerUp);
 
-  // The first touch of a control in a run. Set from the input events, so
-  // even a tap shorter than a frame counts.
   function markTouched() {
     if (state !== "driving" || touched) return;
     touched = true;
@@ -553,14 +452,10 @@ export function mount(
     keys.delete(event.key.toLowerCase());
   };
 
-  // The car. "hidden" off the board, "driving" during a run (including the
-  // drop in), "crashed" after a hit, "leaving" after Stop.
   let state: "hidden" | "driving" | "crashed" | "leaving" = "hidden";
   let carX = 0;
   let carZ = 0;
-  // 0 faces up the screen. Positive turns to the left.
   let yaw = 0;
-  // Along the heading. Negative is reversing.
   let speed = 0;
   let lastSpeed = 0;
   let steerShown = 0;
@@ -570,7 +465,6 @@ export function mount(
   let pitchSpeed = 0;
   let roll = 0;
   let rollSpeed = 0;
-  // The body's lean from the driving alone, on top of pitch and roll.
   let drivePitch = 0;
   let drivePitchSpeed = 0;
   let driveRoll = 0;
@@ -579,20 +473,12 @@ export function mount(
   let spinSpeed = 0;
   let crashedAt = 0;
   let launched = false;
-  // Burnout and donut.
   let burning = false;
-  // How fast the donut is turning, in radians a second.
   let donutSpeed = 0;
   let smokeDebt = 0;
-  // How high the car has been above the ground since it last touched it.
   let highestGap = 0;
-  // Landing dents, in board coordinates so they scroll with the pins.
-  // Each plays out on its own, so a landing during an earlier dent adds
-  // to it instead of cutting it short.
   const dents: { x: number; z: number; age: number; strength: number }[] = [];
 
-  // How far the dents push a point of the board down, negative where they
-  // lift it. worldZ is the point's z minus the scroll.
   function dentAt(x: number, worldZ: number): number {
     let total = 0;
     for (const dent of dents) {
@@ -604,14 +490,11 @@ export function mount(
         Math.sin(dent.age * DENT_WOBBLE);
       total += DENT.depth * level * (1 - (distance / DENT.radius) ** 2);
     }
-    // However the dents overlap, the board never sinks or lifts more than
-    // one full dent.
     return THREE.MathUtils.clamp(total, -DENT.depth, DENT.depth);
   }
   let restartQueued = false;
   let touched = false;
 
-  // The run.
   let run: ObstacleRules | null = null;
   let runScroll = 0;
   let spawnZ = 0;
@@ -645,8 +528,6 @@ export function mount(
     options.onRun(next);
   }
 
-  // A fresh car drops in at the bottom centre of the play area, facing up
-  // the screen, and a new run starts with a clear road.
   function startRun() {
     measureArea();
     const side = Math.min(area.sideAtFollow, -x0 - 1);
@@ -670,12 +551,9 @@ export function mount(
     launched = false;
     restartQueued = false;
     if (catching) {
-      // Play pressed again while the car was flying off: it stops climbing
-      // and falls back where it is.
       climb = Math.min(climb, 0);
     } else {
       carX = 0;
-      // A little above the edge of the area, clear of the hero's fade.
       carZ = area.bottom - SPAWN_ABOVE_EDGE;
       yaw = 0;
       spin = 0;
@@ -701,7 +579,6 @@ export function mount(
     options.onRunStart();
   }
 
-  // After a crash, a new run starts once the wrecked car has flown off.
   function restartIfReady() {
     if (car.root.visible) restartQueued = true;
     else startRun();
@@ -717,7 +594,6 @@ export function mount(
     } else {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
-      // Launch up and away, nose first, unless already gone.
       state = car.root.visible ? "leaving" : "hidden";
       climb = Math.max(climb, 6);
       pitchSpeed += 2;
@@ -728,8 +604,6 @@ export function mount(
     wake();
   }
 
-  // The ground under each wheel, from the swell and the tracks. Returns the
-  // four heights and their mean.
   const wheelGround = [0, 0, 0, 0];
   function groundUnder() {
     const sin = Math.sin(yaw);
@@ -748,7 +622,6 @@ export function mount(
     return { mean: sum / 4 };
   }
 
-  // What the controls ask for this frame: throttle and steer, -1 to 1.
   function controls() {
     let throttle = 0;
     let steer = 0;
@@ -759,8 +632,6 @@ export function mount(
     if (keys.has("s") || keys.has("arrowdown")) throttle -= 1;
     if (keys.has("a") || keys.has("arrowleft")) steer -= 1;
     if (keys.has("d") || keys.has("arrowright")) steer += 1;
-    // Holding the board drives towards the finger, and reverses towards it
-    // when it is behind the car.
     if (pointerDown && pointer) {
       const dx = pointer.x - carX;
       const dz = pointer.z - carZ;
@@ -783,7 +654,6 @@ export function mount(
     return { throttle, steer, burnout };
   }
 
-  // Speed, steering, position and the sprung body, once a frame.
   function drive(dt: number, phase: number) {
     const { throttle, steer, burnout } =
       state === "driving"
@@ -791,15 +661,9 @@ export function mount(
         : { throttle: 0, steer: 0, burnout: false };
     const grounded = bodyY - (groundUnder().mean + ride) < ON_GROUND;
 
-    // W and S together brake gently while the car moves, as the engine
-    // fights the brakes. Once it has nearly stopped, the brakes hold it
-    // and the rear wheels spin. Letting go of S drives on as normal.
     burning =
       burnout && grounded && (burning || Math.abs(speed) < BURNOUT_BELOW);
 
-    // The brake lights show whenever the brakes work: S while rolling
-    // forward, W while rolling backward, W and S together, and the
-    // burnout. Reversing on S alone is not braking, so they go out.
     const braking =
       state === "driving" &&
       (burning ||
@@ -834,13 +698,11 @@ export function mount(
     const accel = (speed - lastSpeed) / Math.max(dt, 1e-3);
     lastSpeed = speed;
 
-    // A car turns only while it rolls, and steers less at speed.
     steerShown += (steer - steerShown) * ease(10, dt);
     const angle = (steerShown * MAX_STEER) / (1 + Math.abs(speed) * 0.06);
     const turn = (-speed * Math.tan(angle)) / WHEELBASE;
     yaw += turn * dt;
 
-    // A donut: the rear swings around the front axle.
     const steering = Math.abs(steer) > 0;
     const donutTarget = burning && steering ? -steerShown * DONUT_RATE : 0;
     const donutRate = !burning
@@ -859,11 +721,9 @@ export function mount(
       carZ = pivotZ + Math.cos(yaw) * ahead;
     }
     spin += spinSpeed * dt;
-    // A new run straightens out any spin left from the last one.
     if (state === "driving") spin -= wrapAngle(spin) * ease(8, dt);
     spinSpeed *= Math.exp(-2.5 * dt);
 
-    // Move. Past the follow line the board scrolls instead of the car.
     if (state === "driving" || state === "crashed") {
       let nextZ = carZ - Math.cos(yaw) * speed * dt;
       let nextX = carX - Math.sin(yaw) * speed * dt;
@@ -885,10 +745,6 @@ export function mount(
 
     const { mean } = groundUnder();
     const rest = mean + ride;
-    // Within STICK of the ground, the suspension holds the car to it and
-    // follows it, down into a dent and back up. Only above that does it
-    // fall freely. Without this, a dent pulling the ground away would drop
-    // the car into a new landing, and a new dent, again and again.
     const gap = bodyY - rest;
     const falling = gap > STICK || (climb > 0 && gap > ON_GROUND);
     if (falling) highestGap = Math.max(highestGap, gap);
@@ -897,24 +753,18 @@ export function mount(
     } else if (falling) {
       climb -= GRAVITY * dt;
     } else if (state === "driving" && gap < ON_GROUND) {
-      // On its wheels, the car rides the board rigidly: the suspension
-      // does not soak up the board's waves, only the driving.
       climb = (rest - bodyY) / dt;
     } else {
       climb = spring(bodyY, climb, rest, SPRING, dt);
     }
     bodyY += climb * dt;
-    // Read before the suspension bounces it back up.
     const fallSpeed = -climb;
-    // Full compression: the suspension bottoms out and the body stops on
-    // its wheels. The ground catches it; it does not bounce off.
     if (!launched && state !== "leaving" && bodyY < rest - WHEEL_TRAVEL) {
       bodyY = rest - WHEEL_TRAVEL;
       if (climb < 0) climb = 0;
     }
     const onGround = bodyY - rest < ON_GROUND;
 
-    // A hard landing from a real drop dents the board under the car.
     const landed = highestGap > 0 && bodyY - rest <= STICK;
     if (
       state === "driving" &&
@@ -926,20 +776,15 @@ export function mount(
         x: carX,
         z: carZ - scroll,
         age: 0,
-        // In proportion to the height it fell from, the same on every
-        // screen, up to the deepest dent.
         strength: Math.min(1, highestGap / FULL_DROP),
       });
     }
     if (landed) highestGap = 0;
     for (const dent of dents) dent.age += dt;
-    // A dent is gone once its swing has died away.
     for (let n = dents.length - 1; n >= 0; n--) {
       if (dents[n].age * DENT_SETTLE > 7) dents.splice(n, 1);
     }
 
-    // The car lies on the ground under it. On top of that, the body squats
-    // when speeding up, dips when braking and leans out of turns.
     const [frontLeft, frontRight, backLeft, backRight] = wheelGround;
     const groundPitch = Math.atan2(
       (frontLeft + frontRight - backLeft - backRight) / 2,
@@ -950,7 +795,6 @@ export function mount(
       size.axle.x * 2,
     );
     if (state === "driving" && onGround) {
-      // Follows the ground's tilt closely, without swinging.
       pitch += (groundPitch - pitch) * ease(GROUND_FOLLOW, dt);
       roll += (groundRoll - roll) * ease(GROUND_FOLLOW, dt);
       pitchSpeed = 0;
@@ -961,11 +805,9 @@ export function mount(
       pitch += pitchSpeed * dt;
       roll += rollSpeed * dt;
     }
-    // At most what the arch gap allows, so a tyre never enters the body.
     const drivePitchTarget = onGround
       ? THREE.MathUtils.clamp(accel * 0.002, -0.011, 0.011)
       : 0;
-    // The body leans away from the turn, as a real car's does.
     const driveRollTarget = onGround
       ? THREE.MathUtils.clamp(-turn * speed * 0.003, -0.018, 0.018)
       : 0;
@@ -991,7 +833,6 @@ export function mount(
     car.body.position.y = bodyY;
     car.body.rotation.set(pitch + drivePitch, 0, roll + driveRoll);
     car.wheels.forEach((wheel, n) => {
-      // Where the hub would be with the body only lying on the ground.
       const hub =
         bodyY -
         size.bodyLift +
@@ -1005,18 +846,14 @@ export function mount(
       const spinning = !wheel.front && burning;
       wheel.spinner.rotation.x -=
         ((spinning ? 30 : speed) * dt) / size.wheelRadius;
-      // The front wheels show less turn than the steering uses, so
-      // they stay under their arches.
       if (wheel.front) wheel.pivot.rotation.y = -steerShown * 0.35;
     });
 
-    // Spinning or sliding rear wheels smoke.
     const smoking = onGround && state === "driving" && burning;
     if (smoking) {
       smokeDebt += SMOKE_RATE * dt;
       const sin = Math.sin(yaw);
       const cos = Math.cos(yaw);
-      // Puffs are thrown back from the tyres.
       const back = 3;
       while (smokeDebt >= 1) {
         smokeDebt -= 1;
@@ -1035,7 +872,6 @@ export function mount(
       smokeDebt = 0;
     }
 
-    // Wheels on the ground leave tracks in the pins.
     if (onGround && !launched && state !== "leaving") {
       const share = ease(RATE.car, dt);
       const sin = Math.sin(yaw);
@@ -1052,7 +888,6 @@ export function mount(
       }
     }
 
-    // Distance is how far up the road the run has got, never back.
     if (state === "driving" && onGround) {
       distance = Math.max(distance, runScroll + spawnZ - carZ);
     }
@@ -1076,7 +911,6 @@ export function mount(
     }
   }
 
-  // Does the car touch an obstacle that stands high enough?
   function hitsObstacle(phase: number): boolean {
     const footprint = {
       x: carX,
@@ -1117,7 +951,6 @@ export function mount(
     report();
   }
 
-  // 0 is day, 1 is night. It follows `nightTarget` over about a second.
   let night = options.theme === "dark" ? 1 : 0;
   let nightTarget = night;
   let lightsOn = night === 1;
@@ -1126,7 +959,7 @@ export function mount(
   const scratch = new THREE.Color();
   function applyPalette() {
     mixColor(groundColor, DAY.ground, NIGHT.ground);
-    (scene.fog as THREE.Fog).color.copy(groundColor);
+    fog.color.copy(groundColor);
     mixColor(pinLow, DAY.pinLow, NIGHT.pinLow);
     mixColor(pinHigh, DAY.pinHigh, NIGHT.pinHigh);
     mixColor(baseMaterial.color, DAY.base, NIGHT.base);
@@ -1146,9 +979,6 @@ export function mount(
     obstacleColors.forEach((color, n) =>
       mixColor(color, DAY.obstacles[n], NIGHT.obstacles[n]),
     );
-    // The lights do not fade with the sky. They switch on at once when the
-    // board looks dark, and off at once when it looks light again, so both
-    // switches wait about half a second.
     if (nightTarget === 1 && night > LIGHTS_ON_AT) lightsOn = true;
     if (nightTarget === 0 && night < 1 - LIGHTS_ON_AT) lightsOn = false;
     car.setLights(lightsOn);
@@ -1158,7 +988,6 @@ export function mount(
 
   function setTheme(theme: Theme) {
     nightTarget = theme === "dark" ? 1 : 0;
-    // A board that does not animate jumps straight to the new palette.
     if (frozen) night = nightTarget;
     applyPalette();
     wake();
@@ -1174,8 +1003,6 @@ export function mount(
   let timedSeconds = 0;
 
   function frame() {
-    // The next frame is booked first, so an error in this one cannot stop
-    // the board for good.
     frameId = requestAnimationFrame(frame);
     const elapsed = clock.getDelta();
     const dt = Math.min(elapsed, 1 / 30);
@@ -1208,7 +1035,6 @@ export function mount(
     if (state !== "hidden") drive(dt, phaseBefore);
 
     car.update(dt);
-    // The smoke rides the board and is lit by the scene and the lamps.
     car.root.updateMatrixWorld();
     car.headlights.forEach((lamp, n) => lamp.getWorldPosition(smokeHeads[n]));
     car.taillights.forEach((lamp, n) => lamp.getWorldPosition(smokeTails[n]));
@@ -1221,7 +1047,6 @@ export function mount(
       ahead: smokeAhead,
     });
 
-    // Scroll the board a row at a time.
     const rowsNow = Math.floor(scroll / spacing);
     for (let n = 0; n < Math.min(slots, rowsNow - scrolledRows); n++) {
       shiftRows();
@@ -1273,9 +1098,6 @@ export function mount(
       }
     }
 
-    // Rows rise in over the first RISE_ROWS at the far edge and sink over
-    // the last FALL_ROWS at the front. Both depend on the row's position,
-    // not its slot, so nothing jumps when the rows shift.
     const along = phase / spacing;
     const obstacleShare = ease(RATE.obstacle, dt);
     for (let k = 0; k < slots; k++) {
@@ -1283,19 +1105,15 @@ export function mount(
       const worldRow = scrolledRows + rows - k;
       const worldZ = z - scroll;
       const mask = obstaclesFor(worldRow);
-      // Rising: fast out of the depth, slowing as it reaches the surface.
       const rise = Math.min(1, Math.max(0, (k + along) / RISE_ROWS));
       const fall = Math.min(1, Math.max(0, (slots - k - along) / FALL_ROWS));
       const shown = Math.min(1 - (1 - rise) ** 3, 1 - (1 - fall) ** 3);
-      // Moving walls rise and sink together, each on its own beat.
       const wave = 0.5 + 0.5 * Math.sin(t * 2.4 + worldRow * 0.9);
       for (let i = 0; i < columns; i++) {
         const index = k * columns + i;
         const x = x0 + i * spacing;
         const kind = mask[i];
         if (kind) kinds[index] = kind;
-        // Read once: the kind is cleared below when a sunk obstacle is
-        // gone, and the colour must still use the kind it had.
         const shownKind = kinds[index];
         const kindHeight = OBSTACLE_HEIGHT[shownKind];
         let target = kind && kindHeight ? kindHeight : 0;
@@ -1325,7 +1143,6 @@ export function mount(
             Math.min(1, raised[index] / 0.3),
           );
         }
-        // Rising rows come out of the haze below the edge.
         colour.lerp(groundColor, (1 - shown) * 0.7);
         pins.setColorAt(index, colour);
       }
@@ -1344,8 +1161,6 @@ export function mount(
     }
   }
 
-  // Render only while the hero is on screen and the tab is visible. A
-  // frozen board draws one frame each time it is woken, and no more.
   let frozen = options.still ?? false;
   let inView = true;
   function wake() {

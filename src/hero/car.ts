@@ -1,12 +1,5 @@
 import * as THREE from "three";
 
-// A low Japanese sports coupe in greys, after a Nissan 240SX hatch: a
-// wedge with pop-up headlights, a fastback hatch, a full-width tail-light
-// bar and a small ducktail. Designed in the Doop frame "Game car ·
-// Japanese sports coupe". Its nose points to -z, away from the camera.
-// pinBoard.ts moves `body` for pitch, roll and bounce, and each wheel on
-// its own to follow the ground.
-
 export interface CarSize {
   wheelRadius: number;
   // The wheels' x and z, relative to the middle of the car.
@@ -50,24 +43,18 @@ export interface Car {
   dispose: () => void;
 }
 
-// Scaled from a real S13 hatch (4.5 m long, 1.3 m tall, 2.42 m wheelbase)
-// to the game's 1.9 m car. R is the tyre and RIM the wheel inside it.
 const R = 0.138;
 const RIM = 0.104;
 const AXLE_Z = 0.53;
 const AXLE_X = 0.32;
 const WIDTH = 0.76;
-// The bottom edge of the body, and the radius of the wheel arches.
 const FLOOR = 0.06;
 const ARCH = 0.158;
-// Slammed: the body sits so low that the tyres all but touch the top of
-// their arches. The gap left over is the suspension's travel.
 export const ARCH_GAP = 0.006;
 const SLAM = ARCH - R - ARCH_GAP;
 
 const COLORS = {
   paint: "#c9ccd1",
-  // The closed pop-ups, a shade darker, so they read as panel seams.
   popUp: "#b4b7bc",
   trim: "#2a2b2f",
   glass: "#141518",
@@ -77,15 +64,12 @@ const COLORS = {
   plate: "#d8d9dc",
 };
 
-// Per lamp.
 const HEADLIGHT = {
-  // Neutral white, like modern LED headlights.
   color: "#f4f4f2",
   intensity: 290,
   distance: 34,
   angle: 0.42,
 };
-// The lamps sit low, close to the pins, so they shine softly.
 const TAILLIGHT = { color: "#ff3b30", intensity: 14, distance: 8, angle: 0.9 };
 const LAMP_GLOW = 3;
 // The tail lamps skip tone mapping, which would turn a bright red orange,
@@ -93,21 +77,14 @@ const LAMP_GLOW = 3;
 const TAIL_LAMP_RED = "#ff1408";
 const TAIL_GLOW = 0.8;
 const BRAKE_GLOW = 1.7;
-// Braking makes the tail lights at night this many times brighter.
 const BRAKE_BOOST = 2.5;
-// At night the paint takes the board's neutral warm tint and drops into
-// the pins' brightness, so the car belongs to the dusk scene.
 const DUSK_TINT = new THREE.Color("#d2cac1");
 const DUSK_BRIGHTNESS = 0.68;
 
-// The pop-ups sit on the bonnet's steeper front step, which falls 0.08 over
-// its last 0.22. bonnetAt gives the bonnet's height at a z.
 const STEP = Math.atan2(0.08, 0.22);
 const bonnetAt = (z: number) => 0.235 + ((0.9 + z) / 0.22) * 0.08;
 const POP_UP = { width: 0.17, length: 0.14, height: 0.075, hinge: -0.72 };
-// Seconds for a pop-up to rise or drop.
 const POP_UP_TIME = 0.35;
-// The lamps light once the pop-ups are this far up.
 const POP_UP_LIT = 0.85;
 
 export function buildCar(): Car {
@@ -142,8 +119,6 @@ export function buildCar(): Car {
     parent.add(object);
     return object;
   };
-  // A side profile, x along the car with the front at +x, made solid
-  // across the car's width.
   const extrude = (shape: THREE.Shape, depth: number) => {
     const geometry = new THREE.ExtrudeGeometry(shape, {
       depth,
@@ -166,14 +141,10 @@ export function buildCar(): Car {
   const root = new THREE.Group();
   const body = new THREE.Group();
   root.add(body);
-  // The body's parts are placed with the ground at y = 0, as in Doop. The
-  // shell moves them so the body's origin sits at the wheel centres.
   const shell = new THREE.Group();
   shell.position.y = -R - SLAM;
   body.add(shell);
 
-  // Side profile, with a half-round arch over each wheel, its sides
-  // dropping straight to the sill.
   const side = new THREE.Shape();
   side.moveTo(-0.95, FLOOR);
   for (const x of [-AXLE_Z, AXLE_Z]) {
@@ -182,8 +153,6 @@ export function buildCar(): Car {
     side.absarc(x, R, ARCH, Math.PI, 0, true);
     side.lineTo(x + ARCH, FLOOR);
   }
-  // A short nose. The bonnet falls in two steps: gently from the cowl,
-  // then more steeply to the nose. Then a short, low tail.
   for (const point of [
     [0.88, FLOOR],
     [0.92, 0.13],
@@ -198,7 +167,6 @@ export function buildCar(): Car {
     side.lineTo(...point);
   }
   mesh(shell, extrude(side, WIDTH), paint);
-  // Glasshouse: steep windscreen, flat roof, short fastback hatch.
   mesh(
     shell,
     extrude(
@@ -213,7 +181,6 @@ export function buildCar(): Car {
     ),
     material(COLORS.glass, { roughness: 0.15, metalness: 0.6 }),
   );
-  // The roof: a painted skin sunk into the glass, so only its top shows.
   mesh(
     shell,
     extrude(
@@ -227,7 +194,6 @@ export function buildCar(): Car {
     ),
     material(COLORS.paint),
   );
-  // Ducktail spoiler at the end of the deck, its rear edge kicked up.
   const spoiler = mesh(
     shell,
     new THREE.BoxGeometry(WIDTH * 0.88, 0.025, 0.08),
@@ -235,10 +201,7 @@ export function buildCar(): Car {
     [0, 0.338, 0.875],
   );
   spoiler.rotation.x = -0.35;
-  // The tail-light bar across the rear panel: a dark red lens with a lamp
-  // at each end.
   const tailLamp = new THREE.MeshStandardMaterial({
-    // A dark red lens, as on a real car, so it reads red lit or not.
     color: "#4a1512",
     roughness: 0.3,
     emissive: TAIL_LAMP_RED,
@@ -262,7 +225,6 @@ export function buildCar(): Car {
       0.93,
     ]);
   }
-  // The third brake light, in the middle of the spoiler's rear edge.
   const third = mesh(
     shell,
     new THREE.BoxGeometry(0.18, 0.016, 0.012),
@@ -276,13 +238,18 @@ export function buildCar(): Car {
     material(COLORS.plate),
     [0, 0.175, 0.93],
   );
-  // Front: slim grille slot and bumper lip. Side skirts and mirrors.
-  mesh(shell, new THREE.BoxGeometry(WIDTH * 0.5, 0.025, 0.02), trim, [
-    0, 0.15, -0.93,
-  ]);
-  mesh(shell, new THREE.BoxGeometry(WIDTH * 0.95, 0.025, 0.06), trim, [
-    0, 0.065, -0.885,
-  ]);
+  mesh(
+    shell,
+    new THREE.BoxGeometry(WIDTH * 0.5, 0.025, 0.02),
+    trim,
+    [0, 0.15, -0.93],
+  );
+  mesh(
+    shell,
+    new THREE.BoxGeometry(WIDTH * 0.95, 0.025, 0.06),
+    trim,
+    [0, 0.065, -0.885],
+  );
   for (const x of [-1, 1]) {
     mesh(
       shell,
@@ -302,9 +269,6 @@ export function buildCar(): Car {
       [x * (WIDTH / 2 + 0.018), 0.368, -0.27],
     );
   }
-  // An inner wall across each axle, so the arches are four wheel wells
-  // and not one hole through the car. Shaped like the arch, so it stays
-  // inside the body.
   const liner = material(COLORS.liner, { roughness: 0.9 });
   for (const z of [-AXLE_Z, AXLE_Z]) {
     const round = mesh(
@@ -322,9 +286,6 @@ export function buildCar(): Car {
     );
   }
 
-  // Pop-up headlights. Each is a wedge hinged at its rear edge, lying on
-  // the bonnet's slope. Rising, its front edge lifts to show the lamp in
-  // its upright front face.
   const headLamp = new THREE.MeshStandardMaterial({
     color: "#f6f6f7",
     roughness: 0.2,
@@ -345,7 +306,6 @@ export function buildCar(): Car {
   const popUpLens = new THREE.BoxGeometry(0.12, 0.042, 0.01);
   for (const x of [-0.27, 0.27]) {
     const hinge = new THREE.Group();
-    // A hair above the bonnet, so the closed lid shows as a seam.
     hinge.position.set(x, bonnetAt(POP_UP.hinge) + 0.002, POP_UP.hinge);
     hinge.rotation.x = -STEP;
     shell.add(hinge);
@@ -356,7 +316,6 @@ export function buildCar(): Car {
     popUp.scale.y = 0.001;
     popUps.push(popUp);
 
-    // The beam, from where the open lamp is, straight ahead.
     const front = POP_UP.hinge - popLength * Math.cos(STEP);
     const lampY = bonnetAt(front) + (popHeight / 2) * Math.cos(STEP);
     const headlight = new THREE.SpotLight(
@@ -376,7 +335,6 @@ export function buildCar(): Car {
   }
   geometries.push(wedge, popUpLens);
 
-  // Two red tail lights that glow behind, one at each tail lamp.
   const taillights: THREE.SpotLight[] = [];
   for (const x of [-tailX, tailX]) {
     const taillight = new THREE.SpotLight(
@@ -393,8 +351,6 @@ export function buildCar(): Car {
     taillights.push(taillight);
   }
 
-  // Wheels: a ring tyre, a dark barrel, and a forged six-spoke wheel with
-  // a polished lip, after the Volk TE37.
   const rubber = new THREE.MeshStandardMaterial({
     color: COLORS.tyre,
     roughness: 0.95,
@@ -424,7 +380,6 @@ export function buildCar(): Car {
       pivot.position.set(x, R, z);
       const spinner = new THREE.Group();
       pivot.add(spinner);
-      // The side of the wheel that faces out.
       const out = Math.sign(x);
       const part = (
         geometry: THREE.BufferGeometry,
@@ -455,11 +410,11 @@ export function buildCar(): Car {
   const lamps = new Set<THREE.Material>([headLamp, tailLamp, brakeLamp]);
   root.traverse((object) => {
     if (object instanceof THREE.Mesh) {
-      object.castShadow = !lamps.has(object.material as THREE.Material);
+      object.castShadow =
+        Array.isArray(object.material) || !lamps.has(object.material);
     }
   });
 
-  // The paint colours by day and at dusk, to fade between.
   const paints = [...materials.values()].map((found) => ({
     material: found,
     day: found.color.clone(),
@@ -470,7 +425,6 @@ export function buildCar(): Car {
   }));
 
   let lightsOn = false;
-  // 0 down, 1 up.
   let raised = 0;
   let lit = false;
   let brakeLevel = 0;
@@ -484,8 +438,6 @@ export function buildCar(): Car {
       // casts only while it shines.
       light.castShadow = lit;
     }
-    // The tail lamps glow with the lights at night, and brighter, by day
-    // too, while braking.
     tailLamp.emissiveIntensity = Math.max(
       TAIL_GLOW * glow,
       BRAKE_GLOW * brakeLevel,
@@ -517,7 +469,6 @@ export function buildCar(): Car {
     },
     setLights(on) {
       lightsOn = on;
-      // Off: the lamps go dark at once, then the pop-ups drop.
       if (!on && lit) {
         lit = false;
         updateLamps();
@@ -531,7 +482,6 @@ export function buildCar(): Car {
         target > raised
           ? Math.min(target, raised + step)
           : Math.max(target, raised - step);
-      // Eased, as a motor slows at the end of its travel.
       const shown = raised * raised * (3 - 2 * raised);
       for (const popUp of popUps) popUp.scale.y = Math.max(0.001, shown);
       if (lightsOn && !lit && raised >= POP_UP_LIT) {

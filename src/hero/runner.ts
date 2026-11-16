@@ -1,15 +1,4 @@
-// The rules of the hero game, kept free of three.js so they can be tested.
-//
-// The board scrolls towards the camera one row of pins at a time, and every
-// row has a world row number that grows the further the board has scrolled.
-// A run starts at `startRow`. From there the road is split into slots of
-// SLOT_METRES, and the first two rows of a slot may hold an obstacle event.
-// What a slot holds depends only on the run's seed and the slot's distance,
-// so a row looks the same every time it is asked for.
-
 export const SLOT_METRES = 4;
-// Obstacle counts are set for a road this wide, and scale with the real
-// width, so every metre of road is as busy on a phone as on a wide monitor.
 const REFERENCE_WIDTH = 20;
 
 // What a pin holds. Super easy, easy, medium and hard, from the request.
@@ -31,13 +20,13 @@ export type ObstacleKind = (typeof OBSTACLE)[keyof typeof OBSTACLE];
 export interface ObstacleRules {
   seed: number;
   columns: number;
-  // The first and last column of the road the jeep can reach.
+  // The first and last column of the road the car can reach.
   playable: readonly [number, number];
   // The world row at the front of the board when the run started.
   startRow: number;
   // Metres between rows.
   spacing: number;
-  // The narrowest gap, in columns, the jeep fits through.
+  // The narrowest gap, in columns, the car fits through.
   minGap: number;
 }
 
@@ -92,7 +81,7 @@ export function mixAt(distance: number): Mix | null {
   return MIX_POINTS[MIX_POINTS.length - 1][1];
 }
 
-// The jeep's top speed in metres a second. It rises slowly over the first
+// The car's top speed in metres a second. It rises slowly over the first
 // five kilometres.
 export function topSpeed(distance: number): number {
   return 11 + 7 * Math.min(1, Math.max(0, distance) / 5000);
@@ -121,7 +110,6 @@ export function widestGap(
   return widest;
 }
 
-// The first world row of a slot.
 function slotStart(slot: number, rules: ObstacleRules): number {
   return rules.startRow + Math.ceil((slot * SLOT_METRES) / rules.spacing);
 }
@@ -135,7 +123,6 @@ export function obstacleRow(
   const metres = (worldRow - rules.startRow) * rules.spacing;
   if (metres < 0) return mask;
   const slot = Math.floor(metres / SLOT_METRES);
-  // Obstacles are two rows deep, at the start of their slot.
   if (worldRow - slotStart(slot, rules) >= 2) return mask;
 
   const mix = mixAt(slot * SLOT_METRES);
@@ -149,7 +136,6 @@ export function obstacleRow(
   let n = 10;
   const next = () => roll(n++);
 
-  // Places columns [start, start + width), unless that would close the road.
   const place = (start: number, width: number, kind: ObstacleKind) => {
     const before = mask.slice();
     for (let c = Math.max(first, start); c < start + width && c <= last; c++) {
@@ -159,8 +145,6 @@ export function obstacleRow(
   };
   const somewhere = (width: number) =>
     first + Math.floor(next() * Math.max(1, span - width + 1));
-  // Rounds up or down by chance, so the average count is exact on every
-  // road width, narrow ones included.
   const howMany = (base: number) => {
     const exact = base * scale;
     return Math.floor(exact) + (next() < exact % 1 ? 1 : 0);
@@ -177,8 +161,6 @@ export function obstacleRow(
     }
   };
 
-  // Pick the leading kind. Hard and medium need room behind them, so they
-  // only lead every third and every second slot.
   let pick = roll(1) * (mix.bump + mix.wall + mix.pillar + mix.hard);
   let lead: "bump" | "wall" | "pillar" | "hard" = "bump";
   for (const kind of ["bump", "wall", "pillar", "hard"] as const) {
@@ -212,7 +194,6 @@ export function obstacleRow(
     }
   }
 
-  // Later on, an easier group joins some events.
   if (lead !== "hard" && next() < mix.combo) {
     if (next() < 0.5) placeBumps(0.8);
     else placeWalls(0.6);
@@ -230,8 +211,8 @@ export interface Box {
   yaw: number;
 }
 
-// Whether the jeep's footprint overlaps a square block, by the separating
-// axis test. `margin` shrinks the jeep on every side first, so a near miss
+// Whether the car's footprint overlaps a square block, by the separating
+// axis test. `margin` shrinks the car on every side first, so a near miss
 // never counts.
 export function overlaps(
   car: Box,
@@ -242,7 +223,6 @@ export function overlaps(
   const hl = Math.max(0, car.halfLength - margin);
   const cos = Math.cos(car.yaw);
   const sin = Math.sin(car.yaw);
-  // The car's own axes in world space, matching three.js's rotation.y.
   const across = { x: cos, z: -sin };
   const along = { x: sin, z: cos };
   const dx = block.x - car.x;

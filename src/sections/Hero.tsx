@@ -8,16 +8,11 @@ import { GITHUB_URL, LINKEDIN_URL } from "../data/contact";
 import type { PinBoard, RunState } from "../hero/pinBoard";
 import { currentTheme, useTheme } from "../theme";
 
-// The controls hint stays this long after the first touch of a control.
 const HINT_MS = 5_000;
-// The best distance stays in this browser only.
 const BEST_KEY = "kpulka:best-distance";
 
-// How long the score and hint take to fade in and out.
 const FADE_MS = 300;
 
-// Keeps an element mounted while it fades out, and lets it fade in a frame
-// after it mounts, so CSS can animate both ways.
 function usePresence(show: boolean) {
   const [mounted, setMounted] = useState(show);
   const [visible, setVisible] = useState(show);
@@ -39,7 +34,6 @@ function usePresence(show: boolean) {
 const PILL =
   "rounded-full bg-white/70 py-1.5 text-sm whitespace-nowrap text-ink-dim shadow-[inset_0_0_0_1px_var(--color-edge)] backdrop-blur-sm transition-[opacity,translate] duration-300 ease-out dark:bg-ground/70";
 
-// A finger has no keys, so touch screens get their own words.
 function hasKeyboard(): boolean {
   return matchMedia("(hover: hover) and (pointer: fine)").matches;
 }
@@ -60,17 +54,12 @@ function saveBest(best: number) {
   }
 }
 
-// The board needs WebGL 2. Without it, the hero shows a capture of the
-// board instead (scripts/capture-hero.mjs). The capture is cropped
-// differently on every screen, so it is only for those visitors: everyone
-// else sees the real board fade in.
 function hasWebGL(): boolean {
   const gl = document.createElement("canvas").getContext("webgl2");
   gl?.getExtension("WEBGL_lose_context")?.loseContext();
   return gl !== null;
 }
 
-// Visitors who prefer less motion get one still frame of the real board.
 function prefersStill(): boolean {
   return matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
@@ -121,7 +110,6 @@ export function Hero() {
           onReady: () => setLive(true),
           onStop: () => setPlaying(false),
           onRun: setRun,
-          // Each run shows the hint again, until 5 s after its first input.
           onRunStart: () => {
             clearTimeout(hintTimer.current);
             setShowHint(true);
@@ -130,14 +118,11 @@ export function Hero() {
             clearTimeout(hintTimer.current);
             hintTimer.current = setTimeout(() => setShowHint(false), HINT_MS);
           },
-          // The car drives down to the top of the name, behind the Play row.
           playBottom: () => {
             const name = nameRef.current?.getBoundingClientRect();
             const top = canvas.getBoundingClientRect().top;
             return name ? name.top - top : canvas.clientHeight * 0.55;
           },
-          // Too slow to animate: the board keeps its last frame, and the
-          // game goes away.
           onSlow: () => {
             setPlaying(false);
             setLoaded(false);
@@ -156,7 +141,6 @@ export function Hero() {
     };
   }, []);
 
-  // The board fades between day and night with the page.
   const theme = useTheme();
   useEffect(() => {
     boardRef.current?.setTheme(theme);
@@ -170,15 +154,12 @@ export function Hero() {
     }
   }, [playing]);
 
-  // A new best is kept as soon as it happens, so a closed tab keeps it.
   useEffect(() => {
     if (run.distance <= best) return;
     setBest(run.distance);
     saveBest(run.distance);
   }, [run.distance, best]);
 
-  // Short enough to sit on one line next to Play, so nothing moves when
-  // they come and go.
   const hint = run.crashed
     ? keyboard
       ? "Crashed. Press W to go again."
@@ -188,7 +169,6 @@ export function Hero() {
         ? "W A S D to drive. W + S burns out. Esc stops."
         : "Hold to drive"
       : null;
-  // The last hint stays on screen while it fades out.
   const [lastHint, setLastHint] = useState("");
   useEffect(() => {
     if (hint) setLastHint(hint);
@@ -210,7 +190,6 @@ export function Hero() {
       onContextMenu={playing ? (event) => event.preventDefault() : undefined}
     >
       {noWebGL && (
-        // A capture of the board by day, so it is left out at night.
         <picture aria-hidden="true" className="dark:hidden">
           <source media="(min-width: 700px)" srcSet={boardDesktop} />
           <img
@@ -228,7 +207,6 @@ export function Hero() {
         }`}
       />
 
-      {/* The score sits under the site name, out of the way of the board. */}
       {score.mounted && (
         <p
           className={`pointer-events-none absolute top-15 left-5 text-ink tabular-nums transition-[opacity,translate] duration-300 ease-out md:top-19 md:left-10 ${scoreFade}`}
@@ -271,9 +249,6 @@ export function Hero() {
             )}
           </div>
         )}
-        {/* The copy sits on a fade that starts just above the name: the car
-            softens only at the very edge of its area, and stays sharp where
-            it drops in. */}
         <div className="relative">
           <div
             aria-hidden="true"

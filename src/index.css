@@ -10,7 +10,6 @@
   --color-ground: #e4e5e8;
   --color-ink: #1b1c1f;
   --color-ink-dim: #5c5d62;
-  /* Thin outlines on the ground colour. */
   --color-edge: rgb(27 28 31 / 0.18);
   --color-sheet: #000000;
   --color-raised: #151517;
@@ -41,11 +40,8 @@
   --radius-sheet: 40px;
 }
 
-/* Dark mode: the light surfaces (hero, closing panel, 404) turn graphite,
-   and their text turns light. The black sheet is the same in both. */
 [data-theme="dark"] {
   color-scheme: dark;
-  /* Warm graphite, picked in Doop: it sits well with the photo. */
   --color-ground: #3b3835;
   --color-ink: #f3f1ee;
   --color-ink-dim: #b8b3ad;

@@ -33,8 +33,6 @@ const CHOICES: { value: ThemePreference; label: string }[] = [
   { value: "system", label: "Auto" },
 ];
 
-// Light, Dark and Auto in the footer. Auto is the only way back to
-// following the system setting once someone has picked a side.
 export function ThemeChoice() {
   const preference = usePreference();
   return (
