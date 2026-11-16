@@ -85,16 +85,17 @@ const DAY: Palette = {
 // Warm graphite, picked from the lighter palettes in Doop.
 const NIGHT: Palette = {
   ground: "#3b3835",
-  pinLow: "#47433f",
-  pinHigh: "#7c7772",
-  base: "#2a2724",
+  // Only a hint of warmth: the warm light already adds some.
+  pinLow: "#454341",
+  pinHigh: "#7a7875",
+  base: "#292725",
   // Warm neutral light, so nothing turns cold against the warm greys.
-  sky: "#e3dbd1",
-  earth: "#1a1714",
+  sky: "#e6e3df",
+  earth: "#191817",
   skyIntensity: 1.2,
-  sun: "#ece4d9",
+  sun: "#ebe8e4",
   sunIntensity: 1.7,
-  obstacles: ["#5f5a55", "#5a5550", "#55504b", "#504b46", "#504b46"],
+  obstacles: ["#5d5b58", "#585654", "#53514f", "#4e4c4a", "#4e4c4a"],
 };
 
 const THEME_FADE = 4;
