@@ -21,6 +21,30 @@ test.describe("live pin board", () => {
     await expect(play).toHaveAttribute("aria-pressed", "false");
   });
 
+  test("the hint leaves 5 s after the first input and returns on Play", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "keyboard test");
+    await page.goto("/");
+    const play = page.getByRole("button", { name: "Play" });
+    await play.waitFor({ timeout: 20_000 });
+    await play.click();
+    const hint = page.getByText(/W to drive/);
+    await expect(hint).toBeVisible();
+    // Steering alone counts as the first input.
+    await page.keyboard.press("d");
+    await page.waitForTimeout(3_500);
+    await expect(hint).toBeVisible();
+    await expect(hint).toBeHidden({ timeout: 4_000 });
+    // The copy under the board stays the whole time.
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await play.click();
+    await expect(hint).toBeVisible();
+  });
+
   test("a touch screen gets the touch hint", async ({ page, isMobile }) => {
     test.skip(!isMobile, "needs a touch screen");
     await page.goto("/");

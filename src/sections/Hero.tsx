@@ -7,8 +7,8 @@ import boardPhone from "../assets/hero/board-phone.webp";
 import { GITHUB_URL, LINKEDIN_URL } from "../data/contact";
 import type { PinBoard, RunState } from "../hero/pinBoard";
 
-// The hint shows until the run has gone this far.
-const HINT_METRES = 40;
+// The controls hint stays this long after the first touch of a control.
+const HINT_MS = 5_000;
 // The best distance stays in this browser only.
 const BEST_KEY = "kpulka:best-distance";
 
@@ -59,12 +59,15 @@ export function Hero() {
   const hostRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const boardRef = useRef<PinBoard | null>(null);
+  const playRowRef = useRef<HTMLDivElement>(null);
+  const hintTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [loaded, setLoaded] = useState(false);
   const [live, setLive] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [run, setRun] = useState<RunState>({ distance: 0, crashed: false });
   const [best, setBest] = useState(0);
   const [keyboard, setKeyboard] = useState(true);
+  const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -79,6 +82,20 @@ export function Hero() {
           onReady: () => setLive(true),
           onStop: () => setPlaying(false),
           onRun: setRun,
+          // Each run shows the hint again, until 5 s after its first input.
+          onRunStart: () => {
+            clearTimeout(hintTimer.current);
+            setShowHint(true);
+          },
+          onFirstInput: () => {
+            clearTimeout(hintTimer.current);
+            hintTimer.current = setTimeout(() => setShowHint(false), HINT_MS);
+          },
+          playBottom: () => {
+            const row = playRowRef.current?.getBoundingClientRect();
+            const top = canvas.getBoundingClientRect().top;
+            return row ? row.top - top : canvas.clientHeight * 0.5;
+          },
           onSlow: () => {
             boardRef.current?.dispose();
             boardRef.current = null;
@@ -94,6 +111,7 @@ export function Hero() {
     return () => {
       cancelled = true;
       cancelIdle();
+      clearTimeout(hintTimer.current);
       boardRef.current?.dispose();
       boardRef.current = null;
     };
@@ -118,10 +136,10 @@ export function Hero() {
     ? keyboard
       ? `Crashed at ${run.distance} m. Press W to go again.`
       : `Crashed at ${run.distance} m. Tap the board to go again.`
-    : run.distance < HINT_METRES
+    : showHint
       ? keyboard
-        ? "W to drive, A and D to steer, S to brake. Escape stops."
-        : "Hold the board to drive and steer. Tap Play to stop."
+        ? "W to drive, A and D to steer, S to brake or reverse. Escape stops."
+        : "Hold the board to drive towards your finger. Tap Play to stop."
       : null;
 
   return (
@@ -152,14 +170,15 @@ export function Hero() {
       />
       <div
         aria-hidden="true"
-        className={`pointer-events-none absolute inset-x-0 bottom-0 h-[62%] bg-linear-to-t from-ground from-38% to-ground/0 transition-opacity duration-500 ${
-          playing ? "opacity-0" : ""
-        }`}
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[62%] bg-linear-to-t from-ground from-38% to-ground/0"
       />
 
       <div className="pointer-events-none relative">
         {loaded && (
-          <div className="pointer-events-auto mb-4 flex flex-wrap items-center gap-x-3.5 gap-y-2 md:mb-5">
+          <div
+            ref={playRowRef}
+            className="pointer-events-auto mb-4 flex flex-wrap items-center gap-x-3.5 gap-y-2 md:mb-5"
+          >
             <button
               type="button"
               aria-pressed={playing}
@@ -185,13 +204,7 @@ export function Hero() {
             )}
           </div>
         )}
-        {/* While the game is on, the copy fades out and the board is the
-            whole hero. It keeps its space, so nothing moves. */}
-        <div
-          className={`transition-opacity duration-500 ${
-            playing ? "invisible opacity-0" : ""
-          }`}
-        >
+        <div>
           <h1 className="-ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em]">
             Kamil Pułka
           </h1>
