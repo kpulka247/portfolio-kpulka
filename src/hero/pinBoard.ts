@@ -928,6 +928,9 @@ export function mount(
   let timedSeconds = 0;
 
   function frame() {
+    // The next frame is booked first, so an error in this one cannot stop
+    // the board for good.
+    frameId = requestAnimationFrame(frame);
     const elapsed = clock.getDelta();
     const dt = Math.min(elapsed, 1 / 30);
 
@@ -939,6 +942,7 @@ export function mount(
       if (framesDrawn === WARM_UP_FRAMES + TIMED_FRAMES) {
         if (timedSeconds / TIMED_FRAMES > SLOW_FRAME) {
           frozen = true;
+          cancelAnimationFrame(frameId);
           frameId = 0;
           options.onSlow();
           return;
@@ -1029,7 +1033,10 @@ export function mount(
         const x = x0 + i * spacing;
         const kind = mask[i];
         if (kind) kinds[index] = kind;
-        const kindHeight = OBSTACLE_HEIGHT[kinds[index]];
+        // Read once: the kind is cleared below when a sunk obstacle is
+        // gone, and the colour must still use the kind it had.
+        const shownKind = kinds[index];
+        const kindHeight = OBSTACLE_HEIGHT[shownKind];
         let target = kind && kindHeight ? kindHeight : 0;
         if (kind === OBSTACLE.moving) target *= wave;
         raised[index] += (target - raised[index]) * obstacleShare;
@@ -1049,7 +1056,7 @@ export function mount(
           .lerp(pinHigh, THREE.MathUtils.clamp((height - 0.1) / 1.6, 0, 1));
         if (kindHeight) {
           colour.lerp(
-            obstacleColors[kinds[index] - 1],
+            obstacleColors[shownKind - 1],
             Math.min(1, raised[index] / 0.3),
           );
         }
@@ -1066,7 +1073,10 @@ export function mount(
       ready = true;
       options.onReady();
     }
-    frameId = frozen ? 0 : requestAnimationFrame(frame);
+    if (frozen) {
+      cancelAnimationFrame(frameId);
+      frameId = 0;
+    }
   }
 
   // Render only while the hero is on screen and the tab is visible. A
