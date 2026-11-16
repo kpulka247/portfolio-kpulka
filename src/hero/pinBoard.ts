@@ -777,6 +777,17 @@ export function mount(
     burning =
       burnout && grounded && (burning || Math.abs(speed) < BURNOUT_BELOW);
 
+    // The brake lights show whenever the brakes work: S while rolling
+    // forward, W while rolling backward, W and S together, and the
+    // burnout. Reversing on S alone is not braking, so they go out.
+    const braking =
+      state === "driving" &&
+      (burning ||
+        burnout ||
+        (throttle < 0 && speed > 0.3) ||
+        (throttle > 0 && speed < 0));
+    suv.setBraking(braking ? 1 : 0);
+
     if (burning) {
       speed -= Math.sign(speed) * Math.min(Math.abs(speed), BRAKE * dt);
     } else if (burnout && state === "driving") {

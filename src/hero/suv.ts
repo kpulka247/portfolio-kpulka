@@ -79,6 +79,8 @@ export interface Suv {
   // 0 for daylight, 1 for night: the lamps glow and the headlights and
   // tail lights shine, the headlights casting shadows. In between fades.
   setLights: (level: number) => void;
+  // 0 to 1: the brake lights, by day and at night.
+  setBraking: (level: number) => void;
   // 0 for day, 1 for night: the paint darkens with the scene, as at dusk.
   // The lamps are left alone.
   setDusk: (level: number) => void;
@@ -99,6 +101,14 @@ const HEADLIGHT = {
 };
 const TAILLIGHT = { color: "#ff3b30", intensity: 32, distance: 8, angle: 0.9 };
 const LAMP_GLOW = 3;
+// Braking lights the tail lamps this bright, day or night, and makes the
+// tail lights at night this many times brighter.
+const BRAKE_GLOW = 1.7;
+// The tail lamps skip tone mapping, which would turn a bright red orange,
+// so their glow is set as plain red: dim at night, bright when braking.
+const TAIL_LAMP_RED = "#ff1408";
+const TAIL_GLOW = 0.8;
+const BRAKE_BOOST = 2.5;
 // At night the paint takes the board's neutral warm tint and drops into
 // the pins' brightness, so the SUV belongs to the dusk scene.
 const DUSK_TINT = new THREE.Color("#d2cac1");
@@ -235,10 +245,12 @@ export function buildSuv(): Suv {
     emissiveIntensity: 0,
   });
   const tailLamp = new THREE.MeshStandardMaterial({
-    color: "#7d7f85",
+    // A dark red lens, as on a real car, so it reads red lit or not.
+    color: "#4a1512",
     roughness: 0.3,
-    emissive: TAILLIGHT.color,
+    emissive: TAIL_LAMP_RED,
     emissiveIntensity: 0,
+    toneMapped: false,
   });
   // Each lamp is a light of its own: two warm headlights that throw their
   // beams and cast shadows, and two red tail lights that glow behind.
@@ -334,6 +346,21 @@ export function buildSuv(): Suv {
     }
   });
 
+  let lightsLevel = 0;
+  let brakeLevel = 0;
+  // The tail lamps glow with the lights at night, and brighter, by day too,
+  // while braking.
+  function updateTail() {
+    tailLamp.emissiveIntensity = Math.max(
+      TAIL_GLOW * lightsLevel,
+      BRAKE_GLOW * brakeLevel,
+    );
+    for (const light of taillights) {
+      light.intensity =
+        TAILLIGHT.intensity * lightsLevel * (1 + BRAKE_BOOST * brakeLevel);
+    }
+  }
+
   return {
     root,
     body,
@@ -347,17 +374,19 @@ export function buildSuv(): Suv {
       }
     },
     setLights(level) {
+      lightsLevel = level;
       headLamp.emissiveIntensity = LAMP_GLOW * level;
-      tailLamp.emissiveIntensity = LAMP_GLOW * level;
       for (const light of headlights) {
         light.intensity = HEADLIGHT.intensity * level;
         // A shadow-casting light costs a shadow pass even when dark, so it
         // casts only while it shines.
         light.castShadow = level > 0.01;
       }
-      for (const light of taillights) {
-        light.intensity = TAILLIGHT.intensity * level;
-      }
+      updateTail();
+    },
+    setBraking(level) {
+      brakeLevel = level;
+      updateTail();
     },
     dispose() {
       for (const geometry of geometries) geometry.dispose();
