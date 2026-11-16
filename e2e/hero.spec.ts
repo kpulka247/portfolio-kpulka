@@ -15,7 +15,7 @@ test.describe("live pin board", () => {
     await play.waitFor({ timeout: 20_000 });
     await play.click();
     await expect(play).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByText(/W to drive/)).toBeVisible();
+    await expect(page.getByText(/W A S D to drive/)).toBeVisible();
 
     await page.keyboard.press("Escape");
     await expect(play).toHaveAttribute("aria-pressed", "false");
@@ -30,7 +30,7 @@ test.describe("live pin board", () => {
     const play = page.getByRole("button", { name: "Play" });
     await play.waitFor({ timeout: 20_000 });
     await play.click();
-    const hint = page.getByText(/W to drive/);
+    const hint = page.getByText(/W A S D to drive/);
     await expect(hint).toBeVisible();
     // Steering alone counts as the first input.
     await page.keyboard.press("d");
@@ -45,14 +45,34 @@ test.describe("live pin board", () => {
     await expect(hint).toBeVisible();
   });
 
+  test("rapid Play clicks end in a clean, running game", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "keyboard test");
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto("/");
+    const play = page.getByRole("button", { name: "Play" });
+    await play.waitFor({ timeout: 20_000 });
+    for (let i = 0; i < 7; i++) await play.click({ delay: 0 });
+    await expect(play).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByText(/W A S D to drive/)).toBeVisible();
+    await expect(page.getByText(/Best \d+ m/)).toBeVisible();
+    await play.click();
+    await expect(play).toHaveAttribute("aria-pressed", "false");
+    await expect(page.getByText(/Best \d+ m/)).toBeHidden();
+    expect(errors).toEqual([]);
+  });
+
   test("a touch screen gets the touch hint", async ({ page, isMobile }) => {
     test.skip(!isMobile, "needs a touch screen");
     await page.goto("/");
     const play = page.getByRole("button", { name: "Play" });
     await play.waitFor({ timeout: 20_000 });
     await play.tap();
-    await expect(page.getByText(/Hold the board/)).toBeVisible();
-    await expect(page.getByText(/W to drive/)).toHaveCount(0);
+    await expect(page.getByText(/Hold to drive/)).toBeVisible();
+    await expect(page.getByText(/W A S D to drive/)).toHaveCount(0);
   });
 
   // A cancelled key event would stop the page from scrolling.

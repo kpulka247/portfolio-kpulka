@@ -65,7 +65,13 @@ const RECOVERY_PLAYING = 0.55;
 // The resting height of a pin top, and how far below it a row that is
 // rising in at the horizon or sinking out at the front starts or ends.
 const PIN_REST = 1.15;
-const PIN_HIDDEN = -1.8;
+// A hidden pin sits flush with the base, so nothing shows beneath it.
+const PIN_HIDDEN = -0.3;
+// New rows rise over this many rows at the far edge, so they ease in even
+// at speed. The front row sinks over FALL_ROWS.
+const RISE_ROWS = 7;
+const FALL_ROWS = 2;
+const BASE_COLOR = new THREE.Color("#9fa1a8");
 // The SUV rides on the pin tops and presses them only a little, enough to
 // leave tracks.
 const CAR_SINK = 0.1;
@@ -93,12 +99,12 @@ const TIMED_FRAMES = 90;
 const SLOW_FRAME = 1 / 24;
 
 // Driving. Distances are world units, about a metre each.
-const GRAVITY = 40;
+const GRAVITY = 60;
 const SPRING = { stiffness: 220, damping: 13 };
 const TILT_SPRING = { stiffness: 110, damping: 10 };
 const WHEEL_TRAVEL = 0.12;
-const DROP_HEIGHT = 6;
-const LEAVE_HEIGHT = 18;
+// How fast the SUV climbs away after Stop or a crash.
+const LIFT = 60;
 const REVERSE_SPEED = 5;
 const BRAKE = 22;
 const ROLL_OFF = 4;
@@ -106,10 +112,9 @@ const ROLL_OFF = 4;
 // SUV turns as a car of this wheelbase would.
 const MAX_STEER = 0.6;
 const WHEELBASE = 2.2;
-// After a crash: the SUV flies off after this long, and a new run can
-// start after RESTART_DELAY.
-const LAUNCH_AFTER = 0.9;
-const RESTART_DELAY = 0.6;
+// After a crash the SUV flies off after this long. A restart asked for
+// before it has left waits for it.
+const LAUNCH_AFTER = 0.5;
 
 interface Grid {
   columns: number;
@@ -245,17 +250,42 @@ export function mount(
   for (let i = 0; i < count; i++) pins.setColorAt(i, PIN_HIGH);
   scene.add(pins);
 
+  // The base shows between the pins. It runs far past the board's back
+  // edge and fades to the background there, then into the fog, so the far
+  // edge never shows as a hard line.
+  const baseFront = z0 + slots * spacing + 1;
+  const baseBack = z0 - 45;
   const baseGeometry = new THREE.PlaneGeometry(
-    columns * spacing + 2,
-    slots * spacing + 2,
+    columns * spacing + 60,
+    baseFront - baseBack,
+    1,
+    40,
+  );
+  const baseColors: number[] = [];
+  const basePositions = baseGeometry.getAttribute("position");
+  const fadeColor = new THREE.Color();
+  for (let i = 0; i < basePositions.count; i++) {
+    // Rotated flat below, the plane's y becomes -z.
+    const z = (baseFront + baseBack) / 2 - basePositions.getY(i);
+    const solid = THREE.MathUtils.smoothstep(
+      z,
+      z0 - spacing,
+      z0 + RISE_ROWS * spacing,
+    );
+    fadeColor.set(GROUND).lerp(BASE_COLOR, solid);
+    baseColors.push(fadeColor.r, fadeColor.g, fadeColor.b);
+  }
+  baseGeometry.setAttribute(
+    "color",
+    new THREE.Float32BufferAttribute(baseColors, 3),
   );
   const baseMaterial = new THREE.MeshStandardMaterial({
-    color: "#9fa1a8",
+    vertexColors: true,
     roughness: 0.9,
   });
   const base = new THREE.Mesh(baseGeometry, baseMaterial);
   base.rotation.x = -Math.PI / 2;
-  base.position.y = -0.3;
+  base.position.set(0, -0.3, (baseFront + baseBack) / 2);
   scene.add(base);
 
   const suv = buildSuv();
@@ -348,6 +378,16 @@ export function mount(
     area.sideAtFollow = groundAt(SCREEN_EDGE, followY)?.x ?? -x0;
   }
 
+  // A height at which the SUV, at this point of the board, is just above
+  // the top of the screen, so it drops in from out of view.
+  function offScreenHeight(x: number, z: number): number {
+    for (let y = 2; y < 80; y += 0.5) {
+      projected.set(x, y - 0.6, z).project(camera);
+      if (projected.y > 1.05) return y;
+    }
+    return 80;
+  }
+
   // How far the SUV can go sideways at a depth and stay on screen.
   function sideLimit(z: number): number {
     projected.set(0, 1, z).project(camera);
@@ -436,6 +476,7 @@ export function mount(
   let spinSpeed = 0;
   let crashedAt = 0;
   let launched = false;
+  let restartQueued = false;
   let touched = false;
 
   // The run.
@@ -488,23 +529,31 @@ export function mount(
       minGap: Math.ceil((size.halfWidth * 2 * 2.2) / spacing),
     };
     obstacles.clear();
+    const catching = state === "leaving" && suv.root.visible;
     state = "driving";
-    carX = 0;
-    carZ = area.bottom;
-    spawnZ = carZ;
-    yaw = 0;
     speed = 0;
     lastSpeed = 0;
     steerShown = 0;
-    bodyY = groundUnder().mean + ride + DROP_HEIGHT;
-    climb = -4;
-    pitch = 0.1;
-    pitchSpeed = 0;
-    roll = 0;
-    rollSpeed = (Math.random() - 0.5) * 1.2;
-    spin = 0;
     spinSpeed = 0;
     launched = false;
+    restartQueued = false;
+    if (catching) {
+      // Play pressed again while the SUV was flying off: it stops climbing
+      // and falls back where it is.
+      climb = Math.min(climb, 0);
+    } else {
+      carX = 0;
+      carZ = area.bottom;
+      yaw = 0;
+      spin = 0;
+      bodyY = groundUnder().mean + offScreenHeight(carX, carZ);
+      climb = 0;
+      pitch = 0.08;
+      pitchSpeed = 0;
+      roll = 0;
+      rollSpeed = (Math.random() - 0.5) * 0.8;
+    }
+    spawnZ = carZ;
     touched = false;
     runScroll = 0;
     distance = 0;
@@ -515,9 +564,10 @@ export function mount(
     options.onRunStart();
   }
 
+  // After a crash, a new run starts once the wrecked SUV has flown off.
   function restartIfReady() {
-    if (clock.elapsedTime - crashedAt < RESTART_DELAY) return;
-    startRun();
+    if (suv.root.visible) restartQueued = true;
+    else startRun();
   }
 
   function setPlaying(next: boolean) {
@@ -530,10 +580,11 @@ export function mount(
     } else {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
-      // Launch up and away, nose first.
-      state = "leaving";
-      climb = Math.max(climb, 8);
-      pitchSpeed += 2.5;
+      // Launch up and away, nose first, unless already gone.
+      state = suv.root.visible ? "leaving" : "hidden";
+      climb = Math.max(climb, 6);
+      pitchSpeed += 2;
+      restartQueued = false;
       run = null;
       obstacles.clear();
     }
@@ -620,6 +671,8 @@ export function mount(
     const turn = (-speed * Math.tan(angle)) / WHEELBASE;
     yaw += turn * dt;
     spin += spinSpeed * dt;
+    // A new run straightens out any spin left from the last one.
+    if (state === "driving") spin -= wrapAngle(spin) * ease(8, dt);
     spinSpeed *= Math.exp(-2.5 * dt);
 
     // Move. Past the follow line the board scrolls instead of the SUV.
@@ -645,7 +698,7 @@ export function mount(
     const { mean } = groundUnder();
     const rest = mean + ride;
     if (launched || state === "leaving") {
-      climb += 40 * dt;
+      climb += LIFT * dt;
     } else if (bodyY - rest > WHEEL_TRAVEL || climb > 0) {
       climb -= GRAVITY * dt;
     } else {
@@ -694,7 +747,9 @@ export function mount(
         hub + WHEEL_TRAVEL,
       );
       wheel.spinner.rotation.x -= (speed * dt) / size.wheelRadius;
-      if (wheel.front) wheel.pivot.rotation.y = -steerShown * MAX_STEER * 0.8;
+      // The front wheels show less turn than the steering uses, so
+      // they stay under their arches.
+      if (wheel.front) wheel.pivot.rotation.y = -steerShown * 0.35;
     });
 
     // Wheels on the ground leave tracks in the pins.
@@ -727,10 +782,14 @@ export function mount(
       launched = true;
       climb = Math.max(climb, 6);
     }
-    if ((state === "leaving" || launched) && bodyY > LEAVE_HEIGHT) {
-      suv.root.visible = false;
-      speed = 0;
-      if (state === "leaving") state = "hidden";
+    if ((state === "leaving" || launched) && climb > 0) {
+      projected.set(carX, bodyY - 0.6, carZ).project(camera);
+      if (projected.y > 1.05) {
+        suv.root.visible = false;
+        speed = 0;
+        if (state === "leaving") state = "hidden";
+        if (state === "crashed" && restartQueued) startRun();
+      }
     }
   }
 
@@ -857,16 +916,20 @@ export function mount(
       }
     }
 
-    // The row at the horizon rises in as it scrolls into place, and the
-    // row at the front sinks away as it leaves.
-    const arriving = THREE.MathUtils.smoothstep(phase / spacing, 0, 1);
+    // Rows rise in over the first RISE_ROWS at the far edge and sink over
+    // the last FALL_ROWS at the front. Both depend on the row's position,
+    // not its slot, so nothing jumps when the rows shift.
+    const along = phase / spacing;
     const obstacleShare = ease(RATE.obstacle, dt);
     for (let k = 0; k < slots; k++) {
       const z = slotZ(k, phase);
       const worldRow = scrolledRows + rows - k;
       const worldZ = z - scroll;
       const mask = obstaclesFor(worldRow);
-      const shown = k === 0 ? arriving : k === slots - 1 ? 1 - arriving : 1;
+      const shown = Math.min(
+        THREE.MathUtils.smootherstep((k + along) / RISE_ROWS, 0, 1),
+        THREE.MathUtils.smootherstep((slots - k - along) / FALL_ROWS, 0, 1),
+      );
       // Moving walls rise and sink together, each on its own beat.
       const wave = 0.5 + 0.5 * Math.sin(t * 2.4 + worldRow * 0.9);
       for (let i = 0; i < columns; i++) {
@@ -889,6 +952,8 @@ export function mount(
           .copy(PIN_LOW)
           .lerp(PIN_HIGH, THREE.MathUtils.clamp((height - 0.1) / 1.6, 0, 1));
         if (look) colour.lerp(look.color, Math.min(1, raised[index] / 0.3));
+        // Rising rows come out of the haze at the horizon.
+        colour.lerp(BASE_COLOR, 1 - shown);
         pins.setColorAt(index, colour);
       }
     }

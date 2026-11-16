@@ -12,6 +12,32 @@ const HINT_MS = 5_000;
 // The best distance stays in this browser only.
 const BEST_KEY = "kpulka:best-distance";
 
+// How long the score and hint take to fade in and out.
+const FADE_MS = 300;
+
+// Keeps an element mounted while it fades out, and lets it fade in a frame
+// after it mounts, so CSS can animate both ways.
+function usePresence(show: boolean) {
+  const [mounted, setMounted] = useState(show);
+  const [visible, setVisible] = useState(show);
+  useEffect(() => {
+    if (show) {
+      setMounted(true);
+      const frame = requestAnimationFrame(() =>
+        requestAnimationFrame(() => setVisible(true)),
+      );
+      return () => cancelAnimationFrame(frame);
+    }
+    setVisible(false);
+    const timer = setTimeout(() => setMounted(false), FADE_MS);
+    return () => clearTimeout(timer);
+  }, [show]);
+  return { mounted, visible };
+}
+
+const PILL =
+  "rounded-full bg-white/70 py-1.5 text-sm whitespace-nowrap text-ink-dim backdrop-blur-sm transition-[opacity,translate] duration-300 ease-out";
+
 // A finger has no keys, so touch screens get their own words.
 function hasKeyboard(): boolean {
   return matchMedia("(hover: hover) and (pointer: fine)").matches;
@@ -132,15 +158,26 @@ export function Hero() {
     saveBest(run.distance);
   }, [run.distance, best]);
 
+  // Short enough to sit on one line next to Play, so nothing moves when
+  // they come and go.
   const hint = run.crashed
     ? keyboard
-      ? `Crashed at ${run.distance} m. Press W to go again.`
-      : `Crashed at ${run.distance} m. Tap the board to go again.`
+      ? "Crashed. Press W to go again."
+      : "Tap to go again"
     : showHint
       ? keyboard
-        ? "W to drive, A and D to steer, S to brake or reverse. Escape stops."
-        : "Hold the board to drive towards your finger. Tap Play to stop."
+        ? "W A S D to drive. Escape stops."
+        : "Hold to drive"
       : null;
+  // The last hint stays on screen while it fades out.
+  const [lastHint, setLastHint] = useState("");
+  useEffect(() => {
+    if (hint) setLastHint(hint);
+  }, [hint]);
+  const score = usePresence(playing);
+  const hintPresence = usePresence(playing && hint !== null);
+  const fade = (visible: boolean) =>
+    visible ? "opacity-100" : "-translate-x-1 opacity-0";
 
   return (
     <section
@@ -188,18 +225,20 @@ export function Hero() {
               <PiSteeringWheelBold aria-hidden="true" className="size-5" />
               Play
             </button>
-            {playing && (
-              <p className="inline-flex items-baseline gap-3 rounded-full bg-white/70 px-3.5 py-1.5 text-sm text-ink-dim tabular-nums backdrop-blur-sm">
+            {score.mounted && (
+              <p
+                className={`${PILL} inline-flex items-baseline gap-3 px-3.5 tabular-nums ${fade(score.visible)}`}
+              >
                 <span className="font-semibold text-ink">{run.distance} m</span>
                 <span>Best {Math.max(best, run.distance)} m</span>
               </p>
             )}
-            {playing && hint && (
+            {hintPresence.mounted && (
               <p
                 aria-live="polite"
-                className="rounded-full bg-white/70 px-3 py-1.5 text-sm text-ink-dim backdrop-blur-sm"
+                className={`${PILL} px-3 ${fade(hintPresence.visible)}`}
               >
-                {hint}
+                {hint ?? lastHint}
               </p>
             )}
           </div>

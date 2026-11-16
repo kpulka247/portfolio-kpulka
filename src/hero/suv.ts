@@ -43,13 +43,14 @@ interface Spec {
 const SPEC: Spec = {
   size: {
     wheelRadius: 0.19,
-    axle: { x: 0.4, z: 0.54 },
+    // The wheels sit outside the body, so a steered wheel never cuts into it.
+    axle: { x: 0.5, z: 0.54 },
     bodyLift: 0.06,
-    halfWidth: 0.46,
+    halfWidth: 0.56,
     halfLength: 0.84,
   },
-  body: [1.66, 0.3, 0.9],
-  cabin: { bottom: [0.86, 1.12], top: [0.66, 0.66], height: 0.32, back: 0.1 },
+  body: [1.66, 0.3, 0.72],
+  cabin: { bottom: [0.7, 1.12], top: [0.54, 0.66], height: 0.32, back: 0.1 },
   colors: {
     body: "#b2b5bb",
     cabin: "#2b2c31",
@@ -169,6 +170,17 @@ export function buildSuv(): Suv {
     [0, height + cabin.height * 0.1, cabin.back],
     0.2,
   );
+  // Wheel arches: a flare over each wheel, out to the tyre's outer face.
+  for (const x of [-size.axle.x, size.axle.x]) {
+    for (const z of [-size.axle.z, size.axle.z]) {
+      mesh(body, frustum([0.24, 0.52], [0.2, 0.4], 0.08), colors.trim, [
+        x * 0.96,
+        size.wheelRadius - size.bodyLift + 0.02,
+        z,
+      ]);
+    }
+  }
+
   // Bumpers and lamps.
   const bumper = new THREE.BoxGeometry(width + 0.04, 0.1, 0.08);
   mesh(body, bumper, colors.trim, [0, 0.05, -length / 2 - 0.02]);
