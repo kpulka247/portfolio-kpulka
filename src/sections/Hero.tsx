@@ -209,7 +209,7 @@ export function Hero() {
 
       <div className="pointer-events-none relative">
         {loaded && live && (
-          <div className="appear pointer-events-auto relative z-10 mb-4 flex flex-wrap items-center gap-2.5 md:mb-5">
+          <div className="appear-with-board pointer-events-auto relative z-10 mb-4 flex flex-wrap items-center gap-2.5 md:mb-5">
             <button
               type="button"
               aria-pressed={playing}

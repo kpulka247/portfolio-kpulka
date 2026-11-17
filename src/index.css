@@ -318,10 +318,9 @@ html[data-transition="filter"]::view-transition-old(root) {
 
 /* The hero's board: it comes up from below when its first frame is drawn,
    and drifts up slowly as the page scrolls, behind the sheet that covers
-   it, so the hero reads as layers. The Play row appears with the board's
-   quick fade, and the score and the drive hint fade in and out the same
-   way. These
-   are the only fades on the site. */
+   it, so the hero reads as layers. The Play row fades in with the board,
+   and the score and the drive hint fade in and out quickly. These are the
+   only fades on the site. */
 .board {
   opacity: 0;
 }
@@ -361,6 +360,12 @@ html[data-transition="filter"]::view-transition-old(root) {
 
   .appear {
     animation: appear var(--duration-fast) var(--ease-out) backwards;
+  }
+
+  /* The Play row starts fading in on the board's first frame, slowly
+     enough to read as an entrance while the board rises, not a pop. */
+  .appear-with-board {
+    animation: appear 0.5s var(--ease-out) backwards;
   }
 
   .fade {
