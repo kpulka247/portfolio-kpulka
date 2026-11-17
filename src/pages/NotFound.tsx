@@ -1,5 +1,8 @@
 import { Link, type MetaFunction } from "react-router";
 
+import Footer from "../components/Footer";
+import { Navbar } from "../components/Navbar";
+
 export const meta: MetaFunction = () => [
   { title: "Page not found | Kamil Pułka" },
   { name: "robots", content: "noindex" },
@@ -7,35 +10,33 @@ export const meta: MetaFunction = () => [
 
 export default function NotFound() {
   return (
-    <main
-      id="main"
-      className="min-h-screen bg-ground px-6 py-24 text-ink md:px-10"
-    >
-      <p
-        aria-hidden="true"
-        className="font-display text-[clamp(120px,22vw,260px)] leading-[0.8] font-extrabold tracking-tight"
-        style={{ fontStretch: "50%" }}
+    <>
+      <Navbar />
+      <main
+        id="main"
+        data-surface="ground"
+        className="bg-ground pt-32 pb-24 text-ink md:pt-40 md:pb-30"
       >
-        404
-      </p>
-      <h1
-        className="mt-10 font-display text-xl leading-none font-extrabold"
-        style={{ fontStretch: "112%" }}
-      >
-        This page doesn't exist
-      </h1>
-      <p className="mt-4 max-w-[44ch] text-md text-ink-dim">
-        The address may be mistyped, or the page moved when the site was
-        rebuilt.
-      </p>
-      <div className="mt-8 flex flex-wrap items-center gap-6">
-        <Link
-          to="/"
-          className="inline-flex h-12 items-center rounded-full bg-ink px-6 font-semibold text-ground"
-        >
-          Go to the home page
-        </Link>
-      </div>
-    </main>
+        <div className="mx-auto max-w-[1280px] px-5 md:px-16">
+          <p
+            aria-hidden="true"
+            className="font-display text-[clamp(120px,22vw,240px)] leading-[0.8] font-[850] tracking-[-0.03em] [font-stretch:112%]"
+          >
+            404
+          </p>
+          <h1 className="mt-10 font-display text-[32px] leading-none font-extrabold tracking-[-0.02em] [font-stretch:112%] md:text-xl">
+            This page doesn't exist
+          </h1>
+          <p className="mt-4 max-w-[44ch] text-base text-ink-dim md:text-md">
+            The address may be mistyped, or the page moved when the site was
+            rebuilt.
+          </p>
+          <Link to="/" className="btn btn-solid mt-8">
+            Go to the home page
+          </Link>
+        </div>
+      </main>
+      <Footer />
+    </>
   );
 }

@@ -5,8 +5,8 @@ import { Link } from "react-router";
 import Footer from "./Footer";
 import { Navbar } from "./Navbar";
 
-// The layout of the privacy pages: the title and date on the left, the
-// text on the right, from the Privacy frame in Doop.
+// The layout of the privacy pages: the title, date and lead on the ground,
+// the text on the sheet below, like a project page.
 export function LegalPage({
   title,
   updated,
@@ -23,38 +23,50 @@ export function LegalPage({
   return (
     <>
       <Navbar />
-      <main
-        id="main"
-        className="mx-auto max-w-[1280px] px-5 pt-24 pb-24 text-soft md:px-16 md:pt-32 md:pb-28"
-      >
-        <Link
-          to={back.to}
-          className="inline-flex min-h-11 items-center gap-2 text-sm underline decoration-dim underline-offset-4 hover:text-paper hover:decoration-paper"
+      <main id="main">
+        <div
+          data-surface="ground"
+          className="bg-ground pt-24 pb-19 text-ink md:pt-32 md:pb-26"
         >
-          <PiArrowLeftBold aria-hidden="true" className="size-4" />
-          {back.label}
-        </Link>
-        <div className="mt-8 grid gap-10 md:mt-10 lg:grid-cols-[340px_minmax(0,640px)] lg:gap-20">
-          <div>
-            <h1 className="font-display text-[48px] leading-[0.95] font-[850] tracking-[-0.02em] text-paper [font-stretch:112%] md:text-2xl">
-              {title}
-            </h1>
-            <p className="mt-4 text-sm text-dim md:mt-5">
-              Last updated {updated}
-            </p>
-          </div>
-          <article className="text-base leading-[1.6]">
-            <p className="text-[19px] leading-normal text-paper md:text-md">
+          <div className={GRID}>
+            <div>
+              <Link
+                to={back.to}
+                className="text-link inline-flex min-h-11 items-center gap-2 text-sm text-ink-dim hover:text-ink"
+              >
+                <PiArrowLeftBold aria-hidden="true" className="size-4" />
+                {back.label}
+              </Link>
+              <h1 className="mt-8 font-display text-[48px] leading-[0.95] font-[850] tracking-[-0.02em] [font-stretch:112%] md:mt-10 md:text-2xl">
+                {title}
+              </h1>
+              <p className="mt-4 text-sm text-ink-dim md:mt-5">
+                Last updated {updated}
+              </p>
+            </div>
+            <p className="text-[19px] leading-normal lg:self-end md:text-md">
               {lead}
             </p>
-            {children}
-          </article>
+          </div>
+        </div>
+        <div
+          data-surface="sheet"
+          className="relative -mt-7 rounded-t-[28px] bg-sheet shadow-[0_-1px_0_var(--color-sheet-line)] pt-2 pb-24 text-soft md:-mt-10 md:rounded-t-sheet md:pt-4 md:pb-28"
+        >
+          <div className={GRID}>
+            <article className="text-base leading-[1.6] lg:col-start-2">
+              {children}
+            </article>
+          </div>
         </div>
       </main>
       <Footer />
     </>
   );
 }
+
+const GRID =
+  "mx-auto grid max-w-[1280px] gap-10 px-5 md:px-16 lg:grid-cols-[340px_minmax(0,640px)] lg:gap-20";
 
 export function LegalSection({
   title,
@@ -81,10 +93,7 @@ export function TextLink({
   children: ReactNode;
 }) {
   return (
-    <a
-      href={href}
-      className="text-paper underline decoration-dim decoration-1 underline-offset-4 hover:decoration-paper"
-    >
+    <a href={href} className="text-link text-paper">
       {children}
     </a>
   );
