@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { PiArrowUpRightBold } from "react-icons/pi";
 import { useSearchParams } from "react-router";
@@ -9,6 +9,8 @@ import type { ProjectType } from "../content/schema";
 import { SectionHeading } from "./SectionHeading";
 
 type Filter = ProjectType | "all";
+
+const GLIDE = "filter-glide";
 
 const FILTER_LABELS: Record<ProjectType, string> = {
   extension: "Browser extensions",
@@ -81,25 +83,41 @@ export function Work() {
     setFilter(isFilter(type) ? type : "all");
   }, [searchParams]);
 
+  const gridRef = useRef<HTMLDivElement>(null);
+
   const select = (next: Filter) => {
-    // The cards glide to their new places. While this transition runs,
-    // data-transition="filter" gives each card its own view transition
-    // name, so the browser moves the cards that stay and fades the ones
-    // that leave.
-    const show = () => flushSync(() => setFilter(next));
-    if (!document.startViewTransition) {
-      show();
-    } else {
-      const root = document.documentElement;
-      root.dataset.transition = "filter";
-      document
-        .startViewTransition(show)
-        .finished.finally(() => delete root.dataset.transition);
+    const cards = () =>
+      gridRef.current?.querySelectorAll<HTMLElement>(".project-card") ?? [];
+    // Where each card is on screen now, mid-glide included, so a quick
+    // second click carries on from there.
+    const before = new Map<string, DOMRect>();
+    for (const card of cards()) {
+      before.set(card.getAttribute("href") ?? "", card.getBoundingClientRect());
     }
+    flushSync(() => setFilter(next));
     setSearchParams(next === "all" ? {} : { type: next }, {
       replace: true,
       preventScrollReset: true,
     });
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // The cards that stay glide from their old places to the new ones. The
+    // others come and go at once.
+    for (const card of cards()) {
+      for (const glide of card.getAnimations()) {
+        if (glide.id === GLIDE) glide.cancel();
+      }
+      const from = before.get(card.getAttribute("href") ?? "");
+      if (!from) continue;
+      const to = card.getBoundingClientRect();
+      const x = from.left - to.left;
+      const y = from.top - to.top;
+      if (Math.abs(x) < 1 && Math.abs(y) < 1) continue;
+      card.animate([{ translate: `${x}px ${y}px` }, { translate: "0 0" }], {
+        id: GLIDE,
+        duration: 400,
+        easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+      });
+    }
   };
 
   const visible =
@@ -140,7 +158,10 @@ export function Work() {
         </div>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-y-14 md:mt-14 md:grid-cols-2 md:gap-x-10 md:gap-y-18 lg:grid-cols-3">
+      <div
+        ref={gridRef}
+        className="mt-8 grid grid-cols-1 gap-y-14 md:mt-14 md:grid-cols-2 md:gap-x-10 md:gap-y-18 lg:grid-cols-3"
+      >
         {visible.map((project, index) => (
           <ProjectCard
             key={project.slug}

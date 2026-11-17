@@ -17,7 +17,6 @@ export function ProjectCard({
     <Link
       to={`/projects/${project.slug}`}
       viewTransition
-      style={{ "--card-transition": `card-${project.slug}` }}
       className={`project-card group flex h-full min-w-0 flex-col rounded-md text-text outline-none focus-visible:ring-2 focus-visible:ring-text focus-visible:ring-offset-4 focus-visible:ring-offset-sheet ${wide ? "lg:col-span-2" : ""}`}
     >
       <div className="aspect-[4/3] overflow-hidden rounded-md bg-raised md:aspect-auto md:h-[clamp(240px,25vw,320px)]">

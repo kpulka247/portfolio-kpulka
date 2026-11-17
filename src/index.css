@@ -294,22 +294,6 @@ html:active-view-transition {
   scroll-behavior: auto;
 }
 
-/* The Work filter runs its own transition: each card carries a name, so
-   the cards that stay glide to their new places and the rest swap at once.
-   The page itself stays put. */
-[data-transition="filter"] .project-card {
-  view-transition-name: var(--card-transition);
-}
-
-html[data-transition="filter"]::view-transition-old(root),
-html[data-transition="filter"]::view-transition-new(root) {
-  animation: none;
-}
-
-html[data-transition="filter"]::view-transition-old(root) {
-  opacity: 0;
-}
-
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*) {
     animation: none;
