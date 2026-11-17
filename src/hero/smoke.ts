@@ -16,7 +16,7 @@ export interface SmokeLights {
 }
 
 const DAY_SMOKE = new THREE.Color("#d8d3cc");
-const NIGHT_SMOKE = new THREE.Color("#57524c");
+const NIGHT_SMOKE = new THREE.Color("#a39e98");
 // How strongly each kind of lamp lights a puff at its usual intensity,
 // and how fast that fades with distance.
 const HEAD = { gain: 0.8 / HEADLIGHT.intensity, falloff: 0.04 };
