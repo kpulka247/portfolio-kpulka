@@ -1,10 +1,11 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useLayoutEffect, useRef } from "react";
 import {
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
   type LinksFunction,
 } from "react-router";
 
@@ -81,6 +82,25 @@ export function Layout({ children }: { children: ReactNode }) {
   );
 }
 
+// A new page opens at its section at once: smooth scrolling is off for the
+// frame in which the router scrolls to the link's #section. Links within a
+// page still scroll smoothly.
+function useInstantPageScroll() {
+  const { pathname } = useLocation();
+  const shown = useRef(pathname);
+  useLayoutEffect(() => {
+    if (shown.current === pathname) return;
+    shown.current = pathname;
+    const root = document.documentElement;
+    root.style.scrollBehavior = "auto";
+    const frame = requestAnimationFrame(() =>
+      root.style.removeProperty("scroll-behavior"),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [pathname]);
+}
+
 export default function App() {
+  useInstantPageScroll();
   return <Outlet />;
 }
