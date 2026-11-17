@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { PiArrowUpRightBold } from "react-icons/pi";
 import { useSearchParams } from "react-router";
 
@@ -8,6 +9,8 @@ import type { ProjectType } from "../content/schema";
 import { SectionHeading } from "./SectionHeading";
 
 type Filter = ProjectType | "all";
+
+const GLIDE = "filter-glide";
 
 const FILTER_LABELS: Record<ProjectType, string> = {
   extension: "Browser extensions",
@@ -61,10 +64,10 @@ function Chip({
       type="button"
       aria-pressed={selected}
       onClick={onSelect}
-      className="inline-flex h-[38px] flex-none cursor-pointer items-center gap-2 rounded-full px-4 text-sm font-medium whitespace-nowrap text-soft shadow-[inset_0_0_0_1px_var(--color-rule)] transition-colors hover:text-paper hover:shadow-[inset_0_0_0_1px_var(--color-dim)] aria-pressed:bg-paper aria-pressed:text-sheet aria-pressed:shadow-none"
+      className="chip"
     >
       {label}
-      <span className={selected ? "text-ink-dim" : "text-dim"}>{count}</span>
+      <span className={selected ? "opacity-60" : "text-dim"}>{count}</span>
     </button>
   );
 }
@@ -80,11 +83,41 @@ export function Work() {
     setFilter(isFilter(type) ? type : "all");
   }, [searchParams]);
 
+  const gridRef = useRef<HTMLDivElement>(null);
+
   const select = (next: Filter) => {
+    const cards = () =>
+      gridRef.current?.querySelectorAll<HTMLElement>(".project-card") ?? [];
+    // Where each card is on screen now, mid-glide included, so a quick
+    // second click carries on from there.
+    const before = new Map<string, DOMRect>();
+    for (const card of cards()) {
+      before.set(card.getAttribute("href") ?? "", card.getBoundingClientRect());
+    }
+    flushSync(() => setFilter(next));
     setSearchParams(next === "all" ? {} : { type: next }, {
       replace: true,
       preventScrollReset: true,
     });
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // The cards that stay glide from their old places to the new ones. The
+    // others come and go at once.
+    for (const card of cards()) {
+      for (const glide of card.getAnimations()) {
+        if (glide.id === GLIDE) glide.cancel();
+      }
+      const from = before.get(card.getAttribute("href") ?? "");
+      if (!from) continue;
+      const to = card.getBoundingClientRect();
+      const x = from.left - to.left;
+      const y = from.top - to.top;
+      if (Math.abs(x) < 1 && Math.abs(y) < 1) continue;
+      card.animate([{ translate: `${x}px ${y}px` }, { translate: "0 0" }], {
+        id: GLIDE,
+        duration: 400,
+        easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+      });
+    }
   };
 
   const visible =
@@ -125,7 +158,10 @@ export function Work() {
         </div>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-y-14 md:mt-14 md:grid-cols-2 md:gap-x-10 md:gap-y-18 lg:grid-cols-3">
+      <div
+        ref={gridRef}
+        className="mt-8 grid grid-cols-1 gap-y-14 md:mt-14 md:grid-cols-2 md:gap-x-10 md:gap-y-18 lg:grid-cols-3"
+      >
         {visible.map((project, index) => (
           <ProjectCard
             key={project.slug}
@@ -143,7 +179,7 @@ export function Work() {
           <li key={project.name}>
             <a
               href={project.link}
-              className="group grid grid-cols-[1fr_20px] items-center gap-x-8 gap-y-1.5 border-y border-rule py-4.5 transition-colors hover:bg-raised md:-mx-4 md:grid-cols-[240px_1fr_120px_24px] md:px-4 md:py-5.5"
+              className="group grid grid-cols-[1fr_20px] items-center gap-x-8 gap-y-1.5 border-y border-rule py-4.5 hover:bg-raised md:-mx-4 md:grid-cols-[240px_1fr_120px_24px] md:px-4 md:py-5.5"
             >
               <span className="font-semibold text-paper">{project.name}</span>
               <PiArrowUpRightBold

@@ -14,7 +14,9 @@ This repository is the source of [kpulka.com](https://kpulka.com), the portfolio
 
 The site itself is built to the same standard as the products it shows:
 
-- **Interactive hero.** A three.js pin board that reacts to the pointer, with a toy car you can drive. It loads after the page, pauses when off screen, and falls back to a still image on slow devices and with reduced motion.
+- **Interactive hero.** A three.js pin board on a fine grid that reacts to the pointer, with a coupe you can drive past obstacles, burn out and drift. The board rises into place when it loads and drifts up as the page scrolls, behind the sheet that covers it. It loads after the page, pauses when off screen, and falls back to a still image on slow devices and with reduced motion.
+- **Light and dark themes.** One warm palette for both, and the whole page follows the theme, the board, the car and the browser bars included. The theme follows the system until you pick Light, Dark or Auto, and it switches at once.
+- **Fast motion.** Colours, themes and hovers change at once. Opening a project or the privacy page raises it as a sheet over the current page, with the View Transitions API, and going back to the home page is instant. Cards glide when the Work filter changes, and covers settle into place as they scroll in, with CSS scroll-driven animations. Reduced motion turns all of it off.
 - **Data-driven projects.** Each project is one typed data file that produces its card, its prerendered page, its sitemap entry and its link preview.
 - **Live store numbers.** Users, ratings, releases and downloads are fetched from the Chrome Web Store, Firefox Add-ons, Google Play and GitHub at build time, and the site rebuilds weekly.
 - **Search and sharing.** Every page is prerendered, with a canonical URL, Open Graph image and sitemap entry. The home page has Person structured data.
@@ -36,7 +38,8 @@ The projects on the site, each with its own page:
 ## Tech stack
 
 - **Framework:** React 19, TypeScript and React Router 7, prerendering every page
-- **Styling:** Tailwind CSS 4, with self-hosted Anybody and Instrument Sans
+- **Styling:** Tailwind CSS 4 with the design tokens in `src/index.css`, and self-hosted Anybody and Instrument Sans
+- **Motion:** the View Transitions API and CSS scroll-driven animations, with no animation library
 - **Graphics:** three.js, loaded after the page in its own chunk
 - **Tooling:** Vite 7, Vitest, Playwright, ESLint and Prettier
 - **Delivery:** GitHub Actions, GitHub Pages and semantic-release
@@ -57,11 +60,11 @@ pnpm lint          # ESLint
 pnpm stats         # fetch store numbers without building
 ```
 
-The end-to-end tests need a build and Playwright's Chromium once: `pnpm exec playwright install chromium`.
+The end-to-end tests need a build and Playwright's Chromium once: `pnpm exec playwright install chromium`. Headless Chromium draws the pin board in software, so the hero tests are slow, and they run one at a time.
 
 Three scripts make the site's images and run by hand:
 
-- `node scripts/make-images.mjs` renders the link previews in `public/og/` and the README banner from the site itself.
+- `node scripts/make-images.mjs` renders the link previews in `public/og/` and the README banner from the site itself. The banner joins the light and the dark theme along a diagonal.
 - `node scripts/capture-hero.mjs` captures the still image of the pin board.
 - `node scripts/make-icons.mjs` draws the site icon in every size into `public/`.
 

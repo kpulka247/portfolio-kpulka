@@ -70,77 +70,88 @@ export default function ProjectPage() {
   return (
     <>
       <Navbar />
-      <main
-        id="main"
-        className="mx-auto max-w-[1280px] px-5 pt-24 text-soft md:px-16 md:pt-32"
-      >
-        <Link
-          to="/#work"
-          className="inline-flex min-h-11 items-center gap-2 text-sm underline decoration-dim underline-offset-4 hover:text-paper hover:decoration-paper"
+      <main id="main">
+        <div
+          data-surface="ground"
+          className="bg-ground pt-24 pb-21 text-ink md:pt-32 md:pb-30"
         >
-          <PiArrowLeftBold aria-hidden="true" className="size-4" />
-          All work
-        </Link>
-        <Intro project={project} />
+          <div className={CONTAINER}>
+            <Link
+              to="/#work"
+              className="text-link inline-flex min-h-11 items-center gap-2 text-sm text-ink-dim hover:text-ink"
+            >
+              <PiArrowLeftBold aria-hidden="true" className="size-4" />
+              All work
+            </Link>
+            <Intro project={project} />
+          </div>
+        </div>
+        <div
+          data-surface="sheet"
+          className="relative -mt-7 rounded-t-[28px] bg-sheet shadow-[0_-1px_0_var(--color-sheet-line)] pt-12 text-soft md:-mt-10 md:rounded-t-sheet md:pt-18"
+        >
+          <div className={CONTAINER}>
+            {project.screenshotLayout === "grid" ? (
+              <Grid screenshots={project.screenshots} />
+            ) : (
+              lead && (
+                <figure>
+                  <img
+                    src={lead.src}
+                    alt={lead.alt}
+                    decoding="async"
+                    className={SHOT}
+                  />
+                  {lead.caption && (
+                    <figcaption className="mt-3 text-sm text-dim">
+                      {lead.caption}
+                    </figcaption>
+                  )}
+                </figure>
+              )
+            )}
 
-        {project.screenshotLayout === "grid" ? (
-          <Grid screenshots={project.screenshots} />
-        ) : (
-          lead && (
-            <figure className="mt-14 md:mt-18">
-              <img
-                src={lead.src}
-                alt={lead.alt}
-                decoding="async"
-                className={SHOT}
+            <section
+              aria-labelledby="features-heading"
+              className="mt-20 grid gap-6 md:mt-28 lg:grid-cols-[340px_1fr] lg:gap-20"
+            >
+              <h2 id="features-heading" className={H3}>
+                What it does
+              </h2>
+              <ul className="border-b border-rule">
+                {project.features.map((feature) => (
+                  <li
+                    key={feature.name}
+                    className="grid gap-1 border-t border-rule py-4.5 text-base leading-[1.55] md:grid-cols-[200px_1fr] md:gap-6"
+                  >
+                    <p className="font-semibold text-paper">{feature.name}</p>
+                    <p>{feature.text}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            {project.screenshotLayout === "stack" &&
+              rest.map((shot) => <Row key={shot.src} screenshot={shot} />)}
+
+            <Link
+              to={`/projects/${next.slug}`}
+              viewTransition
+              className="group mt-24 flex items-center justify-between gap-6 border-y border-rule py-8 md:mt-32 md:py-10"
+            >
+              <span>
+                <span className="block text-sm text-dim">Next project</span>
+                <span className="mt-2 block font-display text-[clamp(36px,9vw,72px)] leading-none font-extrabold text-paper [font-stretch:112%]">
+                  {next.name}
+                </span>
+              </span>
+              <PiArrowRightBold
+                aria-hidden="true"
+                className="size-8 shrink-0 text-paper transition-transform group-hover:translate-x-1 md:size-10"
               />
-              {lead.caption && (
-                <figcaption className="mt-3 text-sm text-dim">
-                  {lead.caption}
-                </figcaption>
-              )}
-            </figure>
-          )
-        )}
-
-        <section
-          aria-labelledby="features-heading"
-          className="mt-20 grid gap-6 md:mt-28 lg:grid-cols-[340px_1fr] lg:gap-20"
-        >
-          <h2 id="features-heading" className={H3}>
-            What it does
-          </h2>
-          <ul className="border-b border-rule">
-            {project.features.map((feature) => (
-              <li
-                key={feature.name}
-                className="grid gap-1 border-t border-rule py-4.5 text-base leading-[1.55] md:grid-cols-[200px_1fr] md:gap-6"
-              >
-                <p className="font-semibold text-paper">{feature.name}</p>
-                <p>{feature.text}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {project.screenshotLayout === "stack" &&
-          rest.map((shot) => <Row key={shot.src} screenshot={shot} />)}
-
-        <Link
-          to={`/projects/${next.slug}`}
-          className="group mt-24 flex items-center justify-between gap-6 border-y border-rule py-8 md:mt-32 md:py-10"
-        >
-          <span>
-            <span className="block text-sm text-dim">Next project</span>
-            <span className="mt-2 block font-display text-[clamp(36px,9vw,72px)] leading-none font-extrabold text-paper [font-stretch:112%]">
-              {next.name}
-            </span>
-          </span>
-          <PiArrowRightBold
-            aria-hidden="true"
-            className="size-8 shrink-0 text-paper transition-transform group-hover:translate-x-1 md:size-10"
-          />
-        </Link>
+            </Link>
+          </div>
+        </div>
       </main>
       <div className="mt-20 md:mt-24">
         <Footer />
@@ -203,7 +214,7 @@ function Intro({ project }: { project: Project }) {
     <div className="mt-8 grid gap-12 md:mt-10 lg:grid-cols-[1fr_340px] lg:items-end lg:gap-20">
       <div>
         <h1
-          className={`font-display leading-[0.85] font-[850] tracking-[-0.03em] text-paper [font-stretch:96%] md:[font-stretch:118%] ${
+          className={`font-display leading-[0.85] font-[850] tracking-[-0.03em] [font-stretch:96%] md:[font-stretch:118%] ${
             project.name.length > LONG_NAME
               ? "text-[clamp(48px,10vw,104px)]"
               : "text-[clamp(64px,15vw,144px)]"
@@ -211,10 +222,10 @@ function Intro({ project }: { project: Project }) {
         >
           {project.name}
         </h1>
-        <p className="mt-6 max-w-[32ch] text-[22px] leading-[1.3] font-medium text-paper md:mt-7 md:text-lg">
+        <p className="mt-6 max-w-[32ch] text-[22px] leading-[1.3] font-medium md:mt-7 md:text-lg">
           {project.tagline}
         </p>
-        <p className="mt-3.5 max-w-[46ch] text-base leading-normal md:text-md">
+        <p className="mt-3.5 max-w-[46ch] text-base leading-normal text-ink-dim md:text-md">
           {project.summary}
         </p>
         {(actions.length > 0 || waitingForStores) && (
@@ -223,18 +234,14 @@ function Intro({ project }: { project: Project }) {
               <a
                 key={href}
                 href={href}
-                className={`inline-flex h-12 items-center gap-2.5 rounded-full px-5.5 text-[15px] font-semibold transition-colors ${
-                  index === 0
-                    ? "bg-paper text-sheet hover:bg-white"
-                    : "text-paper shadow-[inset_0_0_0_1.5px_var(--color-rule)] hover:shadow-[inset_0_0_0_1.5px_var(--color-dim)]"
-                }`}
+                className={`btn max-sm:w-full ${index === 0 ? "btn-solid" : "btn-tonal"}`}
               >
                 <Icon aria-hidden="true" className="size-4.5" />
                 {label}
               </a>
             ))}
             {waitingForStores && (
-              <span className="text-sm text-dim">
+              <span className="text-sm text-ink-dim">
                 {plannedStores > 1
                   ? "Store buttons appear here once the listings are live."
                   : "The store button appears here once the listing is live."}
@@ -243,7 +250,7 @@ function Intro({ project }: { project: Project }) {
           </div>
         )}
       </div>
-      <dl className="border-b border-rule">
+      <dl className="border-b border-edge">
         <div className={FACT}>
           <dt className={FACT_LABEL}>Status</dt>
           <dd className={`${FACT_VALUE} flex items-baseline gap-2`}>
@@ -266,10 +273,7 @@ function Intro({ project }: { project: Project }) {
           <div className={FACT}>
             <dt className={FACT_LABEL}>Privacy</dt>
             <dd className={FACT_VALUE}>
-              <Link
-                to={project.links.privacy}
-                className="underline decoration-dim underline-offset-4 hover:decoration-paper"
-              >
+              <Link to={project.links.privacy} className="text-link">
                 Privacy policy
               </Link>
             </dd>
@@ -303,7 +307,7 @@ function Row({ screenshot }: { screenshot: Screenshot }) {
 function Grid({ screenshots }: { screenshots: Screenshot[] }) {
   return (
     <ul
-      className={`mt-14 grid gap-3 md:mt-18 md:gap-5 ${
+      className={`grid gap-3 md:gap-5 ${
         screenshots.length === 3
           ? "max-w-[880px] grid-cols-3"
           : "grid-cols-2 md:grid-cols-3"
@@ -333,9 +337,11 @@ function Grid({ screenshots }: { screenshots: Screenshot[] }) {
 
 const H3 =
   "font-display text-lg leading-none font-extrabold text-paper [font-stretch:108%]";
-// The outline keeps a dark screenshot from melting into the black page.
+// The hairline keeps a screenshot from melting into a sheet of the same
+// tone, light or dark.
 const SHOT =
-  "block h-auto w-full rounded-md outline outline-1 -outline-offset-1 outline-white/10";
-const FACT = "border-t border-rule py-4";
-const FACT_LABEL = "text-sm text-dim";
-const FACT_VALUE = "mt-1 text-base text-paper";
+  "block h-auto w-full rounded-md outline outline-1 -outline-offset-1 outline-[color-mix(in_srgb,var(--color-text)_10%,transparent)]";
+const CONTAINER = "mx-auto max-w-[1280px] px-5 md:px-16";
+const FACT = "border-t border-edge py-4";
+const FACT_LABEL = "text-sm text-ink-dim";
+const FACT_VALUE = "mt-1 text-base";

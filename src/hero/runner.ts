@@ -1,5 +1,10 @@
 export const SLOT_METRES = 4;
 const REFERENCE_WIDTH = 20;
+// Obstacle sizes below are counted in pins of this spacing, in metres, and
+// scaled to the board's own spacing, so an obstacle is the same size on a
+// fine grid as on a coarse one.
+const REFERENCE_SPACING = 0.62;
+const OBSTACLE_ROWS = 2;
 
 // What a pin holds. Super easy, easy, medium and hard, from the request.
 export const OBSTACLE = {
@@ -123,7 +128,9 @@ export function obstacleRow(
   const metres = (worldRow - rules.startRow) * rules.spacing;
   if (metres < 0) return mask;
   const slot = Math.floor(metres / SLOT_METRES);
-  if (worldRow - slotStart(slot, rules) >= 2) return mask;
+  const unit = REFERENCE_SPACING / rules.spacing;
+  const pins = (count: number) => Math.max(1, Math.round(count * unit));
+  if (worldRow - slotStart(slot, rules) >= pins(OBSTACLE_ROWS)) return mask;
 
   const mix = mixAt(slot * SLOT_METRES);
   if (!mix) return mask;
@@ -151,12 +158,14 @@ export function obstacleRow(
   };
 
   const placeBumps = (base: number) => {
-    for (let i = howMany(base); i > 0; i--)
-      place(somewhere(1), 1, OBSTACLE.bump);
+    for (let i = howMany(base); i > 0; i--) {
+      const width = pins(1);
+      place(somewhere(width), width, OBSTACLE.bump);
+    }
   };
   const placeWalls = (base: number) => {
     for (let i = howMany(base); i > 0; i--) {
-      const width = 2 + Math.floor(next() * 3);
+      const width = pins(2 + Math.floor(next() * 3));
       place(somewhere(width), width, OBSTACLE.wall);
     }
   };
@@ -178,15 +187,15 @@ export function obstacleRow(
   if (lead === "wall") placeWalls(1.2);
   if (lead === "pillar") {
     for (let i = howMany(0.8); i > 0; i--) {
-      const width = 1 + Math.floor(next() * 2);
-      const gap = rules.minGap + Math.floor(next() * 2);
+      const width = pins(1 + Math.floor(next() * 2));
+      const gap = rules.minGap + Math.round(Math.floor(next() * 2) * unit);
       const start = somewhere(width * 2 + gap);
       place(start, width, OBSTACLE.pillar);
       place(start + width + gap, width, OBSTACLE.pillar);
     }
   }
   if (lead === "hard") {
-    const gap = rules.minGap + Math.floor(next() * 3);
+    const gap = rules.minGap + Math.round(Math.floor(next() * 3) * unit);
     const at = first + Math.floor(next() * Math.max(1, span - gap));
     const kind = next() < 0.5 ? OBSTACLE.gate : OBSTACLE.moving;
     for (let c = first; c <= last; c++) {

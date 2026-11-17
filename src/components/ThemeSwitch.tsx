@@ -19,7 +19,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       aria-label={`Switch to ${next} mode`}
       title={`Switch to ${next} mode`}
       onClick={() => setPreference(next)}
-      className={`inline-flex size-10 cursor-pointer items-center justify-center rounded-full shadow-[inset_0_0_0_1px_rgb(255_255_255/0.3)] transition-colors hover:bg-white/10 ${className}`}
+      className={`icon-btn icon-btn-compact cursor-pointer ${className}`}
     >
       <PiMoonBold aria-hidden="true" className="size-4.5 dark:hidden" />
       <PiSunBold aria-hidden="true" className="hidden size-4.5 dark:block" />
@@ -39,7 +39,7 @@ export function ThemeChoice() {
     <div
       role="radiogroup"
       aria-label="Colour theme"
-      className="inline-flex rounded-full p-0.75 shadow-[inset_0_0_0_1px_var(--color-rule)]"
+      className="inline-flex gap-0.5 rounded-full bg-[color-mix(in_srgb,var(--color-paper)_8%,transparent)] p-1"
     >
       {CHOICES.map(({ value, label }) => (
         <button
@@ -48,7 +48,7 @@ export function ThemeChoice() {
           role="radio"
           aria-checked={preference === value}
           onClick={() => setPreference(value)}
-          className="cursor-pointer rounded-full px-2.5 py-1.25 text-sm text-dim transition-colors hover:text-paper aria-checked:bg-raised aria-checked:text-paper"
+          className="h-8 cursor-pointer rounded-full px-3.5 text-sm font-medium text-dim hover:text-paper aria-checked:bg-paper aria-checked:text-sheet"
         >
           {label}
         </button>

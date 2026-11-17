@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { PiSteeringWheelBold } from "react-icons/pi";
+import { Link } from "react-router";
 
 import boardDesktop from "../assets/hero/board-desktop.webp";
 import boardPhone from "../assets/hero/board-phone.webp";
@@ -9,30 +10,30 @@ import type { PinBoard, RunState } from "../hero/pinBoard";
 import { currentTheme, useTheme } from "../theme";
 
 const HINT_MS = 5_000;
+// Matches --duration-fast, the pills' fade out.
+const FADE_MS = 250;
+
+// Whether a pill in the Play row is still on screen: it stays for its fade
+// out after it should hide, then leaves the row.
+function useShown(show: boolean): boolean {
+  const [leaving, setLeaving] = useState(false);
+  const [wasShown, setWasShown] = useState(show);
+  if (show !== wasShown) {
+    setWasShown(show);
+    setLeaving(!show);
+  }
+  useEffect(() => {
+    if (!leaving) return;
+    const timer = setTimeout(() => setLeaving(false), FADE_MS);
+    return () => clearTimeout(timer);
+  }, [leaving]);
+  return show || leaving;
+}
 const BEST_KEY = "kpulka:best-distance";
 
-const FADE_MS = 300;
-
-function usePresence(show: boolean) {
-  const [mounted, setMounted] = useState(show);
-  const [visible, setVisible] = useState(show);
-  useEffect(() => {
-    if (show) {
-      setMounted(true);
-      const frame = requestAnimationFrame(() =>
-        requestAnimationFrame(() => setVisible(true)),
-      );
-      return () => cancelAnimationFrame(frame);
-    }
-    setVisible(false);
-    const timer = setTimeout(() => setMounted(false), FADE_MS);
-    return () => clearTimeout(timer);
-  }, [show]);
-  return { mounted, visible };
+function metres(distance: number): string {
+  return `${distance.toLocaleString("en-US")} m`;
 }
-
-const PILL =
-  "rounded-full bg-white/70 py-1.5 text-sm whitespace-nowrap text-ink-dim shadow-[inset_0_0_0_1px_var(--color-edge)] backdrop-blur-sm transition-[opacity,translate] duration-300 ease-out dark:bg-ground/70";
 
 function hasKeyboard(): boolean {
   return matchMedia("(hover: hover) and (pointer: fine)").matches;
@@ -73,7 +74,7 @@ function afterFirstPaint(callback: () => void): () => void {
   return () => clearTimeout(id);
 }
 
-// Stays pinned while the black sheet scrolls over it. The bottom padding
+// Stays pinned while the sheet scrolls over it. The bottom padding
 // includes the 28 px (phone) or 40 px (desktop) that the sheet overlaps.
 export function Hero() {
   const hostRef = useRef<HTMLElement>(null);
@@ -169,60 +170,46 @@ export function Hero() {
         ? "W A S D to drive. W + S burns out. Esc stops."
         : "Hold to drive"
       : null;
+  const hintOn = playing && hint !== null;
+  const scoreShown = useShown(playing);
+  const hintShown = useShown(hintOn);
+  // The hint keeps its last words while it fades out.
   const [lastHint, setLastHint] = useState("");
-  useEffect(() => {
-    if (hint) setLastHint(hint);
-  }, [hint]);
-  const score = usePresence(playing);
-  const hintPresence = usePresence(playing && hint !== null);
-  const fade = (visible: boolean) =>
-    visible ? "opacity-100" : "-translate-x-1 opacity-0";
-  const scoreFade = score.visible ? "opacity-100" : "-translate-y-1 opacity-0";
+  if (hint && hint !== lastHint) setLastHint(hint);
 
   return (
     <section
       ref={hostRef}
       aria-label="Introduction"
+      data-surface="ground"
       className={`hero-pin sticky top-0 flex h-svh min-h-[560px] flex-col justify-end overflow-hidden bg-ground px-5 pb-14 text-ink md:px-10 md:pb-22 ${
         playing ? "touch-none select-none [-webkit-touch-callout:none]" : ""
       }`}
       // A long press while driving would open the browser's menu.
       onContextMenu={playing ? (event) => event.preventDefault() : undefined}
     >
-      {noWebGL && (
-        <picture aria-hidden="true" className="dark:hidden">
-          <source media="(min-width: 700px)" srcSet={boardDesktop} />
-          <img
-            src={boardPhone}
-            alt=""
-            className="absolute inset-0 size-full object-cover object-bottom"
-          />
-        </picture>
-      )}
-      <canvas
-        ref={canvasRef}
-        aria-hidden="true"
-        className={`absolute inset-0 size-full transition-opacity duration-700 ${
-          live ? "opacity-100" : "opacity-0"
-        }`}
-      />
-
-      {score.mounted && (
-        <p
-          className={`pointer-events-none absolute top-15 left-5 text-ink tabular-nums transition-[opacity,translate] duration-300 ease-out md:top-19 md:left-10 ${scoreFade}`}
-        >
-          <span className="block font-display text-[28px] leading-none font-extrabold [font-stretch:108%]">
-            {run.distance} m
-          </span>
-          <span className="mt-1 block text-sm text-ink-dim">
-            Best {Math.max(best, run.distance)} m
-          </span>
-        </p>
-      )}
+      <div className="board-layer absolute inset-0">
+        {noWebGL && (
+          <picture aria-hidden="true" className="dark:hidden">
+            <source media="(min-width: 700px)" srcSet={boardDesktop} />
+            <img
+              src={boardPhone}
+              alt=""
+              className="absolute inset-0 size-full object-cover object-bottom"
+            />
+          </picture>
+        )}
+        <canvas
+          ref={canvasRef}
+          aria-hidden="true"
+          data-live={live || undefined}
+          className="board absolute inset-0 size-full"
+        />
+      </div>
 
       <div className="pointer-events-none relative">
-        {loaded && (
-          <div className="pointer-events-auto relative z-10 mb-4 flex flex-wrap items-center gap-x-3.5 gap-y-2 md:mb-5">
+        {loaded && live && (
+          <div className="appear-with-board pointer-events-auto relative z-10 mb-4 flex flex-wrap items-center gap-2.5 md:mb-5">
             <button
               type="button"
               aria-pressed={playing}
@@ -234,18 +221,36 @@ export function Hero() {
                 // 0) keeps the focus where it is.
                 if (event.detail > 0) event.currentTarget.blur();
               }}
-              className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-full bg-white/70 pr-4 pl-3 text-sm font-semibold shadow-[inset_0_0_0_1px_var(--color-edge)] backdrop-blur-sm transition-colors hover:bg-white aria-pressed:bg-ink aria-pressed:text-ground dark:bg-ground/70 dark:hover:bg-ground dark:aria-pressed:bg-ink"
+              className="btn btn-compact btn-frosted pl-3"
             >
               <PiSteeringWheelBold aria-hidden="true" className="size-5" />
               Play
             </button>
-            {hintPresence.mounted && (
+            {scoreShown && (
               <p
-                aria-live="polite"
-                className={`${PILL} px-3 ${fade(hintPresence.visible)}`}
+                data-hidden={!playing || undefined}
+                className="fade pill appear items-baseline pt-3 tabular-nums"
               >
-                {hint ?? lastHint}
+                <span className="font-display text-[19px] leading-none font-extrabold text-ink [font-stretch:108%]">
+                  {metres(run.distance)}
+                </span>
+                <span>Best {metres(Math.max(best, run.distance))}</span>
               </p>
+            )}
+            {hintShown && (
+              // On phones the hint takes its own line above Play, instead of
+              // wrapping under it. The empty rest of the line ignores
+              // touches, so holding the board there still drives.
+              <div className="pointer-events-none max-md:order-first max-md:basis-full">
+                <p
+                  aria-live="polite"
+                  aria-hidden={!hintOn || undefined}
+                  data-hidden={!hintOn || undefined}
+                  className="fade pill appear pointer-events-auto"
+                >
+                  {hint ?? lastHint}
+                </p>
+              </div>
             )}
           </div>
         )}
@@ -272,31 +277,28 @@ export function Hero() {
               </p>
             </div>
             <div className="pointer-events-auto flex w-full items-center gap-2.5 md:w-auto">
-              <a
-                href="#work"
-                className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-ink px-5.5 text-[15px] font-semibold text-ground transition-colors hover:bg-sheet md:flex-none"
-              >
+              <Link to="/#work" className="btn btn-solid flex-1 md:flex-none">
                 See my work
-              </a>
-              <a
-                href="#contact"
-                className="inline-flex h-12 flex-1 items-center justify-center rounded-full px-5.5 text-[15px] font-semibold shadow-[inset_0_0_0_1.5px_var(--color-ink)] transition-colors hover:bg-ink/5 md:flex-none"
+              </Link>
+              <Link
+                to="/#contact"
+                className="btn btn-tonal flex-1 md:flex-none"
               >
                 Get in touch
-              </a>
+              </Link>
               <a
                 href={GITHUB_URL}
                 aria-label="GitHub"
-                className="hidden size-11 items-center justify-center rounded-full transition-colors hover:bg-ink/10 md:inline-flex"
+                className="icon-btn max-md:hidden"
               >
-                <FaGithub aria-hidden="true" className="size-6" />
+                <FaGithub aria-hidden="true" className="size-5" />
               </a>
               <a
                 href={LINKEDIN_URL}
                 aria-label="LinkedIn"
-                className="hidden size-11 items-center justify-center rounded-full transition-colors hover:bg-ink/10 md:inline-flex"
+                className="icon-btn max-md:hidden"
               >
-                <FaLinkedin aria-hidden="true" className="size-6" />
+                <FaLinkedin aria-hidden="true" className="size-5" />
               </a>
             </div>
           </div>

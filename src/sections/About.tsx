@@ -8,14 +8,15 @@ const FACTS = [
   { title: "End to end", body: "Design, code, payments and releases" },
 ] as const;
 
-// The hero's light panel comes back to close the page: About on top, Contact
-// as its last band.
+// The hero's ground comes back as a panel to close the page: About on
+// top, Contact as its last band.
 export function About() {
   return (
     <section
       id="about"
       aria-labelledby="about-heading"
-      className="-mx-2 grid scroll-mt-24 overflow-hidden rounded-[28px] bg-ground text-ink md:mx-0 md:rounded-sheet lg:grid-cols-[minmax(300px,4fr)_8fr] xl:grid-cols-[5fr_8fr]"
+      data-surface="ground"
+      className="-mx-2 grid scroll-mt-24 overflow-hidden rounded-3xl bg-ground text-ink md:mx-0 md:rounded-panel lg:grid-cols-[minmax(300px,4fr)_8fr] xl:grid-cols-[5fr_8fr]"
     >
       <div className="relative h-[340px] md:h-[440px] lg:h-auto">
         <img
@@ -46,7 +47,7 @@ export function About() {
           Garmin dashboard at night, GTA VI spoilers everywhere, a phone I kept
           picking up.
         </p>
-        <ul className="mt-6 grid border-t-[1.5px] border-ink text-sm leading-[1.45] text-ink-dim md:mt-8 md:grid-cols-3">
+        <ul className="mt-6 grid border-t border-edge text-sm leading-[1.45] text-ink-dim md:mt-8 md:grid-cols-3">
           {FACTS.map(({ title, body }) => (
             <li key={title} className={FACT}>
               <p className={FACT_TITLE}>{title}</p>
@@ -56,10 +57,7 @@ export function About() {
           <li className={FACT}>
             <p className={FACT_TITLE}>Off the keyboard</p>
             Cycling, snowboarding, sim racing. Trips on{" "}
-            <a
-              href={INSTAGRAM_URL}
-              className="underline decoration-ink/35 underline-offset-3 hover:decoration-ink"
-            >
+            <a href={INSTAGRAM_URL} className="text-link">
               Instagram
             </a>
           </li>
@@ -71,5 +69,5 @@ export function About() {
 }
 
 const FACT =
-  "border-b border-ink/16 py-3.5 last:border-b-0 last:pb-0 md:border-b-0 md:pt-4 md:pr-4 md:pb-0 md:not-first:border-l md:not-first:pl-4";
+  "border-b border-edge py-3.5 last:border-b-0 last:pb-0 md:border-b-0 md:pt-4 md:pr-4 md:pb-0 md:not-first:border-l md:not-first:pl-4";
 const FACT_TITLE = "mb-0.5 text-[15px] font-semibold text-ink";

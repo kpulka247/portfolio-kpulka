@@ -1,10 +1,11 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useLayoutEffect, useRef } from "react";
 import {
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
   type LinksFunction,
 } from "react-router";
 
@@ -33,6 +34,14 @@ export const links: LinksFunction = () => [
   { rel: "shortcut icon", href: "/favicon.ico" },
 ];
 
+function skipToMain(event: React.MouseEvent<HTMLAnchorElement>) {
+  const main = document.getElementById("main");
+  if (!main) return;
+  event.preventDefault();
+  main.tabIndex = -1;
+  main.focus();
+}
+
 export function Layout({ children }: { children: ReactNode }) {
   return (
     // The page background lives on <html>: iOS 26 Safari tints its bars
@@ -40,17 +49,20 @@ export function Layout({ children }: { children: ReactNode }) {
     // THEME_SCRIPT adds the theme attributes before React hydrates.
     <html lang="en" className="bg-sheet" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <meta charSet="UTF-8" />
+        {/* Older Safari and Chrome on Android tint their bars from this.
+            THEME_SCRIPT, right after it, sets it to the theme's sheet. */}
+        <meta name="theme-color" content="#f7f6f4" />
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="google" content="notranslate" />
-        {/* Older Safari and Chrome on Android tint their bars from this. */}
-        <meta name="theme-color" content="#000000" />
         <Meta />
         <Links />
       </head>
       <body className="notranslate bg-sheet">
-        <a className="skip-link" href="#main">
+        {/* Moves focus without a history entry: a bare hash entry makes
+            React Router restore an old scroll position. */}
+        <a className="skip-link" href="#main" onClick={skipToMain}>
           Skip to content
         </a>
         {children}
@@ -70,6 +82,25 @@ export function Layout({ children }: { children: ReactNode }) {
   );
 }
 
+// A new page opens at its section at once: smooth scrolling is off for the
+// frame in which the router scrolls to the link's #section. Links within a
+// page still scroll smoothly.
+function useInstantPageScroll() {
+  const { pathname } = useLocation();
+  const shown = useRef(pathname);
+  useLayoutEffect(() => {
+    if (shown.current === pathname) return;
+    shown.current = pathname;
+    const root = document.documentElement;
+    root.style.scrollBehavior = "auto";
+    const frame = requestAnimationFrame(() =>
+      root.style.removeProperty("scroll-behavior"),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [pathname]);
+}
+
 export default function App() {
+  useInstantPageScroll();
   return <Outlet />;
 }

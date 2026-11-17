@@ -13,9 +13,12 @@ export type ThemePreference = Theme | "system";
 const KEY = "kpulka:theme";
 const DARK_QUERY = "(prefers-color-scheme: dark)";
 const CHANGE = "kpulka:themechange";
+// The sheet's colour in each theme, for the browser bars that read
+// <meta name="theme-color">.
+const BAR_COLOURS = { light: "#f7f6f4", dark: "#0d0c0b" } as const;
 
 // Runs inline in <head>. Keep it small and free of imports.
-export const THEME_SCRIPT = `(function(){var p;try{p=localStorage.getItem("${KEY}")}catch(e){}if(p!=="light"&&p!=="dark")p="system";var d=document.documentElement;d.dataset.themePreference=p;d.dataset.theme=p==="system"?(matchMedia("${DARK_QUERY}").matches?"dark":"light"):p})()`;
+export const THEME_SCRIPT = `(function(){var p;try{p=localStorage.getItem("${KEY}")}catch(e){}if(p!=="light"&&p!=="dark")p="system";var d=document.documentElement;d.dataset.themePreference=p;var t=p==="system"?(matchMedia("${DARK_QUERY}").matches?"dark":"light"):p;d.dataset.theme=t;var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=t==="dark"?"${BAR_COLOURS.dark}":"${BAR_COLOURS.light}"})()`;
 
 function systemTheme(): Theme {
   return matchMedia(DARK_QUERY).matches ? "dark" : "light";
@@ -33,7 +36,11 @@ export function currentTheme(): Theme {
 function apply(preference: ThemePreference) {
   const root = document.documentElement;
   root.dataset.themePreference = preference;
-  root.dataset.theme = preference === "system" ? systemTheme() : preference;
+  const theme = preference === "system" ? systemTheme() : preference;
+  root.dataset.theme = theme;
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute("content", BAR_COLOURS[theme]);
   window.dispatchEvent(new Event(CHANGE));
 }
 
