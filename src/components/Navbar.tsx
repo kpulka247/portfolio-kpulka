@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { PiListBold, PiXBold } from "react-icons/pi";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 
 import { projects } from "../content/projects";
 import { EMAIL, GITHUB_URL, LINKEDIN_URL } from "../data/contact";
@@ -60,6 +60,9 @@ export function Navbar() {
   const menuRef = useRef<HTMLDialogElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const surface = useSurface(headerRef);
+  // On the home page the section links only scroll, so they skip the page
+  // transition.
+  const home = useLocation().pathname === "/";
 
   return (
     <>
@@ -84,6 +87,7 @@ export function Navbar() {
             <Link
               key={link.href}
               to={link.href}
+              viewTransition={!home}
               className="border-b-[1.5px] border-transparent py-1.5 text-sm font-medium hover:border-current"
             >
               {link.label}
@@ -124,6 +128,7 @@ function MobileMenu({
   menuRef: React.RefObject<HTMLDialogElement | null>;
 }) {
   const close = () => menuRef.current?.close();
+  const home = useLocation().pathname === "/";
 
   return (
     <dialog
@@ -156,6 +161,7 @@ function MobileMenu({
             <Link
               key={link.href}
               to={link.href}
+              viewTransition={!home}
               onClick={close}
               className="flex items-center justify-between border-b border-rule py-3.5 font-display text-[48px] leading-none font-extrabold tracking-[-0.02em] [font-stretch:112%]"
             >

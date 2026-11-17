@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 import {
   Links,
   Meta,
@@ -9,6 +9,7 @@ import {
 } from "react-router";
 
 import { BEACON_SRC, BEACON_TOKEN } from "./analytics";
+import { trackNavDirection } from "./pageTransition";
 import { THEME_SCRIPT } from "./theme";
 import "./index.css";
 
@@ -82,5 +83,6 @@ export function Layout({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
+  useEffect(trackNavDirection, []);
   return <Outlet />;
 }

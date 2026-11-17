@@ -20,7 +20,7 @@ export default function NotFound() {
         <div className="mx-auto max-w-[1280px] px-5 md:px-16">
           <p
             aria-hidden="true"
-            className="rise font-display text-[clamp(120px,22vw,240px)] leading-[0.8] font-[850] tracking-[-0.03em] [font-stretch:112%]"
+            className="font-display text-[clamp(120px,22vw,240px)] leading-[0.8] font-[850] tracking-[-0.03em] [font-stretch:112%]"
           >
             404
           </p>

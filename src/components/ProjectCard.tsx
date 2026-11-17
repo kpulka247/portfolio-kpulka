@@ -3,7 +3,6 @@ import { Link } from "react-router";
 import type { Project } from "../content/schema";
 import { projectStatus, statsFor } from "../content/status";
 import { ProjectCover } from "./ProjectCover";
-import { ProjectName } from "./ProjectName";
 
 export function ProjectCard({
   project,
@@ -25,7 +24,7 @@ export function ProjectCard({
         <ProjectCover cover={project.cover} icon={project.icon} />
       </div>
       <h3 className="mt-5 font-display text-lg leading-[1.05] font-extrabold tracking-[-0.01em] text-paper [font-stretch:108%]">
-        <ProjectName slug={project.slug} name={project.name} size="small" />
+        {project.name}
       </h3>
       <p className="mt-2.5 mb-4.5 max-w-[54ch] text-base leading-normal text-soft">
         {project.pitch}

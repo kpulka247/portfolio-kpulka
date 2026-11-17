@@ -245,7 +245,7 @@ export function Hero() {
           />
           <h1
             ref={nameRef}
-            className="rise relative -ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em]"
+            className="relative -ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em]"
           >
             Kamil Pułka
           </h1>

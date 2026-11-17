@@ -39,6 +39,7 @@
   --text-hero: clamp(64px, 13vw, 184px);
 
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 
   --radius-sm: 6px;
   --radius-md: 14px;
@@ -242,75 +243,92 @@ html {
   }
 }
 
-/* Moving between pages swaps the page at once. Only a project's name
-   moves: it flies from its card into the page heading, and back. While
-   the Work filter runs its own transition, each card carries a name too,
-   so the cards that stay glide to their new places and the rest swap at
-   once. Nothing fades. */
-@view-transition {
-  navigation: auto;
-}
-
+/* Moving to another page is the site's own sheet: the new page rises from
+   the bottom over the current one, its rounded top flattening as it
+   arrives. Going back to the home page plays it the other way: the page
+   drops away and the home page is already underneath, at its section.
+   Nothing fades and no text moves on its own. html[data-nav] says which
+   way a click goes; src/pageTransition.ts sets it. */
 ::view-transition-group(*) {
   animation-duration: var(--duration-base);
   animation-timing-function: var(--ease-out);
 }
 
-::view-transition-old(*) {
-  animation: none;
-  opacity: 0;
-}
-
+::view-transition-old(*),
 ::view-transition-new(*) {
   animation: none;
 }
 
-/* A flying name always shows its large, sharp image: the page heading
-   shrinks into a card, or a card grows from the heading's image. Flying
-   down into a card, the card's own text replaces the image as it lands. */
-.name-large {
-  view-transition-class: name-large;
+::view-transition-old(*) {
+  opacity: 0;
 }
 
-.name-small {
-  view-transition-class: name-small;
-}
-
-::view-transition-old(*.name-small) {
+::view-transition-old(root) {
   opacity: 1;
 }
 
-::view-transition-new(*.name-small) {
-  animation: land var(--duration-base) step-end both;
+@keyframes sheet-in {
+  from {
+    clip-path: inset(
+      100% 0 0 0 round var(--radius-sheet) var(--radius-sheet) 0 0
+    );
+    translate: 0 8svh;
+  }
+
+  to {
+    clip-path: inset(0 0 0 0 round 0);
+  }
 }
 
-@keyframes land {
-  from {
-    opacity: 0;
+@keyframes sheet-out {
+  to {
+    clip-path: inset(
+      100% 0 0 0 round var(--radius-sheet) var(--radius-sheet) 0 0
+    );
+    translate: 0 8svh;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-new(root) {
+    animation: sheet-in var(--duration-base) var(--ease-out);
+  }
+
+  html[data-nav="back"]::view-transition-new(root) {
+    animation: none;
+  }
+
+  html[data-nav="back"]::view-transition-old(root) {
+    z-index: 1;
+    animation: sheet-out var(--duration-base) var(--ease-in-out) forwards;
   }
 }
 
 /* The page jumps straight to a linked section while a transition runs, so
-   it never scrolls under a flying name. */
+   the page underneath never scrolls during it. */
 html:active-view-transition {
   scroll-behavior: auto;
 }
 
+/* The Work filter runs its own transition: each card carries a name, so
+   the cards that stay glide to their new places and the rest swap at once.
+   The page itself stays put. */
 [data-transition="filter"] .project-card {
   view-transition-name: var(--card-transition);
 }
 
-/* Display type rises out of its own baseline, like set type sliding up
-   from behind a rule. */
-@keyframes rise {
-  from {
-    translate: 0 0.4em;
-    clip-path: inset(-20% -5% 100% -5%);
-  }
+html[data-transition="filter"]::view-transition-old(root),
+html[data-transition="filter"]::view-transition-new(root) {
+  animation: none;
+}
 
-  to {
-    translate: 0 0;
-    clip-path: inset(-20% -5% -20% -5%);
+html[data-transition="filter"]::view-transition-old(root) {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*) {
+    animation: none;
   }
 }
 
@@ -340,7 +358,7 @@ html:active-view-transition {
 
 @keyframes drift {
   to {
-    translate: 0 -12svh;
+    translate: 0 -28svh;
   }
 }
 
@@ -381,37 +399,10 @@ html:active-view-transition {
   }
 }
 
+/* Each card's product window settles into its cover as the card scrolls
+   in, and back out as it scrolls away. */
 @media (prefers-reduced-motion: no-preference) {
-  /* On arrival: the hero name, and the titles of the privacy and 404
-     pages. The phone menu's items rise one after another when it opens. */
-  .rise,
-  .menu-dialog[open] nav a {
-    animation: rise var(--duration-base) var(--ease-out) backwards;
-    animation-delay: var(--rise-delay, 0s);
-  }
-
-  .menu-dialog[open] nav a:nth-child(2) {
-    --rise-delay: 40ms;
-  }
-
-  .menu-dialog[open] nav a:nth-child(3) {
-    --rise-delay: 80ms;
-  }
-
-  .menu-dialog[open] nav a:nth-child(4) {
-    --rise-delay: 120ms;
-  }
-
-  /* While scrolling: section titles rise as they come into view, and each
-     card's product window settles into its cover. Both follow the scroll,
-     so they play backwards when the page scrolls up. */
   @supports (animation-timeline: view()) {
-    .rise-on-scroll {
-      animation: rise linear both;
-      animation-timeline: view();
-      animation-range: entry 20% entry 80%;
-    }
-
     .project-card {
       view-timeline-name: --card;
     }
@@ -421,12 +412,6 @@ html:active-view-transition {
       animation-timeline: --card;
       animation-range: entry 0% cover 45%;
     }
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(*) {
-    animation: none;
   }
 }
 
