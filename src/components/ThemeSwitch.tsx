@@ -48,7 +48,7 @@ export function ThemeChoice() {
           role="radio"
           aria-checked={preference === value}
           onClick={() => setPreference(value)}
-          className="h-8 cursor-pointer rounded-full px-3.5 text-sm font-medium text-dim transition-colors hover:text-paper aria-checked:bg-paper aria-checked:text-sheet"
+          className="h-8 cursor-pointer rounded-full px-3.5 text-sm font-medium text-dim hover:text-paper aria-checked:bg-paper aria-checked:text-sheet"
         >
           {label}
         </button>

@@ -34,7 +34,7 @@ export function About() {
       <div className="@container px-5 pt-8 pb-5 md:px-14 md:pt-14 md:pb-12">
         <h2
           id="about-heading"
-          className="font-display text-[48px] leading-[0.95] font-extrabold tracking-[-0.02em] [font-stretch:112%] md:text-2xl"
+          className="rise-on-scroll font-display text-[48px] leading-[0.95] font-extrabold tracking-[-0.02em] [font-stretch:112%] md:text-2xl"
         >
           About
         </h2>

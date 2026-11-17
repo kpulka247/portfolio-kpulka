@@ -32,8 +32,8 @@ export interface Car {
   // 0 to 1: the brake lights, by day and at night. The two tail lamps
   // glow brighter and the third brake light, in the spoiler, comes on.
   setBraking: (level: number) => void;
-  // 0 for day, 1 for night: the car fades from its day colours to its
-  // night ones with the board. The lamps are left alone.
+  // 0 for day, 1 for night: the car takes its day or night colours with
+  // the board. The lamps are left alone.
   setDusk: (level: number) => void;
   // Moves the pop-up headlights.
   update: (dt: number) => void;

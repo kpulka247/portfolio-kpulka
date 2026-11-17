@@ -39,7 +39,6 @@
   --text-hero: clamp(64px, 13vw, 184px);
 
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --ease-in-out: cubic-bezier(0.3, 0, 0.2, 1);
 
   --radius-sm: 6px;
   --radius-md: 14px;
@@ -47,13 +46,11 @@
   --radius-sheet: 40px;
 }
 
-/* Every animation on the site takes its length from these. The theme fade
-   matches the hero board's own fade to night. */
+/* The site has no fades: colours, themes and pages change at once. The
+   few animations move things instead, and take their length from these. */
 :root {
-  --duration-fast: 0.2s;
-  --duration-base: 0.35s;
-  --duration-page: 0.45s;
-  --duration-theme: 0.7s;
+  --duration-fast: 0.25s;
+  --duration-base: 0.4s;
 }
 
 /* Day and night are the same warm hue. The sheet follows the theme too:
@@ -76,101 +73,6 @@
   --color-cover-window: #1c1a18;
 }
 
-/* Registered as colours so a theme switch fades every surface, gradients
-   included, in step with the board's own fade to night. */
-@property --color-ground {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #e3e2df;
-}
-
-@property --color-ink {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #1c1b19;
-}
-
-@property --color-ink-dim {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #625e59;
-}
-
-@property --color-edge {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: rgb(28 27 25 / 0.16);
-}
-
-@property --color-sheet {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #f7f6f4;
-}
-
-@property --color-sheet-line {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: rgb(28 27 25 / 0.08);
-}
-
-@property --color-raised {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #ebe9e6;
-}
-
-@property --color-text {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #1c1b19;
-}
-
-@property --color-paper {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #1c1b19;
-}
-
-@property --color-soft {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #4a4743;
-}
-
-@property --color-dim {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #6f6a64;
-}
-
-@property --color-rule {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #dcd9d5;
-}
-
-@property --color-cover {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #e7e5e1;
-}
-
-html {
-  transition-property:
-    --color-ground, --color-ink, --color-ink-dim, --color-edge, --color-sheet,
-    --color-sheet-line, --color-raised, --color-text, --color-paper,
-    --color-soft, --color-dim, --color-rule, --color-cover;
-  transition-duration: var(--duration-theme);
-  transition-timing-function: var(--ease-in-out);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    transition: none;
-  }
-}
-
 /* The controls from the Doop canvas. They have no borders: a group has one
    solid action and the rest are tonal fills of the text colour. Buttons
    are 48px, or 40px in the hero's Play row; icon buttons match the button
@@ -188,9 +90,6 @@ html {
     padding: 0 22px;
     font: 600 15px/1 var(--font-body);
     white-space: nowrap;
-    transition-property: background-color, color;
-    transition-duration: var(--duration-fast);
-    transition-timing-function: var(--ease-out);
   }
 
   .btn-compact {
@@ -246,7 +145,6 @@ html {
     justify-content: center;
     border-radius: 999px;
     color: inherit;
-    transition: background-color var(--duration-fast) var(--ease-out);
   }
 
   .icon-btn-compact {
@@ -285,9 +183,6 @@ html {
     white-space: nowrap;
     color: var(--color-soft);
     background: color-mix(in srgb, var(--color-paper) 8%, transparent);
-    transition-property: background-color, color;
-    transition-duration: var(--duration-fast);
-    transition-timing-function: var(--ease-out);
   }
 
   .chip:hover {
@@ -305,7 +200,6 @@ html {
     text-decoration-thickness: 1px;
     text-underline-offset: 4px;
     text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
-    transition: text-decoration-color var(--duration-fast) var(--ease-out);
   }
 
   .text-link:hover {
@@ -348,74 +242,101 @@ html {
   }
 }
 
-/* Moving between pages cross-fades instead of cutting, both inside the app
-   and on full page loads such as the nav's links from a project page. A
-   project's name carries over between its card and its page heading. While
-   the Work filter runs its own transition, each card carries its name too,
-   so the cards that stay glide to their new places. */
+/* Moving between pages swaps the page at once. Only a project's name
+   moves: it flies from its card into the page heading, and back. While
+   the Work filter runs its own transition, each card carries a name too,
+   so the cards that stay glide to their new places and the rest swap at
+   once. Nothing fades. */
 @view-transition {
   navigation: auto;
 }
 
 ::view-transition-group(*) {
-  animation-duration: var(--duration-page);
+  animation-duration: var(--duration-base);
   animation-timing-function: var(--ease-out);
 }
 
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: var(--duration-page);
-  animation-timing-function: var(--ease-in-out);
+::view-transition-old(*) {
+  animation: none;
+  opacity: 0;
+}
+
+::view-transition-new(*) {
+  animation: none;
 }
 
 [data-transition="filter"] .project-card {
   view-transition-name: var(--card-transition);
 }
 
+/* Display type rises out of its own baseline, like set type sliding up
+   from behind a rule. */
+@keyframes rise {
+  from {
+    translate: 0 0.4em;
+    clip-path: inset(-20% -5% 100% -5%);
+  }
+
+  to {
+    translate: 0 0;
+    clip-path: inset(-20% -5% -20% -5%);
+  }
+}
+
+/* A product window settles into its cover as the card scrolls in. It uses
+   translate, so the hover nudge on transform still adds on top. */
+@keyframes settle {
+  from {
+    translate: 0 22%;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* On arrival: the hero name, and the titles of the privacy and 404
+     pages. The phone menu's items rise one after another when it opens. */
+  .rise,
+  .menu-dialog[open] nav a {
+    animation: rise var(--duration-base) var(--ease-out) backwards;
+    animation-delay: var(--rise-delay, 0s);
+  }
+
+  .menu-dialog[open] nav a:nth-child(2) {
+    --rise-delay: 40ms;
+  }
+
+  .menu-dialog[open] nav a:nth-child(3) {
+    --rise-delay: 80ms;
+  }
+
+  .menu-dialog[open] nav a:nth-child(4) {
+    --rise-delay: 120ms;
+  }
+
+  /* While scrolling: section titles rise as they come into view, and each
+     card's product window settles into its cover. Both follow the scroll,
+     so they play backwards when the page scrolls up. */
+  @supports (animation-timeline: view()) {
+    .rise-on-scroll {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 20% entry 80%;
+    }
+
+    .project-card {
+      view-timeline-name: --card;
+    }
+
+    .project-card .cover__device {
+      animation: settle linear both;
+      animation-timeline: --card;
+      animation-range: entry 0% cover 45%;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
+  ::view-transition-group(*) {
     animation: none;
-  }
-}
-
-/* The phone menu fades and drops in when it opens and fades out when it
-   closes, instead of cutting the page away. */
-.menu-dialog,
-.menu-dialog::backdrop {
-  opacity: 0;
-  transition-property: opacity, translate, display, overlay;
-  transition-duration: var(--duration-base);
-  transition-timing-function: var(--ease-out);
-  transition-behavior: allow-discrete;
-}
-
-.menu-dialog {
-  translate: 0 -12px;
-}
-
-.menu-dialog[open],
-.menu-dialog[open]::backdrop {
-  opacity: 1;
-  translate: 0 0;
-}
-
-@starting-style {
-  .menu-dialog[open],
-  .menu-dialog[open]::backdrop {
-    opacity: 0;
-  }
-
-  .menu-dialog[open] {
-    translate: 0 -12px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .menu-dialog,
-  .menu-dialog::backdrop {
-    transition: none;
   }
 }
 

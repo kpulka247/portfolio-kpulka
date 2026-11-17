@@ -89,7 +89,7 @@
   box-shadow:
     0 0 0 1px rgb(255 255 255 / 0.09),
     0 40px 80px -10px rgb(0 0 0 / 0.6);
-  transition: transform var(--duration-page) var(--ease-out);
+  transition: transform var(--duration-base) var(--ease-out);
 }
 
 .cover[data-depth="shallow"] .cover__device {
@@ -181,7 +181,7 @@
   bottom: 8cqh;
   z-index: 2;
   filter: drop-shadow(0 24px 40px rgb(0 0 0 / 0.55));
-  transition: transform var(--duration-page) var(--ease-out);
+  transition: transform var(--duration-base) var(--ease-out);
 }
 
 .cover__front > img {

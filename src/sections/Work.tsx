@@ -158,7 +158,7 @@ export function Work() {
           <li key={project.name}>
             <a
               href={project.link}
-              className="group grid grid-cols-[1fr_20px] items-center gap-x-8 gap-y-1.5 border-y border-rule py-4.5 transition-colors hover:bg-raised md:-mx-4 md:grid-cols-[240px_1fr_120px_24px] md:px-4 md:py-5.5"
+              className="group grid grid-cols-[1fr_20px] items-center gap-x-8 gap-y-1.5 border-y border-rule py-4.5 hover:bg-raised md:-mx-4 md:grid-cols-[240px_1fr_120px_24px] md:px-4 md:py-5.5"
             >
               <span className="font-semibold text-paper">{project.name}</span>
               <PiArrowUpRightBold

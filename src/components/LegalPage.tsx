@@ -38,7 +38,7 @@ export function LegalPage({
                 <PiArrowLeftBold aria-hidden="true" className="size-4" />
                 {back.label}
               </Link>
-              <h1 className="mt-8 font-display text-[48px] leading-[0.95] font-[850] tracking-[-0.02em] [font-stretch:112%] md:mt-10 md:text-2xl">
+              <h1 className="rise mt-8 font-display text-[48px] leading-[0.95] font-[850] tracking-[-0.02em] [font-stretch:112%] md:mt-10 md:text-2xl">
                 {title}
               </h1>
               <p className="mt-4 text-sm text-ink-dim md:mt-5">

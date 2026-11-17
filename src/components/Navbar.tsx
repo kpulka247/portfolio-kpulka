@@ -65,7 +65,7 @@ export function Navbar() {
     <>
       <header
         ref={headerRef}
-        className={`pointer-events-none fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-4 transition-colors duration-300 md:px-10 md:py-6 ${
+        className={`pointer-events-none fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-4 md:px-10 md:py-6 ${
           surface === "ground" ? "text-ink" : "text-white mix-blend-difference"
         }`}
       >
@@ -84,7 +84,7 @@ export function Navbar() {
             <a
               key={link.href}
               href={link.href}
-              className="border-b-[1.5px] border-transparent py-1.5 text-sm font-medium transition-colors hover:border-current"
+              className="border-b-[1.5px] border-transparent py-1.5 text-sm font-medium hover:border-current"
             >
               {link.label}
             </a>

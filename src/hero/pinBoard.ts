@@ -42,7 +42,7 @@ export interface PinBoardOptions {
 
 export interface PinBoard {
   setPlaying: (playing: boolean) => void;
-  // Fades the board to the day or night palette.
+  // Switches the board to the day or night palette at once.
   setTheme: (theme: Theme) => void;
   dispose: () => void;
 }
@@ -91,8 +91,6 @@ const NIGHT: Palette = {
   obstacles: ["#d6d2cc", "#dcd8d2", "#e3dfda", "#e9e6e1", "#e9e6e1"],
 };
 
-const THEME_FADE = 4;
-const LIGHTS_ON_AT = 0.9;
 const MAX_PIXEL_RATIO = 1.5;
 // Below this width the board uses the phone grid and camera.
 const PHONE_WIDTH = 700;
@@ -970,9 +968,8 @@ export function mount(
     report();
   }
 
+  // 0 by day, 1 at night. A theme switch changes it at once, with the page.
   let night = options.theme === "dark" ? 1 : 0;
-  let nightTarget = night;
-  let lightsOn = night === 1;
   const mixColor = (target: THREE.Color, day: string, dark: string) =>
     target.set(day).lerp(scratch.set(dark), night);
   const scratch = new THREE.Color();
@@ -1000,16 +997,13 @@ export function mount(
         1 + (NIGHT_OBSTACLE_GAIN - 1) * night,
       ),
     );
-    if (nightTarget === 1 && night > LIGHTS_ON_AT) lightsOn = true;
-    if (nightTarget === 0 && night < 1 - LIGHTS_ON_AT) lightsOn = false;
-    car.setLights(lightsOn);
+    car.setLights(night === 1);
     car.setDusk(night);
   }
   applyPalette();
 
   function setTheme(theme: Theme) {
-    nightTarget = theme === "dark" ? 1 : 0;
-    if (frozen) night = nightTarget;
+    night = theme === "dark" ? 1 : 0;
     applyPalette();
     wake();
   }
@@ -1045,12 +1039,6 @@ export function mount(
     }
     const t = clock.elapsedTime;
 
-    if (night !== nightTarget) {
-      night += (nightTarget - night) * ease(THEME_FADE, dt);
-      if (Math.abs(nightTarget - night) < 0.002) night = nightTarget;
-      applyPalette();
-    }
-
     const phaseBefore = scroll - scrolledRows * spacing;
     const scrollBefore = scroll;
     if (state !== "hidden") drive(dt, phaseBefore);
@@ -1062,7 +1050,7 @@ export function mount(
     smokeAhead.set(-Math.sin(yaw), 0, -Math.cos(yaw));
     smoke.update(dt, scroll - scrollBefore, {
       night,
-      lamps: lightsOn && car.root.visible,
+      lamps: night === 1 && car.root.visible,
       heads: smokeHeads,
       tails: smokeTails,
       ahead: smokeAhead,

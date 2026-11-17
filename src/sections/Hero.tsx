@@ -11,28 +11,6 @@ import { currentTheme, useTheme } from "../theme";
 const HINT_MS = 5_000;
 const BEST_KEY = "kpulka:best-distance";
 
-const FADE_MS = 300;
-
-function usePresence(show: boolean) {
-  const [mounted, setMounted] = useState(show);
-  const [visible, setVisible] = useState(show);
-  useEffect(() => {
-    if (show) {
-      setMounted(true);
-      const frame = requestAnimationFrame(() =>
-        requestAnimationFrame(() => setVisible(true)),
-      );
-      return () => cancelAnimationFrame(frame);
-    }
-    setVisible(false);
-    const timer = setTimeout(() => setMounted(false), FADE_MS);
-    return () => clearTimeout(timer);
-  }, [show]);
-  return { mounted, visible };
-}
-
-const PILL = "pill transition-[opacity,translate] duration-300 ease-out";
-
 function metres(distance: number): string {
   return `${distance.toLocaleString("en-US")} m`;
 }
@@ -172,16 +150,6 @@ export function Hero() {
         ? "W A S D to drive. W + S burns out. Esc stops."
         : "Hold to drive"
       : null;
-  const [lastHint, setLastHint] = useState("");
-  useEffect(() => {
-    if (hint) setLastHint(hint);
-  }, [hint]);
-  const playRow = usePresence(loaded);
-  const score = usePresence(playing);
-  const hintPresence = usePresence(playing && hint !== null);
-  const fade = (visible: boolean) =>
-    visible ? "opacity-100" : "-translate-x-1 opacity-0";
-  const scoreFade = fade(score.visible);
 
   return (
     <section
@@ -207,18 +175,12 @@ export function Hero() {
       <canvas
         ref={canvasRef}
         aria-hidden="true"
-        className={`absolute inset-0 size-full transition-opacity duration-700 ${
-          live ? "opacity-100" : "opacity-0"
-        }`}
+        className={`absolute inset-0 size-full ${live ? "" : "opacity-0"}`}
       />
 
       <div className="pointer-events-none relative">
-        {playRow.mounted && (
-          <div
-            className={`pointer-events-auto relative z-10 mb-4 flex flex-wrap items-center gap-2.5 transition-opacity duration-300 ease-out md:mb-5 ${
-              playRow.visible ? "opacity-100" : "opacity-0"
-            }`}
-          >
+        {loaded && (
+          <div className="pointer-events-auto relative z-10 mb-4 flex flex-wrap items-center gap-2.5 md:mb-5">
             <button
               type="button"
               aria-pressed={playing}
@@ -235,26 +197,21 @@ export function Hero() {
               <PiSteeringWheelBold aria-hidden="true" className="size-5" />
               Play
             </button>
-            {score.mounted && (
-              <p
-                className={`${PILL} items-baseline pt-3 tabular-nums ${scoreFade}`}
-              >
+            {playing && (
+              <p className={`pill items-baseline pt-3 tabular-nums`}>
                 <span className="font-display text-[19px] leading-none font-extrabold text-ink [font-stretch:108%]">
                   {metres(run.distance)}
                 </span>
                 <span>Best {metres(Math.max(best, run.distance))}</span>
               </p>
             )}
-            {hintPresence.mounted && (
+            {playing && hint && (
               // On phones the hint takes its own line above Play, instead of
               // wrapping under it. The empty rest of the line ignores
               // touches, so holding the board there still drives.
               <div className="pointer-events-none max-md:order-first max-md:basis-full">
-                <p
-                  aria-live="polite"
-                  className={`${PILL} pointer-events-auto ${fade(hintPresence.visible)}`}
-                >
-                  {hint ?? lastHint}
+                <p aria-live="polite" className="pill pointer-events-auto">
+                  {hint}
                 </p>
               </div>
             )}
@@ -267,7 +224,7 @@ export function Hero() {
           />
           <h1
             ref={nameRef}
-            className="relative -ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em]"
+            className="rise relative -ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em]"
           >
             Kamil Pułka
           </h1>
