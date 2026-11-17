@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/kpulka247/portfolio-kpulka/compare/v2.0.0...v2.0.1) (2026-11-17)
+
+### Bug Fixes
+
+* **nav:** keep the bar off the top edge so iOS Safari can't copy it ([9a9f8c5](https://github.com/kpulka247/portfolio-kpulka/commit/9a9f8c575836cccfffba05f737d84f21c72415c1))
+* **scroll:** open the page at the top after a reload ([eeac739](https://github.com/kpulka247/portfolio-kpulka/commit/eeac739c9c1754be90d0bb9474426db8c2425b5a))
+
 ## [2.0.0](https://github.com/kpulka247/portfolio-kpulka/compare/v1.4.0...v2.0.0) (2026-11-17)
 
 ### ⚠ BREAKING CHANGES
