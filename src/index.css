@@ -39,7 +39,6 @@
   --text-hero: clamp(64px, 13vw, 184px);
 
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 
   --radius-sm: 6px;
   --radius-md: 14px;
@@ -243,12 +242,11 @@ html {
   }
 }
 
-/* Moving to another page is the site's own sheet: the new page rises from
-   the bottom over the current one, its rounded top flattening as it
-   arrives. Going back to the home page plays it the other way: the page
-   drops away and the home page is already underneath, at its section.
-   Nothing fades and no text moves on its own. html[data-nav] says which
-   way a click goes; src/pageTransition.ts sets it. */
+/* Opening a project or the privacy page is the site's own sheet: the new
+   page rises from the bottom over the current one, its rounded top
+   flattening as it arrives. The nav keeps its own name, so it stays still
+   above the moving page. Links back to the home page have no transition:
+   home opens at once. Nothing fades and no text moves on its own. */
 ::view-transition-group(*) {
   animation-duration: var(--duration-base);
   animation-timing-function: var(--ease-out);
@@ -267,6 +265,10 @@ html {
   opacity: 1;
 }
 
+.site-nav {
+  view-transition-name: site-nav;
+}
+
 @keyframes sheet-in {
   from {
     clip-path: inset(
@@ -280,27 +282,9 @@ html {
   }
 }
 
-@keyframes sheet-out {
-  to {
-    clip-path: inset(
-      100% 0 0 0 round var(--radius-sheet) var(--radius-sheet) 0 0
-    );
-    translate: 0 8svh;
-  }
-}
-
 @media (prefers-reduced-motion: no-preference) {
   ::view-transition-new(root) {
     animation: sheet-in var(--duration-base) var(--ease-out);
-  }
-
-  html[data-nav="back"]::view-transition-new(root) {
-    animation: none;
-  }
-
-  html[data-nav="back"]::view-transition-old(root) {
-    z-index: 1;
-    animation: sheet-out var(--duration-base) var(--ease-in-out) forwards;
   }
 }
 
@@ -334,8 +318,9 @@ html[data-transition="filter"]::view-transition-old(root) {
 
 /* The hero's board: it comes up from below when its first frame is drawn,
    and drifts up slowly as the page scrolls, behind the sheet that covers
-   it, so the hero reads as layers. The Play row and the drive hint appear
-   with the board's quick fade, and the hint fades out the same way. These
+   it, so the hero reads as layers. The Play row appears with the board's
+   quick fade, and the score and the drive hint fade in and out the same
+   way. These
    are the only fades on the site. */
 .board {
   opacity: 0;
@@ -345,7 +330,7 @@ html[data-transition="filter"]::view-transition-old(root) {
   opacity: 1;
 }
 
-.hint[data-hidden] {
+.fade[data-hidden] {
   opacity: 0;
   pointer-events: none;
 }
@@ -378,7 +363,7 @@ html[data-transition="filter"]::view-transition-old(root) {
     animation: appear var(--duration-fast) var(--ease-out) backwards;
   }
 
-  .hint {
+  .fade {
     transition: opacity var(--duration-fast) var(--ease-out);
   }
 

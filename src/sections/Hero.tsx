@@ -10,8 +10,25 @@ import type { PinBoard, RunState } from "../hero/pinBoard";
 import { currentTheme, useTheme } from "../theme";
 
 const HINT_MS = 5_000;
-// Matches --duration-fast, the hint's fade out.
-const HINT_FADE_MS = 250;
+// Matches --duration-fast, the pills' fade out.
+const FADE_MS = 250;
+
+// Whether a pill in the Play row is still on screen: it stays for its fade
+// out after it should hide, then leaves the row.
+function useShown(show: boolean): boolean {
+  const [leaving, setLeaving] = useState(false);
+  const [wasShown, setWasShown] = useState(show);
+  if (show !== wasShown) {
+    setWasShown(show);
+    setLeaving(!show);
+  }
+  useEffect(() => {
+    if (!leaving) return;
+    const timer = setTimeout(() => setLeaving(false), FADE_MS);
+    return () => clearTimeout(timer);
+  }, [leaving]);
+  return show || leaving;
+}
 const BEST_KEY = "kpulka:best-distance";
 
 function metres(distance: number): string {
@@ -153,16 +170,12 @@ export function Hero() {
         ? "W A S D to drive. W + S burns out. Esc stops."
         : "Hold to drive"
       : null;
-  // The hint text stays on screen while it fades out, then leaves the row.
-  const [hintText, setHintText] = useState("");
-  useEffect(() => {
-    if (hint) {
-      setHintText(hint);
-      return;
-    }
-    const timer = setTimeout(() => setHintText(""), HINT_FADE_MS);
-    return () => clearTimeout(timer);
-  }, [hint]);
+  const hintOn = playing && hint !== null;
+  const scoreShown = useShown(playing);
+  const hintShown = useShown(hintOn);
+  // The hint keeps its last words while it fades out.
+  const [lastHint, setLastHint] = useState("");
+  if (hint && hint !== lastHint) setLastHint(hint);
 
   return (
     <section
@@ -195,7 +208,7 @@ export function Hero() {
       </div>
 
       <div className="pointer-events-none relative">
-        {loaded && (
+        {loaded && live && (
           <div className="appear pointer-events-auto relative z-10 mb-4 flex flex-wrap items-center gap-2.5 md:mb-5">
             <button
               type="button"
@@ -213,26 +226,29 @@ export function Hero() {
               <PiSteeringWheelBold aria-hidden="true" className="size-5" />
               Play
             </button>
-            {playing && (
-              <p className={`pill items-baseline pt-3 tabular-nums`}>
+            {scoreShown && (
+              <p
+                data-hidden={!playing || undefined}
+                className="fade pill appear items-baseline pt-3 tabular-nums"
+              >
                 <span className="font-display text-[19px] leading-none font-extrabold text-ink [font-stretch:108%]">
                   {metres(run.distance)}
                 </span>
                 <span>Best {metres(Math.max(best, run.distance))}</span>
               </p>
             )}
-            {playing && hintText && (
+            {hintShown && (
               // On phones the hint takes its own line above Play, instead of
               // wrapping under it. The empty rest of the line ignores
               // touches, so holding the board there still drives.
               <div className="pointer-events-none max-md:order-first max-md:basis-full">
                 <p
                   aria-live="polite"
-                  aria-hidden={!hint || undefined}
-                  data-hidden={!hint || undefined}
-                  className="hint pill appear pointer-events-auto"
+                  aria-hidden={!hintOn || undefined}
+                  data-hidden={!hintOn || undefined}
+                  className="fade pill appear pointer-events-auto"
                 >
-                  {hint ?? hintText}
+                  {hint ?? lastHint}
                 </p>
               </div>
             )}

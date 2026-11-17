@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { PiListBold, PiXBold } from "react-icons/pi";
-import { Link, useLocation } from "react-router";
+import { Link } from "react-router";
 
 import { projects } from "../content/projects";
 import { EMAIL, GITHUB_URL, LINKEDIN_URL } from "../data/contact";
@@ -16,14 +16,21 @@ const LINKS = [
 
 type Surface = "ground" | "sheet";
 
-// The surface under the nav's middle: the topmost element there that is
-// marked with data-surface, or the sheet when none is.
+// The surface under the nav: of the elements marked with data-surface that
+// span this height, the last in the page, which draws on top. It reads
+// their boxes, not hit testing, so it also works while a page transition
+// covers the page.
 function surfaceUnder(y: number): Surface {
-  for (const element of document.elementsFromPoint(innerWidth / 2, y)) {
-    const marked = element.closest<HTMLElement>("[data-surface]");
-    if (marked) return marked.dataset.surface === "ground" ? "ground" : "sheet";
+  let surface: Surface = "sheet";
+  for (const marked of document.querySelectorAll<HTMLElement>(
+    "[data-surface]",
+  )) {
+    const { top, bottom } = marked.getBoundingClientRect();
+    if (top <= y && y < bottom) {
+      surface = marked.dataset.surface === "ground" ? "ground" : "sheet";
+    }
   }
-  return "sheet";
+  return surface;
 }
 
 // On the ground the nav takes the ink, so it matches the name in both
@@ -60,21 +67,17 @@ export function Navbar() {
   const menuRef = useRef<HTMLDialogElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const surface = useSurface(headerRef);
-  // On the home page the section links only scroll, so they skip the page
-  // transition.
-  const home = useLocation().pathname === "/";
 
   return (
     <>
       <header
         ref={headerRef}
-        className={`pointer-events-none fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-4 md:px-10 md:py-6 ${
+        className={`site-nav pointer-events-none fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-4 md:px-10 md:py-6 ${
           surface === "ground" ? "text-ink" : "text-white mix-blend-difference"
         }`}
       >
         <Link
           to="/"
-          viewTransition
           className="pointer-events-auto font-display text-lg leading-none font-extrabold [font-stretch:120%]"
         >
           kpulka
@@ -87,7 +90,6 @@ export function Navbar() {
             <Link
               key={link.href}
               to={link.href}
-              viewTransition={!home}
               className="border-b-[1.5px] border-transparent py-1.5 text-sm font-medium hover:border-current"
             >
               {link.label}
@@ -128,7 +130,6 @@ function MobileMenu({
   menuRef: React.RefObject<HTMLDialogElement | null>;
 }) {
   const close = () => menuRef.current?.close();
-  const home = useLocation().pathname === "/";
 
   return (
     <dialog
@@ -141,7 +142,6 @@ function MobileMenu({
         <div className="flex items-center justify-between">
           <Link
             to="/"
-            viewTransition
             onClick={close}
             className="font-display text-lg leading-none font-extrabold [font-stretch:120%]"
           >
@@ -161,7 +161,6 @@ function MobileMenu({
             <Link
               key={link.href}
               to={link.href}
-              viewTransition={!home}
               onClick={close}
               className="flex items-center justify-between border-b border-rule py-3.5 font-display text-[48px] leading-none font-extrabold tracking-[-0.02em] [font-stretch:112%]"
             >

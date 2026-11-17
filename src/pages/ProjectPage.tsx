@@ -78,7 +78,6 @@ export default function ProjectPage() {
           <div className={CONTAINER}>
             <Link
               to="/#work"
-              viewTransition
               className="text-link inline-flex min-h-11 items-center gap-2 text-sm text-ink-dim hover:text-ink"
             >
               <PiArrowLeftBold aria-hidden="true" className="size-4" />
