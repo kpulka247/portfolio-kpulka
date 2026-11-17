@@ -26,7 +26,10 @@ export default function MainPage() {
       <Navbar />
       <main id="main">
         <Hero />
-        <div className="relative z-10 -mt-7 rounded-t-[28px] bg-sheet text-text md:-mt-10 md:rounded-t-sheet">
+        <div
+          data-surface="sheet"
+          className="relative z-10 -mt-7 rounded-t-[28px] bg-sheet shadow-[0_-1px_0_var(--color-sheet-line)] text-text md:-mt-10 md:rounded-t-sheet"
+        >
           <div className="mx-auto max-w-[1280px] space-y-24 px-5 pt-18 pb-3 md:space-y-32 md:px-16 md:pt-32 md:pb-16">
             <Work />
             <Stack />

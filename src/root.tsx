@@ -40,12 +40,13 @@ export function Layout({ children }: { children: ReactNode }) {
     // THEME_SCRIPT adds the theme attributes before React hydrates.
     <html lang="en" className="bg-sheet" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <meta charSet="UTF-8" />
+        {/* Older Safari and Chrome on Android tint their bars from this.
+            THEME_SCRIPT, right after it, sets it to the theme's sheet. */}
+        <meta name="theme-color" content="#f7f6f4" />
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="google" content="notranslate" />
-        {/* Older Safari and Chrome on Android tint their bars from this. */}
-        <meta name="theme-color" content="#000000" />
         <Meta />
         <Links />
       </head>

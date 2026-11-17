@@ -61,10 +61,10 @@ function Chip({
       type="button"
       aria-pressed={selected}
       onClick={onSelect}
-      className="inline-flex h-[38px] flex-none cursor-pointer items-center gap-2 rounded-full px-4 text-sm font-medium whitespace-nowrap text-soft shadow-[inset_0_0_0_1px_var(--color-rule)] transition-colors hover:text-paper hover:shadow-[inset_0_0_0_1px_var(--color-dim)] aria-pressed:bg-paper aria-pressed:text-sheet aria-pressed:shadow-none"
+      className="chip"
     >
       {label}
-      <span className={selected ? "text-ink-dim" : "text-dim"}>{count}</span>
+      <span className={selected ? "opacity-60" : "text-dim"}>{count}</span>
     </button>
   );
 }

@@ -31,7 +31,7 @@ export function Contact() {
       id="contact"
       role="group"
       aria-labelledby="contact-heading"
-      className="mt-7 scroll-mt-24 border-t-[1.5px] border-ink pt-5 md:mt-12 md:pt-6"
+      className="mt-7 scroll-mt-24 border-t border-edge pt-5 md:mt-12 md:pt-6"
     >
       <div className="flex items-center justify-between gap-3">
         <h3
@@ -40,14 +40,9 @@ export function Contact() {
         >
           Get in touch
         </h3>
-        <div className="flex gap-2">
+        <div className="flex gap-2.5">
           {SOCIALS.map(({ href, label, Icon }) => (
-            <a
-              key={label}
-              href={href}
-              aria-label={label}
-              className="inline-flex size-11 items-center justify-center rounded-full shadow-[inset_0_0_0_1.5px_var(--color-ink)] transition-colors hover:bg-ink/8"
-            >
+            <a key={label} href={href} aria-label={label} className="icon-btn">
               <Icon aria-hidden="true" className="size-5" />
             </a>
           ))}
@@ -66,7 +61,7 @@ export function Contact() {
         <button
           type="button"
           onClick={copy}
-          className="inline-flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-ink px-5.5 text-[15px] font-semibold text-ground transition-colors hover:bg-sheet md:w-auto"
+          className="btn btn-solid w-full md:w-auto"
         >
           <PiCopyBold aria-hidden="true" className="size-4.5" />
           {copied ? "Copied" : "Copy address"}
