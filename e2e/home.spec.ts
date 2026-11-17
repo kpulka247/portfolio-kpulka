@@ -1,4 +1,18 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+// Whether the skip link is drawn where it sits: a clipped link is not hit.
+function skipLinkShown(page: Page) {
+  return page.evaluate(() => {
+    const link = document.querySelector(".skip-link");
+    const box = link?.getBoundingClientRect();
+    if (!link || !box) return false;
+    const hit = document.elementFromPoint(
+      box.left + box.width / 2,
+      box.top + box.height / 2,
+    );
+    return hit !== null && link.contains(hit);
+  });
+}
 
 const WIDTHS = [320, 375, 390, 414, 768, 1024, 1280, 1440, 1920];
 
@@ -35,10 +49,16 @@ test.describe("home page layout", () => {
           requestAnimationFrame(() => requestAnimationFrame(resolve)),
         );
       });
-      const skipLink = await page
-        .getByRole("link", { name: "Skip to content" })
-        .boundingBox();
-      expect(skipLink && skipLink.y + skipLink.height).toBeLessThanOrEqual(0);
+      expect(await skipLinkShown(page)).toBe(false);
+      // iOS 26 Safari draws the strip above the page behind its status bar,
+      // so nothing fixed may wait there out of sight.
+      const parkedAbove = await page.evaluate(() =>
+        Array.from(document.querySelectorAll<HTMLElement>("body *"))
+          .filter((el) => getComputedStyle(el).position === "fixed")
+          .filter((el) => el.getBoundingClientRect().top < 0)
+          .map((el) => el.outerHTML.slice(0, 80)),
+      );
+      expect(parkedAbove).toEqual([]);
       const broken = await page.evaluate(() =>
         Array.from(document.images)
           .filter((image) => image.naturalWidth === 0)
@@ -51,6 +71,17 @@ test.describe("home page layout", () => {
       });
     });
   }
+});
+
+test("the skip link shows only while focused", async ({ page, isMobile }) => {
+  test.skip(isMobile, "phones have no Tab key");
+  await page.goto("/");
+  expect(await skipLinkShown(page)).toBe(false);
+  await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("link", { name: "Skip to content" }),
+  ).toBeFocused();
+  expect(await skipLinkShown(page)).toBe(true);
 });
 
 test("a filter chip narrows the grid and survives a reload", async ({
