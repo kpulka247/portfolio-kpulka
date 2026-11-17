@@ -10,6 +10,8 @@ import type { PinBoard, RunState } from "../hero/pinBoard";
 import { currentTheme, useTheme } from "../theme";
 
 const HINT_MS = 5_000;
+// Matches --duration-fast, the hint's fade out.
+const HINT_FADE_MS = 250;
 const BEST_KEY = "kpulka:best-distance";
 
 function metres(distance: number): string {
@@ -151,6 +153,16 @@ export function Hero() {
         ? "W A S D to drive. W + S burns out. Esc stops."
         : "Hold to drive"
       : null;
+  // The hint text stays on screen while it fades out, then leaves the row.
+  const [hintText, setHintText] = useState("");
+  useEffect(() => {
+    if (hint) {
+      setHintText(hint);
+      return;
+    }
+    const timer = setTimeout(() => setHintText(""), HINT_FADE_MS);
+    return () => clearTimeout(timer);
+  }, [hint]);
 
   return (
     <section
@@ -163,29 +175,28 @@ export function Hero() {
       // A long press while driving would open the browser's menu.
       onContextMenu={playing ? (event) => event.preventDefault() : undefined}
     >
-      {noWebGL && (
-        <picture aria-hidden="true" className="dark:hidden">
-          <source media="(min-width: 700px)" srcSet={boardDesktop} />
-          <img
-            src={boardPhone}
-            alt=""
-            className="absolute inset-0 size-full object-cover object-bottom"
-          />
-        </picture>
-      )}
-      <canvas
-        ref={canvasRef}
-        aria-hidden="true"
-        // The one fade on the site: the board comes up quickly once its first
-        // frame is drawn, instead of popping in.
-        className={`absolute inset-0 size-full transition-opacity duration-300 ease-out motion-reduce:transition-none ${
-          live ? "" : "opacity-0"
-        }`}
-      />
+      <div className="board-layer absolute inset-0">
+        {noWebGL && (
+          <picture aria-hidden="true" className="dark:hidden">
+            <source media="(min-width: 700px)" srcSet={boardDesktop} />
+            <img
+              src={boardPhone}
+              alt=""
+              className="absolute inset-0 size-full object-cover object-bottom"
+            />
+          </picture>
+        )}
+        <canvas
+          ref={canvasRef}
+          aria-hidden="true"
+          data-live={live || undefined}
+          className="board absolute inset-0 size-full"
+        />
+      </div>
 
       <div className="pointer-events-none relative">
         {loaded && (
-          <div className="pointer-events-auto relative z-10 mb-4 flex flex-wrap items-center gap-2.5 md:mb-5">
+          <div className="appear pointer-events-auto relative z-10 mb-4 flex flex-wrap items-center gap-2.5 md:mb-5">
             <button
               type="button"
               aria-pressed={playing}
@@ -210,13 +221,18 @@ export function Hero() {
                 <span>Best {metres(Math.max(best, run.distance))}</span>
               </p>
             )}
-            {playing && hint && (
+            {playing && hintText && (
               // On phones the hint takes its own line above Play, instead of
               // wrapping under it. The empty rest of the line ignores
               // touches, so holding the board there still drives.
               <div className="pointer-events-none max-md:order-first max-md:basis-full">
-                <p aria-live="polite" className="pill pointer-events-auto">
-                  {hint}
+                <p
+                  aria-live="polite"
+                  aria-hidden={!hint || undefined}
+                  data-hidden={!hint || undefined}
+                  className="hint pill appear pointer-events-auto"
+                >
+                  {hint ?? hintText}
                 </p>
               </div>
             )}

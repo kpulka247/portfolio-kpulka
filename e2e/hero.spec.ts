@@ -147,7 +147,7 @@ test.describe("reduced motion", () => {
   }) => {
     await page.goto("/");
     const hero = page.locator('section[aria-label="Introduction"]');
-    await expect(hero.locator("canvas")).not.toHaveClass(/opacity-0/, {
+    await expect(hero.locator("canvas")).toHaveAttribute("data-live", {
       timeout: 20_000,
     });
     await expect(hero.locator("picture")).toHaveCount(0);

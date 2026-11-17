@@ -314,6 +314,65 @@ html:active-view-transition {
   }
 }
 
+/* The hero's board: it comes up from below when its first frame is drawn,
+   and drifts up slowly as the page scrolls, behind the sheet that covers
+   it, so the hero reads as layers. The Play row and the drive hint appear
+   with the board's quick fade, and the hint fades out the same way. These
+   are the only fades on the site. */
+.board {
+  opacity: 0;
+}
+
+.board[data-live] {
+  opacity: 1;
+}
+
+.hint[data-hidden] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes drift {
+  to {
+    translate: 0 -12svh;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .board {
+    translate: 0 9%;
+    transition:
+      opacity var(--duration-fast) var(--ease-out),
+      translate 0.8s var(--ease-out);
+  }
+
+  .board[data-live] {
+    translate: 0 0;
+  }
+
+  .appear {
+    animation: appear var(--duration-fast) var(--ease-out) backwards;
+  }
+
+  .hint {
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .board-layer {
+      animation: drift linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 100svh;
+    }
+  }
+}
+
 /* A product window settles into its cover as the card scrolls in. It uses
    translate, so the hover nudge on transform still adds on top. */
 @keyframes settle {
