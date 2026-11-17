@@ -17,7 +17,7 @@ import { createServer } from "vite";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const outDir = join(repoRoot, "src", "assets", "hero");
-const GROUND = "#e4e5e8";
+const GROUND = "#e3e2df";
 
 // The page imports both files, so a first run needs something there.
 const shots = [
@@ -51,7 +51,7 @@ try {
     });
     await page.goto("http://localhost:5199/");
     const canvas = page.locator('section[aria-label="Introduction"] canvas');
-    await canvas.and(page.locator(".opacity-100")).waitFor({ timeout: 30_000 });
+    await canvas.and(page.locator("[data-live]")).waitFor({ timeout: 30_000 });
     await page.addStyleTag({
       content: `body * { visibility: hidden !important; } section[aria-label="Introduction"] canvas { visibility: visible !important; }`,
     });

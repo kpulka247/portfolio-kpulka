@@ -7,7 +7,8 @@
 //   by 630. The hero for the home page, and each project's cover. src/seo.ts
 //   points at them.
 // - docs/images/banner.png: the README banner, the hero with its text
-//   centred and rounded corners.
+//   centred and rounded corners, in the light theme on the left and the
+//   dark theme on the right, joined along a diagonal.
 //
 // It starts the dev server and renders the real components, so the images
 // always match the site. Reduced motion keeps the hero on its still image.
@@ -25,6 +26,9 @@ const readmeDir = join(repoRoot, "docs", "images");
 // and the line under it centred. No buttons, which do nothing in an image,
 // and no small print, which is unreadable when GitHub shrinks the banner.
 const BANNER = { width: 1500, height: 600, radius: 28 };
+// Where the diagonal between the light and the dark half meets the top and
+// the bottom edge of the banner.
+const SEAM = { top: 860, bottom: 640 };
 const BANNER_HERO = `
   header, main > :not(section) { visibility: hidden; }
   section[aria-label="Introduction"] { min-height: 0 !important; padding-bottom: 64px !important; }
@@ -71,6 +75,30 @@ async function roundCorners(png, { width, height, radius }) {
     .toBuffer();
 }
 
+// Lays the dark render over the light one, cut along the seam, so the
+// banner shows both themes as one image.
+async function joinThemes(light, dark, { width, height }) {
+  const mask = Buffer.from(
+    `<svg width="${width}" height="${height}"><polygon points="${SEAM.top},0 ${width},0 ${width},${height} ${SEAM.bottom},${height}"/></svg>`,
+  );
+  const darkHalf = await sharp(dark)
+    .ensureAlpha()
+    .composite([{ input: mask, blend: "dest-in" }])
+    .png()
+    .toBuffer();
+  return sharp(light)
+    .composite([{ input: darkHalf }])
+    .png()
+    .toBuffer();
+}
+
+// Waits for the board's one still frame, drawn under reduced motion.
+async function boardDrawn(page) {
+  await page
+    .locator('section[aria-label="Introduction"] canvas[data-live]')
+    .waitFor({ timeout: 60_000 });
+}
+
 async function settle(page) {
   await page.evaluate(async () => {
     await document.fonts.ready;
@@ -102,6 +130,7 @@ try {
     reducedMotion: "reduce",
   });
   await home.goto("http://localhost:5198/");
+  await boardDrawn(home);
   // Only the hero: no nav, and not the edge of the black sheet below it.
   await home.addStyleTag({
     content: "header, main > :not(section) { visibility: hidden; }",
@@ -112,16 +141,23 @@ try {
     await home.screenshot({ type: "jpeg", quality: QUALITY }),
   );
   console.log("Wrote public/og/home.jpg");
-  const banner = await browser.newPage({
-    viewport: { width: BANNER.width, height: BANNER.height },
-    reducedMotion: "reduce",
-  });
-  await banner.goto("http://localhost:5198/");
-  await banner.addStyleTag({ content: BANNER_HERO });
-  await settle(banner);
+  const themes = [];
+  for (const colorScheme of ["light", "dark"]) {
+    const banner = await browser.newPage({
+      viewport: { width: BANNER.width, height: BANNER.height },
+      reducedMotion: "reduce",
+      colorScheme,
+    });
+    await banner.goto("http://localhost:5198/");
+    await boardDrawn(banner);
+    await banner.addStyleTag({ content: BANNER_HERO });
+    await settle(banner);
+    themes.push(await banner.screenshot());
+    await banner.close();
+  }
   await writeFile(
     join(readmeDir, "banner.png"),
-    await roundCorners(await banner.screenshot(), BANNER),
+    await roundCorners(await joinThemes(...themes, BANNER), BANNER),
   );
   console.log("Wrote docs/images/banner.png");
 
