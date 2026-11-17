@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { PiListBold, PiXBold } from "react-icons/pi";
 import { Link } from "react-router";
@@ -14,14 +14,61 @@ const LINKS = [
   { href: "/#contact", label: "Contact" },
 ];
 
-// mix-blend-difference keeps the white nav readable on the light hero and on
-// the black sheet without tracking the scroll position.
+type Surface = "ground" | "sheet";
+
+// The surface under the nav's middle: the topmost element there that is
+// marked with data-surface, or the sheet when none is.
+function surfaceUnder(y: number): Surface {
+  for (const element of document.elementsFromPoint(innerWidth / 2, y)) {
+    const marked = element.closest<HTMLElement>("[data-surface]");
+    if (marked) return marked.dataset.surface === "ground" ? "ground" : "sheet";
+  }
+  return "sheet";
+}
+
+// On the ground the nav takes the ink, so it matches the name in both
+// themes. On the sheet it is white with mix-blend-difference, which keeps
+// it readable on the sheet in either theme and over the screenshots that
+// pass under it.
+function useSurface(headerRef: React.RefObject<HTMLElement | null>) {
+  const [surface, setSurface] = useState<Surface>("ground");
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const header = headerRef.current;
+      if (!header) return;
+      const { top, height } = header.getBoundingClientRect();
+      setSurface(surfaceUnder(top + height / 2));
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    addEventListener("scroll", schedule, { passive: true });
+    addEventListener("resize", schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      removeEventListener("scroll", schedule);
+      removeEventListener("resize", schedule);
+    };
+  }, [headerRef]);
+  return surface;
+}
+
 export function Navbar() {
   const menuRef = useRef<HTMLDialogElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  const surface = useSurface(headerRef);
 
   return (
     <>
-      <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-4 text-white mix-blend-difference md:px-10 md:py-6">
+      <header
+        ref={headerRef}
+        className={`pointer-events-none fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-4 transition-colors duration-300 md:px-10 md:py-6 ${
+          surface === "ground" ? "text-ink" : "text-white mix-blend-difference"
+        }`}
+      >
         <Link
           to="/"
           className="pointer-events-auto font-display text-lg leading-none font-extrabold [font-stretch:120%]"
@@ -57,9 +104,9 @@ export function Navbar() {
               // Tab still reaches the links.
               menu?.focus();
             }}
-            className="inline-flex size-11 items-center justify-center"
+            className="icon-btn icon-btn-compact icon-btn-bare"
           >
-            <PiListBold aria-hidden="true" className="size-6" />
+            <PiListBold aria-hidden="true" className="size-5" />
           </button>
         </div>
       </header>
@@ -97,7 +144,7 @@ function MobileMenu({
             type="button"
             aria-label="Close menu"
             onClick={close}
-            className="inline-flex size-11 items-center justify-center rounded-full bg-raised"
+            className="icon-btn"
           >
             <PiXBold aria-hidden="true" className="size-5" />
           </button>
@@ -129,20 +176,12 @@ function MobileMenu({
           >
             {EMAIL}
           </a>
-          <div className="mt-5 flex gap-2">
-            <a
-              href={LINKEDIN_URL}
-              aria-label="LinkedIn"
-              className="inline-flex size-12 items-center justify-center rounded-full shadow-[inset_0_0_0_1px_var(--color-rule)]"
-            >
-              <FaLinkedin aria-hidden="true" className="size-5.5" />
+          <div className="mt-5 flex gap-2.5">
+            <a href={LINKEDIN_URL} aria-label="LinkedIn" className="icon-btn">
+              <FaLinkedin aria-hidden="true" className="size-5" />
             </a>
-            <a
-              href={GITHUB_URL}
-              aria-label="GitHub"
-              className="inline-flex size-12 items-center justify-center rounded-full shadow-[inset_0_0_0_1px_var(--color-rule)]"
-            >
-              <FaGithub aria-hidden="true" className="size-5.5" />
+            <a href={GITHUB_URL} aria-label="GitHub" className="icon-btn">
+              <FaGithub aria-hidden="true" className="size-5" />
             </a>
           </div>
         </div>
