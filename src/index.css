@@ -265,6 +265,37 @@ html {
   animation: none;
 }
 
+/* A flying name always shows its large, sharp image: the page heading
+   shrinks into a card, or a card grows from the heading's image. Flying
+   down into a card, the card's own text replaces the image as it lands. */
+.name-large {
+  view-transition-class: name-large;
+}
+
+.name-small {
+  view-transition-class: name-small;
+}
+
+::view-transition-old(*.name-small) {
+  opacity: 1;
+}
+
+::view-transition-new(*.name-small) {
+  animation: land var(--duration-base) step-end both;
+}
+
+@keyframes land {
+  from {
+    opacity: 0;
+  }
+}
+
+/* The page jumps straight to a linked section while a transition runs, so
+   it never scrolls under a flying name. */
+html:active-view-transition {
+  scroll-behavior: auto;
+}
+
 [data-transition="filter"] .project-card {
   view-transition-name: var(--card-transition);
 }

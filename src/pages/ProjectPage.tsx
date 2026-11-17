@@ -15,7 +15,7 @@ import { Link, type MetaFunction, useLocation } from "react-router";
 
 import Footer from "../components/Footer";
 import { Navbar } from "../components/Navbar";
-import { projectNameTransition } from "../components/projectName";
+import { ProjectName } from "../components/ProjectName";
 import { findProject, projects } from "../content/projects";
 import type { Project, ProjectType, Screenshot } from "../content/schema";
 import {
@@ -144,9 +144,7 @@ export default function ProjectPage() {
               <span>
                 <span className="block text-sm text-dim">Next project</span>
                 <span className="mt-2 block font-display text-[clamp(36px,9vw,72px)] leading-none font-extrabold text-paper [font-stretch:112%]">
-                  <span style={projectNameTransition(next.slug)}>
-                    {next.name}
-                  </span>
+                  <ProjectName slug={next.slug} name={next.name} size="small" />
                 </span>
               </span>
               <PiArrowRightBold
@@ -224,9 +222,7 @@ function Intro({ project }: { project: Project }) {
               : "text-[clamp(64px,15vw,144px)]"
           }`}
         >
-          <span style={projectNameTransition(project.slug)}>
-            {project.name}
-          </span>
+          <ProjectName slug={project.slug} name={project.name} size="large" />
         </h1>
         <p className="mt-6 max-w-[32ch] text-[22px] leading-[1.3] font-medium md:mt-7 md:text-lg">
           {project.tagline}
