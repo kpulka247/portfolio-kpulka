@@ -33,6 +33,14 @@ export const links: LinksFunction = () => [
   { rel: "shortcut icon", href: "/favicon.ico" },
 ];
 
+function skipToMain(event: React.MouseEvent<HTMLAnchorElement>) {
+  const main = document.getElementById("main");
+  if (!main) return;
+  event.preventDefault();
+  main.tabIndex = -1;
+  main.focus();
+}
+
 export function Layout({ children }: { children: ReactNode }) {
   return (
     // The page background lives on <html>: iOS 26 Safari tints its bars
@@ -51,7 +59,9 @@ export function Layout({ children }: { children: ReactNode }) {
         <Links />
       </head>
       <body className="notranslate bg-sheet">
-        <a className="skip-link" href="#main">
+        {/* Moves focus without a history entry: a bare hash entry makes
+            React Router restore an old scroll position. */}
+        <a className="skip-link" href="#main" onClick={skipToMain}>
           Skip to content
         </a>
         {children}

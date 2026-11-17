@@ -81,13 +81,13 @@ export function Navbar() {
           className="pointer-events-auto hidden items-center gap-8 md:flex"
         >
           {LINKS.map((link) => (
-            <a
+            <Link
               key={link.href}
-              href={link.href}
+              to={link.href}
               className="border-b-[1.5px] border-transparent py-1.5 text-sm font-medium hover:border-current"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
           <ThemeToggle />
         </nav>
@@ -153,9 +153,9 @@ function MobileMenu({
         </div>
         <nav aria-label="Main" className="mt-14 border-t border-rule">
           {LINKS.map((link) => (
-            <a
+            <Link
               key={link.href}
-              href={link.href}
+              to={link.href}
               onClick={close}
               className="flex items-center justify-between border-b border-rule py-3.5 font-display text-[48px] leading-none font-extrabold tracking-[-0.02em] [font-stretch:112%]"
             >
@@ -165,7 +165,7 @@ function MobileMenu({
                   {projects.length} projects
                 </span>
               )}
-            </a>
+            </Link>
           ))}
         </nav>
         <div className="mt-auto pt-10">

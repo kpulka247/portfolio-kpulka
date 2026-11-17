@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { PiSteeringWheelBold } from "react-icons/pi";
+import { Link } from "react-router";
 
 import boardDesktop from "../assets/hero/board-desktop.webp";
 import boardPhone from "../assets/hero/board-phone.webp";
@@ -240,12 +241,15 @@ export function Hero() {
               </p>
             </div>
             <div className="pointer-events-auto flex w-full items-center gap-2.5 md:w-auto">
-              <a href="#work" className="btn btn-solid flex-1 md:flex-none">
+              <Link to="/#work" className="btn btn-solid flex-1 md:flex-none">
                 See my work
-              </a>
-              <a href="#contact" className="btn btn-tonal flex-1 md:flex-none">
+              </Link>
+              <Link
+                to="/#contact"
+                className="btn btn-tonal flex-1 md:flex-none"
+              >
                 Get in touch
-              </a>
+              </Link>
               <a
                 href={GITHUB_URL}
                 aria-label="GitHub"
