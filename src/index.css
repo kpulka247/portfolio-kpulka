@@ -38,10 +38,22 @@
   --text-2xl: 72px;
   --text-hero: clamp(64px, 13vw, 184px);
 
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.3, 0, 0.2, 1);
+
   --radius-sm: 6px;
   --radius-md: 14px;
   --radius-panel: 32px;
   --radius-sheet: 40px;
+}
+
+/* Every animation on the site takes its length from these. The theme fade
+   matches the hero board's own fade to night. */
+:root {
+  --duration-fast: 0.2s;
+  --duration-base: 0.35s;
+  --duration-page: 0.45s;
+  --duration-theme: 0.7s;
 }
 
 /* Day and night are the same warm hue. The sheet follows the theme too:
@@ -149,8 +161,8 @@ html {
     --color-ground, --color-ink, --color-ink-dim, --color-edge, --color-sheet,
     --color-sheet-line, --color-raised, --color-text, --color-paper,
     --color-soft, --color-dim, --color-rule, --color-cover;
-  transition-duration: 0.7s;
-  transition-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
+  transition-duration: var(--duration-theme);
+  transition-timing-function: var(--ease-in-out);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -176,9 +188,9 @@ html {
     padding: 0 22px;
     font: 600 15px/1 var(--font-body);
     white-space: nowrap;
-    transition:
-      background-color 0.2s,
-      color 0.2s;
+    transition-property: background-color, color;
+    transition-duration: var(--duration-fast);
+    transition-timing-function: var(--ease-out);
   }
 
   .btn-compact {
@@ -234,7 +246,7 @@ html {
     justify-content: center;
     border-radius: 999px;
     color: inherit;
-    transition: background-color 0.2s;
+    transition: background-color var(--duration-fast) var(--ease-out);
   }
 
   .icon-btn-compact {
@@ -273,9 +285,9 @@ html {
     white-space: nowrap;
     color: var(--color-soft);
     background: color-mix(in srgb, var(--color-paper) 8%, transparent);
-    transition:
-      background-color 0.2s,
-      color 0.2s;
+    transition-property: background-color, color;
+    transition-duration: var(--duration-fast);
+    transition-timing-function: var(--ease-out);
   }
 
   .chip:hover {
@@ -293,7 +305,7 @@ html {
     text-decoration-thickness: 1px;
     text-underline-offset: 4px;
     text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
-    transition: text-decoration-color 0.2s;
+    transition: text-decoration-color var(--duration-fast) var(--ease-out);
   }
 
   .text-link:hover {
@@ -319,7 +331,7 @@ html {
   color: var(--color-ground);
   font: 600 15px/1 var(--font-body);
   transform: translateY(-200%);
-  transition: transform 0.2s;
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
 .skip-link:focus-visible {
@@ -327,8 +339,84 @@ html {
 }
 
 html {
-  scroll-behavior: smooth;
   position: relative;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Moving between pages cross-fades instead of cutting, both inside the app
+   and on full page loads such as the nav's links from a project page. A
+   project's name carries over between its card and its page heading. While
+   the Work filter runs its own transition, each card carries its name too,
+   so the cards that stay glide to their new places. */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-group(*) {
+  animation-duration: var(--duration-page);
+  animation-timing-function: var(--ease-out);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--duration-page);
+  animation-timing-function: var(--ease-in-out);
+}
+
+[data-transition="filter"] .project-card {
+  view-transition-name: var(--card-transition);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
+}
+
+/* The phone menu fades and drops in when it opens and fades out when it
+   closes, instead of cutting the page away. */
+.menu-dialog,
+.menu-dialog::backdrop {
+  opacity: 0;
+  transition-property: opacity, translate, display, overlay;
+  transition-duration: var(--duration-base);
+  transition-timing-function: var(--ease-out);
+  transition-behavior: allow-discrete;
+}
+
+.menu-dialog {
+  translate: 0 -12px;
+}
+
+.menu-dialog[open],
+.menu-dialog[open]::backdrop {
+  opacity: 1;
+  translate: 0 0;
+}
+
+@starting-style {
+  .menu-dialog[open],
+  .menu-dialog[open]::backdrop {
+    opacity: 0;
+  }
+
+  .menu-dialog[open] {
+    translate: 0 -12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-dialog,
+  .menu-dialog::backdrop {
+    transition: none;
+  }
 }
 
 /* The hero stays put while the sheet scrolls over it. Where the

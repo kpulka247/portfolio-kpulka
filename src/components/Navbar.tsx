@@ -71,6 +71,7 @@ export function Navbar() {
       >
         <Link
           to="/"
+          viewTransition
           className="pointer-events-auto font-display text-lg leading-none font-extrabold [font-stretch:120%]"
         >
           kpulka
@@ -129,12 +130,13 @@ function MobileMenu({
       ref={menuRef}
       aria-label="Menu"
       tabIndex={-1}
-      className="m-0 outline-none h-dvh max-h-none w-full max-w-none bg-sheet p-0 text-paper backdrop:bg-sheet open:flex"
+      className="menu-dialog m-0 outline-none h-dvh max-h-none w-full max-w-none bg-sheet p-0 text-paper backdrop:bg-sheet open:flex"
     >
       <div className="flex w-full flex-col px-5 pt-4 pb-8">
         <div className="flex items-center justify-between">
           <Link
             to="/"
+            viewTransition
             onClick={close}
             className="font-display text-lg leading-none font-extrabold [font-stretch:120%]"
           >

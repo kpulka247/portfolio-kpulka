@@ -11,7 +11,11 @@ export default function Footer() {
     >
       <div className="flex flex-wrap items-center gap-x-6 gap-y-4 md:order-2 md:gap-x-7">
         <ThemeChoice />
-        <Link to="/privacy" className="text-link hover:text-paper">
+        <Link
+          to="/privacy"
+          viewTransition
+          className="text-link hover:text-paper"
+        >
           Privacy
         </Link>
         <a href={SOURCE_URL} className="text-link hover:text-paper">

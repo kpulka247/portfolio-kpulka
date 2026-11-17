@@ -176,6 +176,7 @@ export function Hero() {
   useEffect(() => {
     if (hint) setLastHint(hint);
   }, [hint]);
+  const playRow = usePresence(loaded);
   const score = usePresence(playing);
   const hintPresence = usePresence(playing && hint !== null);
   const fade = (visible: boolean) =>
@@ -212,8 +213,12 @@ export function Hero() {
       />
 
       <div className="pointer-events-none relative">
-        {loaded && (
-          <div className="pointer-events-auto relative z-10 mb-4 flex flex-wrap items-center gap-2.5 md:mb-5">
+        {playRow.mounted && (
+          <div
+            className={`pointer-events-auto relative z-10 mb-4 flex flex-wrap items-center gap-2.5 transition-opacity duration-300 ease-out md:mb-5 ${
+              playRow.visible ? "opacity-100" : "opacity-0"
+            }`}
+          >
             <button
               type="button"
               aria-pressed={playing}

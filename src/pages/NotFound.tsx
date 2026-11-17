@@ -31,7 +31,7 @@ export default function NotFound() {
             The address may be mistyped, or the page moved when the site was
             rebuilt.
           </p>
-          <Link to="/" className="btn btn-solid mt-8">
+          <Link to="/" viewTransition className="btn btn-solid mt-8">
             Go to the home page
           </Link>
         </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import { PiArrowUpRightBold } from "react-icons/pi";
 import { useSearchParams } from "react-router";
 
@@ -81,6 +82,20 @@ export function Work() {
   }, [searchParams]);
 
   const select = (next: Filter) => {
+    // The cards glide to their new places. While this transition runs,
+    // data-transition="filter" gives each card its own view transition
+    // name, so the browser moves the cards that stay and fades the ones
+    // that leave.
+    const show = () => flushSync(() => setFilter(next));
+    if (!document.startViewTransition) {
+      show();
+    } else {
+      const root = document.documentElement;
+      root.dataset.transition = "filter";
+      document
+        .startViewTransition(show)
+        .finished.finally(() => delete root.dataset.transition);
+    }
     setSearchParams(next === "all" ? {} : { type: next }, {
       replace: true,
       preventScrollReset: true,

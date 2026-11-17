@@ -15,6 +15,7 @@ import { Link, type MetaFunction, useLocation } from "react-router";
 
 import Footer from "../components/Footer";
 import { Navbar } from "../components/Navbar";
+import { projectNameTransition } from "../components/projectName";
 import { findProject, projects } from "../content/projects";
 import type { Project, ProjectType, Screenshot } from "../content/schema";
 import {
@@ -78,6 +79,7 @@ export default function ProjectPage() {
           <div className={CONTAINER}>
             <Link
               to="/#work"
+              viewTransition
               className="text-link inline-flex min-h-11 items-center gap-2 text-sm text-ink-dim hover:text-ink"
             >
               <PiArrowLeftBold aria-hidden="true" className="size-4" />
@@ -136,12 +138,15 @@ export default function ProjectPage() {
 
             <Link
               to={`/projects/${next.slug}`}
+              viewTransition
               className="group mt-24 flex items-center justify-between gap-6 border-y border-rule py-8 md:mt-32 md:py-10"
             >
               <span>
                 <span className="block text-sm text-dim">Next project</span>
                 <span className="mt-2 block font-display text-[clamp(36px,9vw,72px)] leading-none font-extrabold text-paper [font-stretch:112%]">
-                  {next.name}
+                  <span style={projectNameTransition(next.slug)}>
+                    {next.name}
+                  </span>
                 </span>
               </span>
               <PiArrowRightBold
@@ -219,7 +224,9 @@ function Intro({ project }: { project: Project }) {
               : "text-[clamp(64px,15vw,144px)]"
           }`}
         >
-          {project.name}
+          <span style={projectNameTransition(project.slug)}>
+            {project.name}
+          </span>
         </h1>
         <p className="mt-6 max-w-[32ch] text-[22px] leading-[1.3] font-medium md:mt-7 md:text-lg">
           {project.tagline}
