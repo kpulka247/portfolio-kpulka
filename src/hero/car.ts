@@ -38,8 +38,8 @@ export interface Car {
   // Moves the pop-up headlights.
   update: (dt: number) => void;
   // The lamps, for lighting the tyre smoke.
-  headlights: THREE.Object3D[];
-  taillights: THREE.Object3D[];
+  headlights: THREE.SpotLight[];
+  taillights: THREE.SpotLight[];
   dispose: () => void;
 }
 
@@ -91,13 +91,18 @@ const NIGHT: Record<Part, string> = {
   lens: "#3a1210",
 };
 
-const HEADLIGHT = {
+export const HEADLIGHT = {
   color: "#f7f2ea",
   intensity: 290,
   distance: 34,
   angle: 0.42,
 };
-const TAILLIGHT = { color: "#ff3b30", intensity: 14, distance: 8, angle: 0.9 };
+export const TAILLIGHT = {
+  color: "#ff3b30",
+  intensity: 14,
+  distance: 8,
+  angle: 0.9,
+};
 const LAMP_GLOW = 3;
 // The tail lamps skip tone mapping, which would turn a bright red orange,
 // so their glow is set as plain red: dim at night, bright when braking.

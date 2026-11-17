@@ -321,9 +321,6 @@ export function mount(
 
   const car = buildCar();
   const smoke = createSmoke(scene);
-  const smokeHeads = car.headlights.map(() => new THREE.Vector3());
-  const smokeTails = car.taillights.map(() => new THREE.Vector3());
-  const smokeAhead = new THREE.Vector3();
   const { size } = car;
   const ride = size.wheelRadius + size.bodyLift;
   car.root.visible = false;
@@ -1045,15 +1042,10 @@ export function mount(
 
     car.update(dt);
     car.root.updateMatrixWorld();
-    car.headlights.forEach((lamp, n) => lamp.getWorldPosition(smokeHeads[n]));
-    car.taillights.forEach((lamp, n) => lamp.getWorldPosition(smokeTails[n]));
-    smokeAhead.set(-Math.sin(yaw), 0, -Math.cos(yaw));
     smoke.update(dt, scroll - scrollBefore, {
       night,
-      lamps: night === 1 && car.root.visible,
-      heads: smokeHeads,
-      tails: smokeTails,
-      ahead: smokeAhead,
+      heads: car.root.visible ? car.headlights : [],
+      tails: car.root.visible ? car.taillights : [],
     });
 
     const rowsNow = Math.floor(scroll / spacing);

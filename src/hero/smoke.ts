@@ -1,24 +1,34 @@
 import * as THREE from "three";
 
+import { HEADLIGHT, TAILLIGHT } from "./car";
+
 const POOL = 360;
 const LIFE = 3.4;
 
 export interface SmokeLights {
   // 0 by day, 1 at night: how dark the ambient light is.
   night: number;
-  // Whether the lamps are on.
-  lamps: boolean;
-  tails: THREE.Vector3[];
-  heads: THREE.Vector3[];
-  // The way the headlights point, normalised.
-  ahead: THREE.Vector3;
+  // The car's lamps. A puff takes a lamp's colour only while that lamp
+  // shines and only inside its beam, so the smoke follows the lamps as
+  // they come on, go off and brighten for braking.
+  heads: THREE.SpotLight[];
+  tails: THREE.SpotLight[];
 }
 
 const DAY_SMOKE = new THREE.Color("#d8d3cc");
 const NIGHT_SMOKE = new THREE.Color("#57524c");
-const TAIL_GLOW = new THREE.Color("#ff3b30");
-const HEAD_GLOW = new THREE.Color("#f7f2ea");
-const BEAM = Math.cos(0.42);
+// How strongly each kind of lamp lights a puff at its usual intensity,
+// and how fast that fades with distance.
+const HEAD = { gain: 0.8 / HEADLIGHT.intensity, falloff: 0.04 };
+const TAIL = { gain: 0.7 / TAILLIGHT.intensity, falloff: 1.6 };
+
+interface Beam {
+  at: THREE.Vector3;
+  axis: THREE.Vector3;
+  cos: number;
+  colour: THREE.Color;
+  falloff: number;
+}
 
 const VERTEX = /* glsl */ `
   attribute float size;
@@ -93,7 +103,27 @@ export function createSmoke(scene: THREE.Scene): Smoke {
 
   const colour = new THREE.Color();
   const offset = new THREE.Vector3();
-  const puff = new THREE.Vector3();
+  const beams: Beam[] = [];
+  let shining = 0;
+
+  function aim(lamps: THREE.SpotLight[], kind: typeof HEAD) {
+    for (const lamp of lamps) {
+      if (lamp.intensity <= 0) continue;
+      const beam = (beams[shining] ??= {
+        at: new THREE.Vector3(),
+        axis: new THREE.Vector3(),
+        cos: 0,
+        colour: new THREE.Color(),
+        falloff: 0,
+      });
+      lamp.getWorldPosition(beam.at);
+      lamp.target.getWorldPosition(beam.axis).sub(beam.at).normalize();
+      beam.cos = Math.cos(lamp.angle);
+      beam.colour.copy(lamp.color).multiplyScalar(lamp.intensity * kind.gain);
+      beam.falloff = kind.falloff;
+      shining++;
+    }
+  }
 
   return {
     emit(x, y, z, vx, vz) {
@@ -112,6 +142,9 @@ export function createSmoke(scene: THREE.Scene): Smoke {
     },
 
     update(dt, scrolled, lights) {
+      shining = 0;
+      aim(lights.heads, HEAD);
+      aim(lights.tails, TAIL);
       for (let i = 0; i < POOL; i++) {
         if (age[i] >= LIFE) {
           alpha[i] = 0;
@@ -134,26 +167,20 @@ export function createSmoke(scene: THREE.Scene): Smoke {
           (0.5 - 0.12 * lights.night);
 
         colour.copy(DAY_SMOKE).lerp(NIGHT_SMOKE, lights.night);
-        if (lights.lamps) {
-          puff.set(position[j], position[j + 1], position[j + 2]);
-          for (const tail of lights.tails) {
-            const d2 = puff.distanceToSquared(tail);
-            colour.r += (TAIL_GLOW.r * 0.9) / (1 + d2 * 1.6);
-            colour.g += (TAIL_GLOW.g * 0.9) / (1 + d2 * 1.6);
-            colour.b += (TAIL_GLOW.b * 0.9) / (1 + d2 * 1.6);
-          }
-          for (const head of lights.heads) {
-            offset.subVectors(puff, head);
-            const distance = offset.length();
-            const along = offset.dot(lights.ahead) / Math.max(distance, 1e-3);
-            if (along > BEAM) {
-              const edge = (along - BEAM) / (1 - BEAM);
-              const glow = (edge * 0.8) / (1 + distance * distance * 0.04);
-              colour.r += HEAD_GLOW.r * glow;
-              colour.g += HEAD_GLOW.g * glow;
-              colour.b += HEAD_GLOW.b * glow;
-            }
-          }
+        for (let n = 0; n < shining; n++) {
+          const beam = beams[n];
+          offset.set(position[j], position[j + 1], position[j + 2]);
+          offset.sub(beam.at);
+          const distance = offset.length();
+          const along = offset.dot(beam.axis) / Math.max(distance, 1e-3);
+          if (along <= beam.cos) continue;
+          const glow =
+            (along - beam.cos) /
+            (1 - beam.cos) /
+            (1 + distance * distance * beam.falloff);
+          colour.r += beam.colour.r * glow;
+          colour.g += beam.colour.g * glow;
+          colour.b += beam.colour.b * glow;
         }
         tint[j] = Math.min(1, colour.r);
         tint[j + 1] = Math.min(1, colour.g);
