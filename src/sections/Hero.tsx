@@ -176,7 +176,11 @@ export function Hero() {
       <canvas
         ref={canvasRef}
         aria-hidden="true"
-        className={`absolute inset-0 size-full ${live ? "" : "opacity-0"}`}
+        // The one fade on the site: the board comes up quickly once its first
+        // frame is drawn, instead of popping in.
+        className={`absolute inset-0 size-full transition-opacity duration-300 ease-out motion-reduce:transition-none ${
+          live ? "" : "opacity-0"
+        }`}
       />
 
       <div className="pointer-events-none relative">
