@@ -1,3 +1,13 @@
+## [2.0.2](https://github.com/kpulka247/portfolio-kpulka/compare/v2.0.1...v2.0.2) (2026-11-17)
+
+### Bug Fixes
+
+* **a11y:** clip the skip link in place instead of parking it above ([a9ea55a](https://github.com/kpulka247/portfolio-kpulka/commit/a9ea55abd9d3a4d3e3bfaacb76c387f83d9541ee))
+
+### Reverts
+
+* keep the nav at the top edge ([ca5ce57](https://github.com/kpulka247/portfolio-kpulka/commit/ca5ce5724a03a397963e8dc905aa7c071f4b81fa))
+
 ## [2.0.1](https://github.com/kpulka247/portfolio-kpulka/compare/v2.0.0...v2.0.1) (2026-11-17)
 
 ### Bug Fixes
