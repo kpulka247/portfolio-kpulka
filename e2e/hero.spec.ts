@@ -35,7 +35,11 @@ test.describe("live pin board", () => {
     await page.keyboard.press("d");
     await page.waitForTimeout(3_500);
     await expect(hint).toBeVisible();
-    await expect(hint).toBeHidden({ timeout: 6_000 });
+    // The test browser draws the board in software at about a second a
+    // frame, which starves the page's timers: the 5 s hint timer fires 12
+    // to 13 s after the key press there. The bound checks that the hint
+    // leaves, not when.
+    await expect(hint).toBeHidden({ timeout: 20_000 });
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
     await page.keyboard.press("Escape");
