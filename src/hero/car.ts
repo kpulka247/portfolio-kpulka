@@ -32,8 +32,8 @@ export interface Car {
   // 0 to 1: the brake lights, by day and at night. The two tail lamps
   // glow brighter and the third brake light, in the spoiler, comes on.
   setBraking: (level: number) => void;
-  // 0 for day, 1 for night: the paint darkens with the scene, as at dusk.
-  // The lamps are left alone.
+  // 0 for day, 1 for night: the car fades from its day colours to its
+  // night ones with the board. The lamps are left alone.
   setDusk: (level: number) => void;
   // Moves the pop-up headlights.
   update: (dt: number) => void;
@@ -53,19 +53,46 @@ const ARCH = 0.158;
 export const ARCH_GAP = 0.006;
 const SLAM = ARCH - R - ARCH_GAP;
 
-const COLORS = {
-  paint: "#c9ccd1",
-  popUp: "#b4b7bc",
-  trim: "#2a2b2f",
-  glass: "#141518",
-  tyre: "#1d1e21",
-  liner: "#141517",
-  wheel: "#c9ccd1",
-  plate: "#d8d9dc",
+// The car's colours from the Doop canvas (the --color-car-* tokens): a
+// warm silver coupe with gunmetal wheels by day, a graphite one with warm
+// silver wheels at night. The wheels always contrast with the body.
+type Part =
+  | "paint"
+  | "popUp"
+  | "trim"
+  | "glass"
+  | "tyre"
+  | "liner"
+  | "wheel"
+  | "plate"
+  | "lens";
+
+const DAY: Record<Part, string> = {
+  paint: "#cdc8c1",
+  popUp: "#bab4ac",
+  trim: "#292624",
+  glass: "#161412",
+  tyre: "#1d1b19",
+  liner: "#13110f",
+  wheel: "#77716a",
+  plate: "#ece8e2",
+  lens: "#3a1210",
+};
+
+const NIGHT: Record<Part, string> = {
+  paint: "#4a4541",
+  popUp: "#423d3a",
+  trim: "#1f1c1a",
+  glass: "#141210",
+  tyre: "#1a1816",
+  liner: "#100e0d",
+  wheel: "#b8b2aa",
+  plate: "#ece8e2",
+  lens: "#3a1210",
 };
 
 const HEADLIGHT = {
-  color: "#f4f4f2",
+  color: "#f7f2ea",
   intensity: 290,
   distance: 34,
   angle: 0.42,
@@ -78,8 +105,6 @@ const TAIL_LAMP_RED = "#ff1408";
 const TAIL_GLOW = 0.8;
 const BRAKE_GLOW = 1.7;
 const BRAKE_BOOST = 2.5;
-const DUSK_TINT = new THREE.Color("#d2cac1");
-const DUSK_BRIGHTNESS = 0.68;
 
 const STEP = Math.atan2(0.08, 0.22);
 const bonnetAt = (z: number) => 0.235 + ((0.9 + z) / 0.22) * 0.08;
@@ -90,20 +115,19 @@ const POP_UP_LIT = 0.85;
 export function buildCar(): Car {
   const geometries: THREE.BufferGeometry[] = [];
   const materials = new Map<string, THREE.MeshStandardMaterial>();
-  const material = (
-    color: string,
-    { roughness = 0.45, metalness = 0.2 } = {},
-  ) => {
-    const key = `${color}-${roughness}-${metalness}`;
+  const parts = new Map<THREE.MeshStandardMaterial, Part>();
+  const material = (part: Part, { roughness = 0.45, metalness = 0.2 } = {}) => {
+    const key = `${part}-${roughness}-${metalness}`;
     let found = materials.get(key);
     if (!found) {
       found = new THREE.MeshStandardMaterial({
-        color,
+        color: DAY[part],
         roughness,
         metalness,
         flatShading: true,
       });
       materials.set(key, found);
+      parts.set(found, part);
     }
     return found;
   };
@@ -135,8 +159,8 @@ export function buildCar(): Car {
     return shape;
   };
 
-  const paint = material(COLORS.paint, { roughness: 0.35, metalness: 0.35 });
-  const trim = material(COLORS.trim);
+  const paint = material("paint", { roughness: 0.35, metalness: 0.35 });
+  const trim = material("trim");
 
   const root = new THREE.Group();
   const body = new THREE.Group();
@@ -179,7 +203,7 @@ export function buildCar(): Car {
       ]),
       WIDTH * 0.9,
     ),
-    material(COLORS.glass, { roughness: 0.15, metalness: 0.6 }),
+    material("glass", { roughness: 0.15, metalness: 0.6 }),
   );
   mesh(
     shell,
@@ -192,12 +216,12 @@ export function buildCar(): Car {
       ]),
       WIDTH * 0.88,
     ),
-    material(COLORS.paint),
+    material("paint"),
   );
   const spoiler = mesh(
     shell,
     new THREE.BoxGeometry(WIDTH * 0.88, 0.025, 0.08),
-    material(COLORS.paint),
+    material("paint"),
     [0, 0.338, 0.875],
   );
   spoiler.rotation.x = -0.35;
@@ -209,7 +233,7 @@ export function buildCar(): Car {
     toneMapped: false,
   });
   const brakeLamp = tailLamp.clone();
-  const lens = material("#3a1210", { roughness: 0.3 });
+  const lens = material("lens", { roughness: 0.3 });
   const LAMP_WIDTH = 0.17;
   mesh(
     shell,
@@ -235,7 +259,7 @@ export function buildCar(): Car {
   mesh(
     shell,
     new THREE.BoxGeometry(0.2, 0.05, 0.02),
-    material(COLORS.plate),
+    material("plate"),
     [0, 0.175, 0.93],
   );
   mesh(
@@ -262,14 +286,13 @@ export function buildCar(): Car {
       0.355,
       -0.27,
     ]);
-    mesh(
-      shell,
-      new THREE.BoxGeometry(0.06, 0.04, 0.05),
-      material(COLORS.paint),
-      [x * (WIDTH / 2 + 0.018), 0.368, -0.27],
-    );
+    mesh(shell, new THREE.BoxGeometry(0.06, 0.04, 0.05), material("paint"), [
+      x * (WIDTH / 2 + 0.018),
+      0.368,
+      -0.27,
+    ]);
   }
-  const liner = material(COLORS.liner, { roughness: 0.9 });
+  const liner = material("liner", { roughness: 0.9 });
   for (const z of [-AXLE_Z, AXLE_Z]) {
     const round = mesh(
       shell,
@@ -287,7 +310,7 @@ export function buildCar(): Car {
   }
 
   const headLamp = new THREE.MeshStandardMaterial({
-    color: "#f6f6f7",
+    color: HEADLIGHT.color,
     roughness: 0.2,
     emissive: HEADLIGHT.color,
     emissiveIntensity: 0,
@@ -311,7 +334,7 @@ export function buildCar(): Car {
     shell.add(hinge);
     const popUp = new THREE.Group();
     hinge.add(popUp);
-    mesh(popUp, wedge, material(COLORS.popUp));
+    mesh(popUp, wedge, material("popUp"));
     mesh(popUp, popUpLens, headLamp, [0, popHeight / 2, -popLength - 0.004]);
     popUp.scale.y = 0.001;
     popUps.push(popUp);
@@ -352,14 +375,15 @@ export function buildCar(): Car {
   }
 
   const rubber = new THREE.MeshStandardMaterial({
-    color: COLORS.tyre,
+    color: DAY.tyre,
     roughness: 0.95,
     metalness: 0.2,
     flatShading: true,
     side: THREE.DoubleSide,
   });
   materials.set("rubber", rubber);
-  const metal = material(COLORS.wheel, { roughness: 0.25, metalness: 0.8 });
+  parts.set(rubber, "tyre");
+  const metal = material("wheel", { roughness: 0.25, metalness: 0.8 });
   const tread = new THREE.CylinderGeometry(R, R, 0.12, 16, 1, true);
   tread.rotateZ(Math.PI / 2);
   const wall = new THREE.RingGeometry(RIM, R, 16);
@@ -415,13 +439,10 @@ export function buildCar(): Car {
     }
   });
 
-  const paints = [...materials.values()].map((found) => ({
+  const paints = [...parts].map(([found, part]) => ({
     material: found,
-    day: found.color.clone(),
-    dusk: found.color
-      .clone()
-      .multiply(DUSK_TINT)
-      .multiplyScalar(DUSK_BRIGHTNESS),
+    day: new THREE.Color(DAY[part]),
+    night: new THREE.Color(NIGHT[part]),
   }));
 
   let lightsOn = false;
@@ -463,8 +484,8 @@ export function buildCar(): Car {
     headlights,
     taillights,
     setDusk(level) {
-      for (const { material: found, day, dusk } of paints) {
-        found.color.copy(day).lerp(dusk, level);
+      for (const { material: found, day, night } of paints) {
+        found.color.copy(day).lerp(night, level);
       }
     },
     setLights(on) {

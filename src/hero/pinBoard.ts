@@ -60,30 +60,35 @@ interface Palette {
   obstacles: [string, string, string, string, string];
 }
 
+// From the Doop canvas's b-light and b-dark tokens: warm stone pins by day,
+// warm graphite at night, and obstacles cast in the name's ink.
 const DAY: Palette = {
-  ground: "#e4e5e8",
-  pinLow: "#b9bbc1",
-  pinHigh: "#f6f6f7",
-  base: "#9fa1a8",
+  ground: "#e3e2df",
+  pinLow: "#c0bdb7",
+  pinHigh: "#f5f4f1",
+  base: "#b1aea8",
   sky: "#ffffff",
-  earth: "#a9abb2",
+  earth: "#aca9a3",
   skyIntensity: 1.3,
   sun: "#ffffff",
   sunIntensity: 2.8,
-  obstacles: ["#aeb0b6", "#a2a4aa", "#94969c", "#888a90", "#888a90"],
+  obstacles: ["#35322e", "#2d2a27", "#26231f", "#1c1b19", "#1c1b19"],
 };
 
+// The night pins and lights are only faintly warm, so that after lighting
+// and tone mapping the board renders in the same hue and warmth as the sky
+// behind it (the page's ground), about 9% saturated, not a browner 20%.
 const NIGHT: Palette = {
-  ground: "#3b3835",
-  pinLow: "#454341",
-  pinHigh: "#7a7875",
-  base: "#292725",
-  sky: "#e6e3df",
-  earth: "#191817",
+  ground: "#2e2c2a",
+  pinLow: "#454342",
+  pinHigh: "#696664",
+  base: "#232221",
+  sky: "#eaeae8",
+  earth: "#1c1b1a",
   skyIntensity: 1.2,
-  sun: "#ebe8e4",
+  sun: "#eeedeb",
   sunIntensity: 1.7,
-  obstacles: ["#5d5b58", "#585654", "#53514f", "#4e4c4a", "#4e4c4a"],
+  obstacles: ["#d6d2cc", "#dcd8d2", "#e3dfda", "#e9e6e1", "#e9e6e1"],
 };
 
 const THEME_FADE = 4;
@@ -116,6 +121,14 @@ const OBSTACLE_HEIGHT: Record<number, number> = {
   [OBSTACLE.moving]: 1.4,
 };
 const SOLID_HEIGHT = 0.3;
+// A pin's width as a share of the grid spacing. Raised pins widen until
+// they touch, so an obstacle reads as one solid slab of the name's ink
+// instead of loose pins.
+const PIN_WIDTH = 0.86;
+const SLAB_WIDTH = 1 / PIN_WIDTH;
+// The night light is dim, so the obstacles are brightened past their
+// colour to read as the name's warm white.
+const NIGHT_OBSTACLE_GAIN = 1.8;
 const HIT_MARGIN = 0.1;
 const SCREEN_EDGE = 0.94;
 // After a short warm-up, frames are timed for this long. If they average
@@ -159,8 +172,10 @@ interface Grid {
   spacing: number;
 }
 
-const DESKTOP: Grid = { columns: 90, rows: 46, spacing: 0.62 };
-const PHONE: Grid = { columns: 34, rows: 50, spacing: 0.8 };
+// The fine grid: pins about a third smaller and closer than the first
+// board, over the same area.
+const DESKTOP: Grid = { columns: 133, rows: 68, spacing: 0.42 };
+const PHONE: Grid = { columns: 50, rows: 74, spacing: 0.54 };
 const DESKTOP_CAMERA = { fov: 34, y: 15, z: 26 };
 
 // Enough columns that the board's sides stay off screen at the far edge,
@@ -275,7 +290,11 @@ export function mount(
 
   // Each pin is a unit-tall box hanging down from its top face, so scaling
   // it never lifts it off the base.
-  const pinGeometry = new THREE.BoxGeometry(spacing * 0.8, 1, spacing * 0.8);
+  const pinGeometry = new THREE.BoxGeometry(
+    spacing * PIN_WIDTH,
+    1,
+    spacing * PIN_WIDTH,
+  );
   pinGeometry.translate(0, -0.5, 0);
   const pinMaterial = new THREE.MeshStandardMaterial({
     roughness: 0.5,
@@ -920,7 +939,7 @@ export function mount(
       yaw: yaw + spin,
     };
     const reach = size.halfLength + spacing;
-    const half = spacing * 0.4;
+    const half = (spacing * PIN_WIDTH * SLAB_WIDTH) / 2;
     const margin = size.halfWidth * 2 * HIT_MARGIN;
     for (let k = 0; k < slots; k++) {
       const z = slotZ(k, phase);
@@ -977,7 +996,9 @@ export function mount(
       night,
     );
     obstacleColors.forEach((color, n) =>
-      mixColor(color, DAY.obstacles[n], NIGHT.obstacles[n]),
+      mixColor(color, DAY.obstacles[n], NIGHT.obstacles[n]).multiplyScalar(
+        1 + (NIGHT_OBSTACLE_GAIN - 1) * night,
+      ),
     );
     if (nightTarget === 1 && night > LIGHTS_ON_AT) lightsOn = true;
     if (nightTarget === 0 && night < 1 - LIGHTS_ON_AT) lightsOn = false;
@@ -1127,22 +1148,19 @@ export function mount(
           (dents.length ? dentAt(x, worldZ) : 0) +
           raised[index];
         const height = PIN_HIDDEN + (surface - PIN_HIDDEN) * shown;
+        const solid = kindHeight ? Math.min(1, raised[index] / 0.3) : 0;
+        const width = 1 + (SLAB_WIDTH - 1) * solid;
         matrix.makeScale(
-          1,
+          width,
           Math.max(0.2, height - BASE_Y) + (1 - shown) * PIN_LENGTH,
-          1,
+          width,
         );
         matrix.setPosition(x, height, z);
         pins.setMatrixAt(index, matrix);
         colour
           .copy(pinLow)
           .lerp(pinHigh, THREE.MathUtils.clamp((height - 0.1) / 1.6, 0, 1));
-        if (kindHeight) {
-          colour.lerp(
-            obstacleColors[shownKind - 1],
-            Math.min(1, raised[index] / 0.3),
-          );
-        }
+        if (kindHeight) colour.lerp(obstacleColors[shownKind - 1], solid);
         colour.lerp(groundColor, (1 - shown) * 0.7);
         pins.setColorAt(index, colour);
       }

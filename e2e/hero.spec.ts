@@ -56,10 +56,10 @@ test.describe("live pin board", () => {
     for (let i = 0; i < 7; i++) await play.click({ delay: 0 });
     await expect(play).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByText(/W A S D to drive/)).toBeVisible();
-    await expect(page.getByText(/Best \d+ m/)).toBeVisible();
+    await expect(page.getByText(/Best [\d,]+ m/)).toBeVisible();
     await play.click();
     await expect(play).toHaveAttribute("aria-pressed", "false");
-    await expect(page.getByText(/Best \d+ m/)).toBeHidden();
+    await expect(page.getByText(/Best [\d,]+ m/)).toBeHidden();
     expect(errors).toEqual([]);
   });
 

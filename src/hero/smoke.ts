@@ -14,10 +14,10 @@ export interface SmokeLights {
   ahead: THREE.Vector3;
 }
 
-const DAY_SMOKE = new THREE.Color("#c8c9cb");
-const NIGHT_SMOKE = new THREE.Color("#505153");
+const DAY_SMOKE = new THREE.Color("#d8d3cc");
+const NIGHT_SMOKE = new THREE.Color("#57524c");
 const TAIL_GLOW = new THREE.Color("#ff3b30");
-const HEAD_GLOW = new THREE.Color("#f4f4f2");
+const HEAD_GLOW = new THREE.Color("#f7f2ea");
 const BEAM = Math.cos(0.42);
 
 const VERTEX = /* glsl */ `
