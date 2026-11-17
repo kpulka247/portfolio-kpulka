@@ -1,33 +1,410 @@
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
+@import "@fontsource-variable/anybody/standard.css";
+@import "@fontsource-variable/instrument-sans";
+
+/* dark: utilities follow the theme on <html>, not the system setting,
+   so the switch can override it. src/theme.ts sets the attribute. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  --color-ground: #e3e2df;
+  --color-ink: #1c1b19;
+  --color-ink-dim: #625e59;
+  --color-edge: rgb(28 27 25 / 0.16);
+  --color-sheet: #f7f6f4;
+  --color-sheet-line: rgb(28 27 25 / 0.08);
+  --color-raised: #ebe9e6;
+  --color-text: #1c1b19;
+  --color-paper: #1c1b19;
+  --color-soft: #4a4743;
+  --color-dim: #6f6a64;
+  --color-rule: #dcd9d5;
+  --color-cover: #e7e5e1;
+  --color-cover-window: #1c1a18;
+  --color-live: #3ecf6e;
+  --color-soon: #f2b33d;
+
+  --font-display: "Anybody Variable", sans-serif;
+  --font-body: "Instrument Sans Variable", sans-serif;
+  /* Tailwind's base styles set the page font from --font-sans. */
+  --font-sans: var(--font-body);
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 17px;
+  --text-md: 21px;
+  --text-lg: 28px;
+  --text-xl: 48px;
+  --text-2xl: 72px;
+  --text-hero: clamp(64px, 13vw, 184px);
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --radius-sm: 6px;
+  --radius-md: 14px;
+  --radius-panel: 32px;
+  --radius-sheet: 40px;
+}
+
+/* The site has no fades: colours, themes and pages change at once. The
+   few animations move things instead, and take their length from these. */
+:root {
+  --duration-fast: 0.25s;
+  --duration-base: 0.4s;
+}
+
+/* Day and night are the same warm hue. The sheet follows the theme too:
+   light paper by day, near-black at night. */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --color-ground: #2e2c2a;
+  --color-ink: #f2f0ed;
+  --color-ink-dim: #aaa49d;
+  --color-edge: #4a4643;
+  --color-sheet: #0d0c0b;
+  --color-sheet-line: rgb(0 0 0 / 0);
+  --color-raised: #1a1816;
+  --color-text: #efece8;
+  --color-paper: #f6f4f1;
+  --color-soft: #c2bdb7;
+  --color-dim: #8e8882;
+  --color-rule: #2a2725;
+  --color-cover: #141210;
+  --color-cover-window: #1c1a18;
+}
+
+/* The controls from the Doop canvas. They have no borders: a group has one
+   solid action and the rest are tonal fills of the text colour. Buttons
+   are 48px, or 40px in the hero's Play row; icon buttons match the button
+   beside them. */
+@layer components {
+  .btn {
+    display: inline-flex;
+    height: 48px;
+    flex: none;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 0 22px;
+    font: 600 15px/1 var(--font-body);
+    white-space: nowrap;
+  }
+
+  .btn-compact {
+    height: 40px;
+    padding: 0 16px;
+    font-size: 14px;
+  }
+
+  .btn-solid {
+    background: var(--color-ink);
+    color: var(--color-ground);
+  }
+
+  .btn-solid:hover {
+    background: color-mix(in srgb, var(--color-ink) 86%, var(--color-ground));
+  }
+
+  .btn-tonal,
+  .icon-btn {
+    background: color-mix(in srgb, currentColor 10%, transparent);
+  }
+
+  .btn-tonal:hover,
+  .icon-btn:hover {
+    background: color-mix(in srgb, currentColor 16%, transparent);
+  }
+
+  .btn-frosted,
+  .pill {
+    background: color-mix(in srgb, var(--color-ground) 78%, transparent);
+    backdrop-filter: blur(8px);
+  }
+
+  .btn-frosted {
+    color: var(--color-ink);
+  }
+
+  .btn-frosted:hover {
+    background: color-mix(in srgb, var(--color-ground) 92%, transparent);
+  }
+
+  .btn-frosted[aria-pressed="true"] {
+    background: var(--color-ink);
+    color: var(--color-ground);
+  }
+
+  .icon-btn {
+    display: inline-flex;
+    width: 48px;
+    height: 48px;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    color: inherit;
+  }
+
+  .icon-btn-compact {
+    width: 40px;
+    height: 40px;
+  }
+
+  .icon-btn-bare {
+    background: transparent;
+  }
+
+  .pill {
+    display: inline-flex;
+    height: 40px;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 0 16px;
+    font-size: 14px;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--color-ink-dim);
+  }
+
+  .chip {
+    display: inline-flex;
+    height: 40px;
+    flex: none;
+    cursor: pointer;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--color-soft);
+    background: color-mix(in srgb, var(--color-paper) 8%, transparent);
+  }
+
+  .chip:hover {
+    color: var(--color-paper);
+    background: color-mix(in srgb, var(--color-paper) 14%, transparent);
+  }
+
+  .chip[aria-pressed="true"] {
+    background: var(--color-paper);
+    color: var(--color-sheet);
+  }
+
+  .text-link {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+  }
+
+  .text-link:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+}
+
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: var(--color-ground);
+  font: 600 15px/1 var(--font-body);
+  transform: translateY(-200%);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.skip-link:focus-visible {
+  transform: none;
+}
 
 html {
-  scroll-behavior: smooth;
   position: relative;
 }
 
-@keyframes blink {
-  50% {
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Opening a project or the privacy page is the site's own sheet: the new
+   page rises from the bottom over the current one, its rounded top
+   flattening as it arrives. The nav keeps its own name, so it stays still
+   above the moving page. Links back to the home page have no transition:
+   home opens at once. Nothing fades and no text moves on its own. */
+::view-transition-group(*) {
+  animation-duration: var(--duration-base);
+  animation-timing-function: var(--ease-out);
+}
+
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation: none;
+}
+
+::view-transition-old(*) {
+  opacity: 0;
+}
+
+::view-transition-old(root) {
+  opacity: 1;
+}
+
+.site-nav {
+  view-transition-name: site-nav;
+}
+
+@keyframes sheet-in {
+  from {
+    clip-path: inset(
+      100% 0 0 0 round var(--radius-sheet) var(--radius-sheet) 0 0
+    );
+    translate: 0 8svh;
+  }
+
+  to {
+    clip-path: inset(0 0 0 0 round 0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-new(root) {
+    animation: sheet-in var(--duration-base) var(--ease-out);
+  }
+}
+
+/* The page jumps straight to a linked section while a transition runs, so
+   the page underneath never scrolls during it. */
+html:active-view-transition {
+  scroll-behavior: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*) {
+    animation: none;
+  }
+}
+
+/* The hero's board: it comes up from below when its first frame is drawn,
+   and drifts up slowly as the page scrolls, behind the sheet that covers
+   it, so the hero reads as layers. The Play row fades in with the board,
+   and the score and the drive hint fade in and out quickly. These are the
+   only fades on the site. */
+.board {
+  opacity: 0;
+}
+
+.board[data-live] {
+  opacity: 1;
+}
+
+.fade[data-hidden] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes appear {
+  from {
     opacity: 0;
   }
 }
 
-.blinking-cursor {
-  animation: blink 1s step-end infinite;
-  display: inline-block;
-  margin-left: 2px;
-}
-
-@keyframes loop-scroll {
-  0% {
-    transform: translateX(0%);
-  }
-
-  100% {
-    transform: translateX(calc(-50% - 32px));
+@keyframes drift {
+  to {
+    translate: 0 -28svh;
   }
 }
 
-.animate-loop-scroll {
-  animation: loop-scroll 36s linear infinite;
+@media (prefers-reduced-motion: no-preference) {
+  .board {
+    translate: 0 9%;
+    transition:
+      opacity var(--duration-fast) var(--ease-out),
+      translate 0.8s var(--ease-out);
+  }
+
+  .board[data-live] {
+    translate: 0 0;
+  }
+
+  .appear {
+    animation: appear var(--duration-fast) var(--ease-out) backwards;
+  }
+
+  /* The Play row starts fading in on the board's first frame, slowly
+     enough to read as an entrance while the board rises, not a pop. */
+  .appear-with-board {
+    animation: appear 0.5s var(--ease-out) backwards;
+  }
+
+  .fade {
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .board-layer {
+      animation: drift linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 100svh;
+    }
+  }
+}
+
+/* A product window settles into its cover as the card scrolls in. It uses
+   translate, so the hover nudge on transform still adds on top. */
+@keyframes settle {
+  from {
+    translate: 0 22%;
+  }
+}
+
+/* Each card's product window settles into its cover as the card scrolls
+   in, and back out as it scrolls away. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .project-card {
+      view-timeline-name: --card;
+    }
+
+    .project-card .cover__device {
+      animation: settle linear both;
+      animation-timeline: --card;
+      animation-range: entry 0% cover 45%;
+    }
+  }
+}
+
+/* The hero stays put while the sheet scrolls over it. Where the
+   browser has scroll-driven animations, it is held in place by moving it
+   down as fast as the page scrolls, instead of position: sticky. iOS 26
+   Safari colours its bars from sticky elements at the screen edge, and a
+   sticky light hero made them light over the whole dark page. */
+@supports (animation-timeline: scroll()) {
+  .hero-pin {
+    position: relative;
+    animation: hero-pin linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 100svh;
+  }
+
+  @keyframes hero-pin {
+    to {
+      translate: 0 100svh;
+    }
+  }
 }

@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 
-declare module "*.glsl" {
-  const value: string;
-  export default value;
+interface ImportMetaEnv {
+  // Cloudflare Web Analytics token. See src/analytics.ts.
+  readonly VITE_CF_BEACON_TOKEN?: string;
 }
