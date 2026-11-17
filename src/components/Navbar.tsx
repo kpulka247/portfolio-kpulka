@@ -70,11 +70,9 @@ export function Navbar() {
 
   return (
     <>
-      {/* The bar stops short of the screen's top edge: iOS 26 Safari copies
-          a fixed element that touches it into the status bar, blurred. */}
       <header
         ref={headerRef}
-        className={`site-nav pointer-events-none fixed inset-x-0 top-4 z-50 flex items-center justify-between px-5 md:top-6 md:px-10 ${
+        className={`site-nav pointer-events-none fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-4 md:px-10 md:py-6 ${
           surface === "ground" ? "text-ink" : "text-white mix-blend-difference"
         }`}
       >
