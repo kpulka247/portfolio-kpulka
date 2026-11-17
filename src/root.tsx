@@ -34,6 +34,12 @@ export const links: LinksFunction = () => [
   { rel: "shortcut icon", href: "/favicon.ico" },
 ];
 
+// A reload opens the page at the top, without the section in its URL.
+// React Router hands scrolling back to the browser on pagehide, so the
+// browser would restore the old place. visibilitychange fires after
+// pagehide, so taking it back there keeps a reload at the top.
+const TOP_ON_RELOAD = `(function(){document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")history.scrollRestoration="manual"});try{var n=performance.getEntriesByType("navigation")[0];if(!n||n.type!=="reload")return;sessionStorage.removeItem("react-router-scroll-positions");if(location.hash)history.replaceState(history.state,"",location.pathname+location.search)}catch(e){}})()`;
+
 function skipToMain(event: React.MouseEvent<HTMLAnchorElement>) {
   const main = document.getElementById("main");
   if (!main) return;
@@ -54,6 +60,7 @@ export function Layout({ children }: { children: ReactNode }) {
             THEME_SCRIPT, right after it, sets it to the theme's sheet. */}
         <meta name="theme-color" content="#f7f6f4" />
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: TOP_ON_RELOAD }} />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="google" content="notranslate" />
         <Meta />

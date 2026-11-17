@@ -78,6 +78,15 @@ test("a filter chip narrows the grid and survives a reload", async ({
   expect(errors).toEqual([]);
 });
 
+test("a reload opens the page at the top", async ({ page }) => {
+  await page.goto("/#contact");
+  await expect(page.locator("#contact-heading")).toBeInViewport();
+  await page.reload();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.locator("h1")).toBeInViewport();
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+});
+
 test.describe("phone menu", () => {
   test.skip(({ isMobile }) => !isMobile, "the menu button shows on phones");
 
