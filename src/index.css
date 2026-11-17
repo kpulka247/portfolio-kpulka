@@ -224,12 +224,12 @@
   background: var(--color-ink);
   color: var(--color-ground);
   font: 600 15px/1 var(--font-body);
-  transform: translateY(-200%);
-  transition: transform var(--duration-fast) var(--ease-out);
 }
 
-.skip-link:focus-visible {
-  transform: none;
+/* Clipped away in place until focused. Parked above the screen instead,
+   iOS 26 Safari drew it behind the status bar once the page scrolled. */
+.skip-link:not(:focus-visible) {
+  clip-path: inset(50%);
 }
 
 html {
