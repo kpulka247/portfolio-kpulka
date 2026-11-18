@@ -36,7 +36,7 @@
   --text-lg: 28px;
   --text-xl: 48px;
   --text-2xl: 72px;
-  --text-hero: clamp(64px, 13vw, 184px);
+  --text-hero: min(clamp(64px, 13vw, 184px), 100cqw / 6.3);
 
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 

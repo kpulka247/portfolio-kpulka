@@ -25,11 +25,6 @@ const routes = [
   { path: "/privacy", status: 200, title: "Privacy | Kamil Pułka" },
   { path: "/no-such-page", status: 404, title: "Page not found | Kamil Pułka" },
   {
-    path: "/projects/do-nothing/privacy",
-    status: 200,
-    title: "do nothing privacy policy | Kamil Pułka",
-  },
-  {
     path: "/projects/no-such-project",
     status: 404,
     title: "Page not found | Kamil Pułka",
@@ -37,7 +32,6 @@ const routes = [
   ...[
     ["novice", "NoVice"],
     ["polsimer-f74led", "Polsimer F74LED plugin"],
-    ["do-nothing", "do nothing"],
     ["gifoji", "Gifoji"],
     ["dark-connect", "Dark Connect"],
   ].map(([slug, name]) => ({

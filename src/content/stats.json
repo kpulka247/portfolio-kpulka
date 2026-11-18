@@ -19,11 +19,6 @@
         "downloads": 4
       }
     },
-    "do-nothing": {
-      "play": {
-        "listed": false
-      }
-    },
     "dark-connect": {
       "chrome": {
         "listed": true,

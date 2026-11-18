@@ -27,13 +27,12 @@ The site itself is built to the same standard as the products it shows:
 
 The projects on the site, each with its own page:
 
-| Project | What it is | Links |
-| --- | --- | --- |
-| NoVice | Browser extension that blurs GTA VI trailers, leaks and spoilers on every website. | [Page](https://kpulka.com/projects/novice/), [Source](https://github.com/kpulka247/novice) |
-| Polsimer F74LED plugin | SimHub plugin in C# that drives the 12 LEDs of the Polsimer F74LED wheel over USB. | [Page](https://kpulka.com/projects/polsimer-f74led/), [Source](https://github.com/kpulka247/polsimer-simhub-plugin) |
-| do nothing | Mobile app in Expo and React Native that counts the minutes your phone stays still. | [Page](https://kpulka.com/projects/do-nothing/) |
-| Gifoji | Web app in Next.js and Supabase that turns a mood into an AI image or GIF. | [Page](https://kpulka.com/projects/gifoji/), [gifoji.com](https://gifoji.com) |
-| Dark Connect | Browser extension that adds a dark mode to Garmin Connect, used by over a thousand people. | [Page](https://kpulka.com/projects/dark-connect/), [Source](https://github.com/kpulka247/dark-connect) |
+| Project                | What it is                                                                                 | Links                                                                                                               |
+| ---------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| NoVice                 | Browser extension that blurs GTA VI trailers, leaks and spoilers on every website.         | [Page](https://kpulka.com/projects/novice/), [Source](https://github.com/kpulka247/novice)                          |
+| Polsimer F74LED plugin | SimHub plugin in C# that drives the 12 LEDs of the Polsimer F74LED wheel over USB.         | [Page](https://kpulka.com/projects/polsimer-f74led/), [Source](https://github.com/kpulka247/polsimer-simhub-plugin) |
+| Gifoji                 | Web app in Next.js and Supabase that turns a mood into an AI image or GIF.                 | [Page](https://kpulka.com/projects/gifoji/), [gifoji.com](https://gifoji.com)                                       |
+| Dark Connect           | Browser extension that adds a dark mode to Garmin Connect, used by over a thousand people. | [Page](https://kpulka.com/projects/dark-connect/), [Source](https://github.com/kpulka247/dark-connect)              |
 
 ## Tech stack
 

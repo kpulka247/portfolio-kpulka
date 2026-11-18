@@ -5,10 +5,12 @@ import {
   type ObstacleRules,
   obstacleRow,
   overlaps,
+  pace,
   topSpeed,
 } from "./runner";
 import type { Theme } from "../theme";
 import { createSmoke } from "./smoke";
+import { createWind } from "./wind";
 import { ARCH_GAP, buildCar } from "./car";
 
 export interface RunState {
@@ -321,6 +323,12 @@ export function mount(
 
   const car = buildCar();
   const smoke = createSmoke(scene);
+  const wind = createWind(scene, camera, {
+    count: phone ? 70 : 160,
+    halfWidth: (columns * spacing) / 2,
+    far: z0,
+    near: camera.position.z - 1,
+  });
   const { size } = car;
   const ride = size.wheelRadius + size.bodyLift;
   car.root.visible = false;
@@ -547,15 +555,6 @@ export function mount(
     const side = Math.min(area.sideAtFollow, -x0 - 1);
     const first = Math.max(0, Math.ceil((-side - x0) / spacing));
     const last = Math.min(columns - 1, Math.floor((side - x0) / spacing));
-    run = {
-      seed: Math.floor(Math.random() * 2 ** 31),
-      columns,
-      playable: [first, last],
-      startRow: scrolledRows,
-      spacing,
-      minGap: Math.ceil((size.halfWidth * 2 * 2.2) / spacing),
-    };
-    obstacles.clear();
     const catching = state === "leaving" && car.root.visible;
     state = "driving";
     speed = 0;
@@ -583,6 +582,17 @@ export function mount(
       driveRollSpeed = 0;
     }
     spawnZ = carZ;
+    const phase = scroll - scrolledRows * spacing;
+    run = {
+      seed: Math.floor(Math.random() * 2 ** 31),
+      columns,
+      playable: [first, last],
+      startRow:
+        scrolledRows + rows - Math.round((carZ - z0 - phase) / spacing + 1),
+      spacing,
+      minGap: Math.ceil((size.halfWidth * 2 * 2.2) / spacing),
+    };
+    obstacles.clear();
     touched = false;
     runScroll = 0;
     distance = 0;
@@ -1047,6 +1057,7 @@ export function mount(
       heads: car.root.visible ? car.headlights : [],
       tails: car.root.visible ? car.taillights : [],
     });
+    wind.update(dt, scroll - scrollBefore, pace(distance), night);
 
     const rowsNow = Math.floor(scroll / spacing);
     for (let n = 0; n < Math.min(slots, rowsNow - scrolledRows); n++) {
@@ -1214,6 +1225,7 @@ export function mount(
       baseMaterial.dispose();
       car.dispose();
       smoke.dispose();
+      wind.dispose();
       renderer.dispose();
     },
   };

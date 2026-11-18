@@ -45,20 +45,77 @@ interface Mix {
   hard: number;
   // The share of events that add a second, easier group.
   combo: number;
+  crowd: number;
+  speed: number;
 }
+
+const HARDEST: Omit<Mix, "speed"> = {
+  chance: 0.8,
+  bump: 0,
+  wall: 0.2,
+  pillar: 0.35,
+  hard: 0.45,
+  combo: 0.85,
+  crowd: 1.8,
+};
 
 // The difficulty at a distance. Between two points it changes smoothly,
 // and after the last one it stays.
 const MIX_POINTS: [number, Mix][] = [
-  [150, { chance: 0.05, bump: 1, wall: 0, pillar: 0, hard: 0, combo: 0 }],
-  [600, { chance: 0.18, bump: 1, wall: 0, pillar: 0, hard: 0, combo: 0 }],
-  [1500, { chance: 0.32, bump: 0.5, wall: 0.5, pillar: 0, hard: 0, combo: 0 }],
   [
-    3000,
-    { chance: 0.42, bump: 0.3, wall: 0.4, pillar: 0.3, hard: 0, combo: 0.25 },
+    8,
+    {
+      chance: 0.3,
+      bump: 1,
+      wall: 0,
+      pillar: 0,
+      hard: 0,
+      combo: 0,
+      crowd: 1,
+      speed: 11,
+    },
   ],
   [
-    5000,
+    300,
+    {
+      chance: 0.32,
+      bump: 1,
+      wall: 0,
+      pillar: 0,
+      hard: 0,
+      combo: 0,
+      crowd: 1,
+      speed: 11.8,
+    },
+  ],
+  [
+    750,
+    {
+      chance: 0.38,
+      bump: 0.5,
+      wall: 0.5,
+      pillar: 0,
+      hard: 0,
+      combo: 0,
+      crowd: 1,
+      speed: 13.1,
+    },
+  ],
+  [
+    1500,
+    {
+      chance: 0.45,
+      bump: 0.3,
+      wall: 0.4,
+      pillar: 0.3,
+      hard: 0,
+      combo: 0.25,
+      crowd: 1,
+      speed: 15.2,
+    },
+  ],
+  [
+    2500,
     {
       chance: 0.52,
       bump: 0.15,
@@ -66,8 +123,25 @@ const MIX_POINTS: [number, Mix][] = [
       pillar: 0.3,
       hard: 0.25,
       combo: 0.45,
+      crowd: 1,
+      speed: 18,
     },
   ],
+  [
+    4000,
+    {
+      chance: 0.66,
+      bump: 0.05,
+      wall: 0.25,
+      pillar: 0.35,
+      hard: 0.35,
+      combo: 0.65,
+      crowd: 1.4,
+      speed: 23,
+    },
+  ],
+  [5500, { ...HARDEST, speed: 27 }],
+  [9000, { ...HARDEST, speed: 30 }],
 ];
 
 export function mixAt(distance: number): Mix | null {
@@ -86,10 +160,15 @@ export function mixAt(distance: number): Mix | null {
   return MIX_POINTS[MIX_POINTS.length - 1][1];
 }
 
-// The car's top speed in metres a second. It rises slowly over the first
-// five kilometres.
+// The car's top speed in metres a second. It rises with the difficulty.
 export function topSpeed(distance: number): number {
-  return 11 + 7 * Math.min(1, Math.max(0, distance) / 5000);
+  return mixAt(Math.max(distance, MIX_POINTS[0][0]))!.speed;
+}
+
+// How far the run has come, from 0 at the start to 1 at full speed.
+export function pace(distance: number): number {
+  const start = topSpeed(0);
+  return (topSpeed(distance) - start) / (topSpeed(Infinity) - start);
 }
 
 // A number from 0 to 1 that depends only on its inputs.
@@ -135,7 +214,8 @@ export function obstacleRow(
   const mix = mixAt(slot * SLOT_METRES);
   if (!mix) return mask;
   const roll = (n: number) => hash(rules.seed, slot, n);
-  if (roll(0) >= mix.chance) return mask;
+  const opening = slot === Math.ceil(MIX_POINTS[0][0] / SLOT_METRES);
+  if (!opening && roll(0) >= mix.chance) return mask;
 
   const [first, last] = rules.playable;
   const span = last - first + 1;
@@ -153,7 +233,7 @@ export function obstacleRow(
   const somewhere = (width: number) =>
     first + Math.floor(next() * Math.max(1, span - width + 1));
   const howMany = (base: number) => {
-    const exact = base * scale;
+    const exact = base * scale * mix.crowd;
     return Math.floor(exact) + (next() < exact % 1 ? 1 : 0);
   };
 

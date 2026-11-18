@@ -1,11 +1,10 @@
 import { describe, expect, test } from "vitest";
 
 import { darkConnect } from "./projects/dark-connect";
-import { doNothing } from "./projects/do-nothing";
 import { gifoji } from "./projects/gifoji";
 import { novice } from "./projects/novice";
 import { polsimerF74led } from "./projects/polsimer-f74led";
-import type { ProjectStats } from "./schema";
+import type { Project, ProjectStats } from "./schema";
 import { formatCount, projectStatus, storeLinks } from "./status";
 
 // Values recorded from shields.io and Google Play on 15 November 2026.
@@ -16,12 +15,19 @@ const recorded: Record<string, ProjectStats> = {
     github: { release: "1.2.0", downloads: 12 },
   },
   polsimer: { github: { release: "1.0.0", downloads: 4 } },
-  doNothing: { play: { listed: false } },
+  playApp: { play: { listed: false } },
   darkConnect: {
     chrome: { listed: true, users: 1000, rating: 5 },
     firefox: { listed: true, users: 192, rating: 5 },
     github: { release: "2.7.1", downloads: 122 },
   },
+};
+
+const playApp: Project = {
+  ...gifoji,
+  type: "mobile",
+  links: {},
+  sources: { playId: "com.example.app" },
 };
 
 describe("projectStatus", () => {
@@ -30,7 +36,7 @@ describe("projectStatus", () => {
       tone: "soon",
       label: "Coming to Chrome and Firefox",
     });
-    expect(projectStatus(doNothing, recorded.doNothing)).toEqual({
+    expect(projectStatus(playApp, recorded.playApp)).toEqual({
       tone: "soon",
       label: "Coming to Google Play",
     });
@@ -94,7 +100,7 @@ describe("projectStatus", () => {
 describe("storeLinks (rule 6)", () => {
   test("no listing, no button", () => {
     expect(storeLinks(novice, recorded.novice)).toEqual([]);
-    expect(storeLinks(doNothing, recorded.doNothing)).toEqual([]);
+    expect(storeLinks(playApp, recorded.playApp)).toEqual([]);
   });
 
   test("every live listing gets a button, Chrome first", () => {

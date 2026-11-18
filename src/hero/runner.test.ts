@@ -7,6 +7,7 @@ import {
   mixAt,
   obstacleRow,
   overlaps,
+  pace,
   topSpeed,
   widestGap,
 } from "./runner";
@@ -57,16 +58,23 @@ describe.each([
   ["desktop", wide],
   ["phone", narrow],
 ])("obstacleRow on a %s road", (_, rules) => {
-  test("keeps the first 150 m empty", () => {
-    expect(kindsBetween(0, 150, rules).size).toBe(0);
+  test("keeps the first 8 m empty", () => {
+    expect(kindsBetween(0, 8, rules).size).toBe(0);
+  });
+
+  test("always opens with an obstacle at 8 m", () => {
+    for (let seed = 0; seed < 50; seed++) {
+      const kinds = kindsBetween(8, 12, { ...rules, seed });
+      expect([...kinds], `seed ${seed}`).toEqual([OBSTACLE.bump]);
+    }
   });
 
   test("brings in each kind only in its own band", () => {
-    expect([...kindsBetween(150, 600, rules)]).toEqual([OBSTACLE.bump]);
-    expect(kindsBetween(0, 1_500, rules).has(OBSTACLE.pillar)).toBe(false);
-    expect(kindsBetween(0, 3_000, rules).has(OBSTACLE.gate)).toBe(false);
-    expect(kindsBetween(0, 3_000, rules).has(OBSTACLE.moving)).toBe(false);
-    const late = kindsBetween(3_000, 9_000, rules);
+    expect([...kindsBetween(8, 300, rules)]).toEqual([OBSTACLE.bump]);
+    expect(kindsBetween(0, 750, rules).has(OBSTACLE.pillar)).toBe(false);
+    expect(kindsBetween(0, 1_500, rules).has(OBSTACLE.gate)).toBe(false);
+    expect(kindsBetween(0, 1_500, rules).has(OBSTACLE.moving)).toBe(false);
+    const late = kindsBetween(1_500, 4_500, rules);
     for (const kind of Object.values(OBSTACLE).slice(1)) {
       expect(late.has(kind), `kind ${kind}`).toBe(true);
     }
@@ -90,17 +98,21 @@ describe.each([
   });
 
   test("gets busier the further the run goes", () => {
-    const early = blockedPerMetreOfWidth(150, 1_500, rules);
-    const middle = blockedPerMetreOfWidth(1_500, 3_000, rules);
-    const late = blockedPerMetreOfWidth(5_000, 9_000, rules);
-    expect(early).toBeLessThan(middle);
-    expect(middle).toBeLessThan(late);
+    const bands = [
+      [8, 750],
+      [750, 1_500],
+      [2_500, 4_000],
+      [4_000, 5_500],
+      [5_500, 9_000],
+    ].map(([from, to]) => blockedPerMetreOfWidth(from, to, rules));
+    expect(bands).toEqual([...bands].sort((a, b) => a - b));
+    expect(new Set(bands).size).toBe(bands.length);
   });
 });
 
 test("a phone road is about as busy per metre as a wide one", () => {
-  const phone = blockedPerMetreOfWidth(600, 9_000, narrow);
-  const desktop = blockedPerMetreOfWidth(600, 9_000, wide);
+  const phone = blockedPerMetreOfWidth(300, 9_000, narrow);
+  const desktop = blockedPerMetreOfWidth(300, 9_000, wide);
   expect(phone / desktop).toBeGreaterThan(0.6);
   expect(phone / desktop).toBeLessThan(1.6);
 });
@@ -112,7 +124,7 @@ test("the same row gives the same obstacles", () => {
 
 test("obstacles are two rows deep", () => {
   let checked = 0;
-  for (let row = rowAt(150, wide); row < rowAt(6_000, wide); row++) {
+  for (let row = rowAt(8, wide); row < rowAt(6_000, wide); row++) {
     const mask = obstacleRow(row, wide);
     const before = obstacleRow(row - 1, wide);
     const after = obstacleRow(row + 1, wide);
@@ -123,16 +135,28 @@ test("obstacles are two rows deep", () => {
   expect(checked).toBeGreaterThan(50);
 });
 
-test("difficulty starts at 150 m and rises smoothly", () => {
-  expect(mixAt(100)).toBeNull();
-  const steps = [200, 800, 2_000, 4_000, 8_000].map((d) => mixAt(d)?.chance);
+test("difficulty starts at 8 m and rises smoothly", () => {
+  expect(mixAt(6)).toBeNull();
+  const steps = [10, 400, 1_000, 2_000, 3_000, 5_000, 8_000].map(
+    (d) => mixAt(d)?.chance,
+  );
   expect(steps).toEqual([...steps].sort((a, b) => (a ?? 0) - (b ?? 0)));
 });
 
-test("top speed rises with distance and levels off", () => {
+test("top speed keeps rising with distance, then levels off", () => {
   expect(topSpeed(0)).toBe(11);
-  expect(topSpeed(2_500)).toBeGreaterThan(11);
-  expect(topSpeed(50_000)).toBe(18);
+  const speeds = [0, 500, 2_500, 4_000, 5_500, 9_000].map(topSpeed);
+  for (let i = 1; i < speeds.length; i++) {
+    expect(speeds[i]).toBeGreaterThan(speeds[i - 1]);
+  }
+  expect(topSpeed(50_000)).toBe(30);
+});
+
+test("pace runs from 0 at the start to 1 at full speed", () => {
+  expect(pace(0)).toBe(0);
+  expect(pace(2_500)).toBeGreaterThan(pace(500));
+  expect(pace(9_000)).toBe(1);
+  expect(pace(50_000)).toBe(1);
 });
 
 test("hash stays between 0 and 1", () => {
