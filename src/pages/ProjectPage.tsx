@@ -308,9 +308,9 @@ function Grid({ screenshots }: { screenshots: Screenshot[] }) {
   return (
     <ul
       className={`grid gap-3 md:gap-5 ${
-        screenshots.length === 3
-          ? "max-w-[880px] grid-cols-3"
-          : "grid-cols-2 md:grid-cols-3"
+        screenshots.length === 4
+          ? "grid-cols-2 md:grid-cols-4"
+          : "grid-cols-3 md:grid-cols-6"
       }`}
     >
       {screenshots.map((shot) => (
