@@ -19,7 +19,6 @@ const DARK_CONNECT = "dark-connect-extension/dark-connect";
 const GIFOJI = "gifoji-app/gifoji/apps/web/public";
 const POLSIMER =
   "polsimer-simhub-plugin-app/polsimer-simhub-plugin/docs/images";
-const DO_NOTHING = "do-nothing-app/do-nothing/store";
 
 // Each job reads one source file and writes one output file.
 // crop: { left, top, width, height } in source pixels.
@@ -127,29 +126,6 @@ const jobs = [
     out: "polsimer-f74led/led-effects.webp",
     src: `${POLSIMER}/led_effects.gif`,
     animated: true,
-  },
-
-  // do nothing: public store assets only, nothing from the app's code
-  {
-    out: "do-nothing/icon.png",
-    src: `${DO_NOTHING}/google-play/icon-512.png`,
-    resize: 256,
-  },
-  {
-    out: "do-nothing/cover.webp",
-    src: `${DO_NOTHING}/app-store/screenshots-6.9/3-waiting.png`,
-  },
-  {
-    out: "do-nothing/intro.webp",
-    src: `${DO_NOTHING}/app-store/screenshots-6.9/1-intro.png`,
-  },
-  {
-    out: "do-nothing/idle.webp",
-    src: `${DO_NOTHING}/app-store/screenshots-6.9/2-idle.png`,
-  },
-  {
-    out: "do-nothing/done.webp",
-    src: `${DO_NOTHING}/app-store/screenshots-6.9/5-done.png`,
   },
 ];
 

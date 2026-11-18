@@ -1,6 +1,5 @@
 import type { EarlierProject, Project } from "../schema";
 import { darkConnect } from "./dark-connect";
-import { doNothing } from "./do-nothing";
 import { gifoji } from "./gifoji";
 import { novice } from "./novice";
 import { polsimerF74led } from "./polsimer-f74led";
@@ -8,7 +7,6 @@ import { polsimerF74led } from "./polsimer-f74led";
 export const projects: Project[] = [
   novice,
   polsimerF74led,
-  doNothing,
   gifoji,
   darkConnect,
 ].sort((a, b) => a.order - b.order);

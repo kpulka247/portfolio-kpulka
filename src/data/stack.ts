@@ -32,7 +32,7 @@ export const stack: StackItem[] = [
   },
   {
     name: "React Native and Expo",
-    note: "do nothing, with native modules",
+    note: "Mobile apps, with native modules",
     Icon: SiExpo,
   },
   { name: "Tailwind CSS", note: "Gifoji and this site", Icon: SiTailwindcss },

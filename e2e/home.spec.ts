@@ -92,7 +92,7 @@ test("a filter chip narrows the grid and survives a reload", async ({
 
   await page.goto("/");
   const cards = page.locator("#work .project-card");
-  await expect(cards).toHaveCount(5);
+  await expect(cards).toHaveCount(4);
 
   await page.getByRole("button", { name: /Browser extensions/ }).click();
   await expect(cards).toHaveCount(2);
@@ -105,7 +105,7 @@ test("a filter chip narrows the grid and survives a reload", async ({
   ).toHaveAttribute("aria-pressed", "true");
 
   await page.getByRole("button", { name: /^All/ }).click();
-  await expect(cards).toHaveCount(5);
+  await expect(cards).toHaveCount(4);
   expect(errors).toEqual([]);
 });
 

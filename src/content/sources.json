@@ -7,9 +7,6 @@
   "polsimer-f74led": {
     "githubRepo": "kpulka247/polsimer-simhub-plugin"
   },
-  "do-nothing": {
-    "playId": "com.kpulka.donothing"
-  },
   "dark-connect": {
     "chromeId": "nadhhgppikppmjacnkebagbgcibnfnob",
     "amoSlug": "dark-connect",
