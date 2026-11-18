@@ -1,3 +1,17 @@
+## [2.1.0](https://github.com/kpulka247/portfolio-kpulka/compare/v2.0.2...v2.1.0) (2026-11-18)
+
+### Features
+
+* **hero:** add wind streaks that build with the run's pace ([ade3ff3](https://github.com/kpulka247/portfolio-kpulka/commit/ade3ff3fdaacef7122b57a8861973d460c1b1614))
+* **hero:** halve the difficulty ramp and add two harder tiers ([6cb0110](https://github.com/kpulka247/portfolio-kpulka/commit/6cb01108387ddb997d80f45a93ee5b509cdfd3c1))
+* **project-page:** set grid screenshots in one row ([b534b40](https://github.com/kpulka247/portfolio-kpulka/commit/b534b405d899d59a9f76b66c5124facba772c14b))
+* **projects:** remove do nothing ([ab23ce3](https://github.com/kpulka247/portfolio-kpulka/commit/ab23ce34c425ee3c6edc1b36d98ffa75a1d50b36))
+
+### Bug Fixes
+
+* **hero:** count obstacle metres from the car's row ([3b33285](https://github.com/kpulka247/portfolio-kpulka/commit/3b33285fadd814933fdbe44736bccf0575827ceb))
+* **hero:** keep the name on one line on narrow screens ([6e875b6](https://github.com/kpulka247/portfolio-kpulka/commit/6e875b6ab1461e87ffe2bf84ba32664341d87447))
+
 ## [2.0.2](https://github.com/kpulka247/portfolio-kpulka/compare/v2.0.1...v2.0.2) (2026-11-17)
 
 ### Bug Fixes
