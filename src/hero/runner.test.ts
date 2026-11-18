@@ -7,6 +7,7 @@ import {
   mixAt,
   obstacleRow,
   overlaps,
+  pace,
   topSpeed,
   widestGap,
 } from "./runner";
@@ -149,6 +150,13 @@ test("top speed keeps rising with distance, then levels off", () => {
     expect(speeds[i]).toBeGreaterThan(speeds[i - 1]);
   }
   expect(topSpeed(50_000)).toBe(30);
+});
+
+test("pace runs from 0 at the start to 1 at full speed", () => {
+  expect(pace(0)).toBe(0);
+  expect(pace(2_500)).toBeGreaterThan(pace(500));
+  expect(pace(9_000)).toBe(1);
+  expect(pace(50_000)).toBe(1);
 });
 
 test("hash stays between 0 and 1", () => {

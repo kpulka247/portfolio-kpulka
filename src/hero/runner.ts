@@ -165,6 +165,12 @@ export function topSpeed(distance: number): number {
   return mixAt(Math.max(distance, MIX_POINTS[0][0]))!.speed;
 }
 
+// How far the run has come, from 0 at the start to 1 at full speed.
+export function pace(distance: number): number {
+  const start = topSpeed(0);
+  return (topSpeed(distance) - start) / (topSpeed(Infinity) - start);
+}
+
 // A number from 0 to 1 that depends only on its inputs.
 export function hash(seed: number, a: number, b: number): number {
   let h = Math.imul(seed ^ 0x9e3779b9, 0x85ebca6b);
