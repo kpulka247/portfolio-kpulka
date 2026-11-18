@@ -547,15 +547,6 @@ export function mount(
     const side = Math.min(area.sideAtFollow, -x0 - 1);
     const first = Math.max(0, Math.ceil((-side - x0) / spacing));
     const last = Math.min(columns - 1, Math.floor((side - x0) / spacing));
-    run = {
-      seed: Math.floor(Math.random() * 2 ** 31),
-      columns,
-      playable: [first, last],
-      startRow: scrolledRows,
-      spacing,
-      minGap: Math.ceil((size.halfWidth * 2 * 2.2) / spacing),
-    };
-    obstacles.clear();
     const catching = state === "leaving" && car.root.visible;
     state = "driving";
     speed = 0;
@@ -583,6 +574,17 @@ export function mount(
       driveRollSpeed = 0;
     }
     spawnZ = carZ;
+    const phase = scroll - scrolledRows * spacing;
+    run = {
+      seed: Math.floor(Math.random() * 2 ** 31),
+      columns,
+      playable: [first, last],
+      startRow:
+        scrolledRows + rows - Math.round((carZ - z0 - phase) / spacing + 1),
+      spacing,
+      minGap: Math.ceil((size.halfWidth * 2 * 2.2) / spacing),
+    };
+    obstacles.clear();
     touched = false;
     runScroll = 0;
     distance = 0;
