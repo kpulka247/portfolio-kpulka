@@ -254,14 +254,14 @@ export function Hero() {
             )}
           </div>
         )}
-        <div className="relative">
+        <div className="@container relative">
           <div
             aria-hidden="true"
             className="absolute -inset-x-5 -top-10 -bottom-14 bg-linear-to-t from-ground from-50% to-ground/0 md:-inset-x-10 md:-top-16 md:-bottom-22"
           />
           <h1
             ref={nameRef}
-            className="relative -ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em]"
+            className="relative -ml-[0.04em] font-display text-hero leading-[0.82] font-[850] tracking-[-0.02em] whitespace-nowrap"
           >
             Kamil Pułka
           </h1>
