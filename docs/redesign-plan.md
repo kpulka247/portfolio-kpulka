@@ -25,16 +25,16 @@ Work happens on a `redesign` branch from `dev`. Every step below ends in a check
 
 ## Decisions already made
 
-| Topic | Decision |
-| --- | --- |
-| Audience | Everyone, recruiters first. No CV and no personal details beyond "based in Poland". |
-| Title | "Full-stack developer". |
-| Hero | Prototype D: pin board, with Play for the car. |
-| Projects | NoVice, Gifoji, Polsimer F74LED plugin, Dark Connect, do nothing. StudentOffers goes under "Earlier work". Advanced LED Engine and Weather Rush stay off the site. |
-| Stack | The 12 items in the Doop home frames, moved to `src/data/stack.ts` in step 6. No three.js. |
-| Analytics | Cloudflare Web Analytics with no cookies and no banner. GA4 goes. |
-| Language | English only. |
-| Fonts | Anybody (variable width) and Instrument Sans, self-hosted. |
+| Topic     | Decision                                                                                                                                                           |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Audience  | Everyone, recruiters first. No CV and no personal details beyond "based in Poland".                                                                                |
+| Title     | "Full-stack developer".                                                                                                                                            |
+| Hero      | Prototype D: pin board, with Play for the car.                                                                                                                     |
+| Projects  | NoVice, Gifoji, Polsimer F74LED plugin, Dark Connect, do nothing. StudentOffers goes under "Earlier work". Advanced LED Engine and Weather Rush stay off the site. |
+| Stack     | The 12 items in the Doop home frames, moved to `src/data/stack.ts` in step 6. No three.js.                                                                         |
+| Analytics | Cloudflare Web Analytics with no cookies and no banner. GA4 goes.                                                                                                  |
+| Language  | English only.                                                                                                                                                      |
+| Fonts     | Anybody (variable width) and Instrument Sans, self-hosted.                                                                                                         |
 
 ## Defects in the current site that this plan removes
 
@@ -85,32 +85,37 @@ Each project is one file in `src/content/projects/<slug>.ts`, typed by `src/cont
 type ProjectType = "extension" | "web" | "mobile" | "plugin";
 
 interface Project {
-	slug: string;
-	name: string;
-	type: ProjectType;
-	pitch: string;          // one line, on the card
-	summary: string;        // the paragraph on the project page
-	platforms: string;      // "Chrome and Firefox"
-	builtWith: string[];
-	links: { github?: string; website?: string; releases?: string };
-	stores?: { chromeId?: string; amoSlug?: string; playId?: string };
-	githubRepo?: string;    // "kpulka247/novice", for release and download stats
-	cover: { device: "browser" | "window" | "phone"; tint: string; icon?: string; screen: string };
-	features: { name: string; text: string }[];
-	screenshots: { src: string; alt: string; caption?: string }[];
-	order: number;          // newest first
-	earlier?: boolean;      // true puts it under "Earlier work"
+  slug: string;
+  name: string;
+  type: ProjectType;
+  pitch: string; // one line, on the card
+  summary: string; // the paragraph on the project page
+  platforms: string; // "Chrome and Firefox"
+  builtWith: string[];
+  links: { github?: string; website?: string; releases?: string };
+  stores?: { chromeId?: string; amoSlug?: string; playId?: string };
+  githubRepo?: string; // "kpulka247/novice", for release and download stats
+  cover: {
+    device: "browser" | "window" | "phone";
+    tint: string;
+    icon?: string;
+    screen: string;
+  };
+  features: { name: string; text: string }[];
+  screenshots: { src: string; alt: string; caption?: string }[];
+  order: number; // newest first
+  earlier?: boolean; // true puts it under "Earlier work"
 }
 ```
 
 `scripts/make-covers.mjs` copies the cover and screenshot images from the project repos into `src/assets/projects/<slug>/` and writes them as WebP, so the build needs no image plugin. The Gifoji wordmark is the outlined SVG, so it does not depend on the visitor having Arial Black. Source files:
 
-| Project | Icon | Cover window | Cover front piece | Project page screenshots |
-| --- | --- | --- | --- | --- |
-| NoVice | `novice/static/store/store-icon-128.png` | `novice/static/images/screenshot-hover.png` | The popup, cut from `static/images/screenshot.png` at x 948 to 1268, y 12 to 334 | `static/images/across-the-web.png`, `screenshot.png`, `screenshot-search.png` |
-| Gifoji | `gifoji/apps/web/public/brand/icon-512.png` | A gallery built from `public/showcase/hero/left-01-still.webp`, `right-04-still.webp` and `presets/style/{stained-glass-mosaic,clay-stop-motion,voxel-art,glitch-art-datamosh}.webp`, with `brand/gifoji-wordmark.svg` | None | The same set |
-| Polsimer F74LED | The three-LED mark, drawn in CSS | The plugin panel, cut from `polsimer-simhub-plugin/docs/images/settings_preview.png` at x 196 to 1180, y 32 to 492 (no sidebar, no title bar), then extended to 16:10 in the panel colour `#252525` | None | `docs/images/led_effects.gif` (convert to MP4 or WebM) |
-| Dark Connect | `dark-connect/static/store/store-icon-128.png` | `dark-connect/static/images/screenshot.png` | The popup, cut from the same file at x 948 to 1253, y 12 to 399 | `static/images/screenshot-training.png`, `screenshot-hrv.png`, `screenshot-challenges.png` |
+| Project         | Icon                                           | Cover window                                                                                                                                                                                                           | Cover front piece                                                                | Project page screenshots                                                                   |
+| --------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| NoVice          | `novice/static/store/store-icon-128.png`       | `novice/static/images/screenshot-hover.png`                                                                                                                                                                            | The popup, cut from `static/images/screenshot.png` at x 948 to 1268, y 12 to 334 | `static/images/across-the-web.png`, `screenshot.png`, `screenshot-search.png`              |
+| Gifoji          | `gifoji/apps/web/public/brand/icon-512.png`    | A gallery built from `public/showcase/hero/left-01-still.webp`, `right-04-still.webp` and `presets/style/{stained-glass-mosaic,clay-stop-motion,voxel-art,glitch-art-datamosh}.webp`, with `brand/gifoji-wordmark.svg` | None                                                                             | The same set                                                                               |
+| Polsimer F74LED | The three-LED mark, drawn in CSS               | The plugin panel, cut from `polsimer-simhub-plugin/docs/images/settings_preview.png` at x 196 to 1180, y 32 to 492 (no sidebar, no title bar), then extended to 16:10 in the panel colour `#252525`                    | None                                                                             | `docs/images/led_effects.gif` (convert to MP4 or WebM)                                     |
+| Dark Connect    | `dark-connect/static/store/store-icon-128.png` | `dark-connect/static/images/screenshot.png`                                                                                                                                                                            | The popup, cut from the same file at x 948 to 1253, y 12 to 399                  | `static/images/screenshot-training.png`, `screenshot-hrv.png`, `screenshot-challenges.png` |
 
 `scripts/make-covers.mjs` makes every crop above with `sharp`: it cuts the popups and rounds their corners, and it cuts and extends the Polsimer panel. Rerun it when a source screenshot changes. The Gifoji cover uses `depth: "shallow"` with a square gallery screen, so two full rows show and the gallery still runs off the bottom edge. Every other window uses `depth: "deep"`. Together these keep the UI at a similar size on every cover.
 | do nothing | `do-nothing/store/google-play/icon-512.png` | `store/app-store/screenshots-6.9/3-waiting.png` (1320 by 2868, the shape of a current phone) | `store/app-store/screenshots-6.9/1-intro.png`, `2-idle.png`, `5-done.png` |
@@ -140,11 +145,11 @@ The script applies these rules:
 
 Values on 15 November 2026:
 
-| Project | Chrome | Firefox | GitHub | Status the rules produce |
-| --- | --- | --- | --- | --- |
-| Dark Connect | 1k users, 5/5 | 192 users, 5/5 | v2.7.1 | Live, 1k+ users, rated 5/5 |
-| NoVice | not found | not found | v1.2.0 | Coming to Chrome and Firefox |
-| Polsimer F74LED | n/a | n/a | v1.0.0, 4 downloads | Live, version 1.0.0 |
+| Project         | Chrome        | Firefox        | GitHub              | Status the rules produce     |
+| --------------- | ------------- | -------------- | ------------------- | ---------------------------- |
+| Dark Connect    | 1k users, 5/5 | 192 users, 5/5 | v2.7.1              | Live, 1k+ users, rated 5/5   |
+| NoVice          | not found     | not found      | v1.2.0              | Coming to Chrome and Firefox |
+| Polsimer F74LED | n/a           | n/a            | v1.0.0, 4 downloads | Live, version 1.0.0          |
 
 Add a weekly `schedule` trigger and a `workflow_dispatch` trigger to `release.yml`, so the numbers refresh without a commit. When nothing changed, `semantic-release` publishes nothing, so a scheduled run only rebuilds and deploys.
 
@@ -157,9 +162,9 @@ Build in this order, and compare each section with its Doop frame at 1280 px and
 1. `Navbar` and the phone menu (`Menu open · phone`). The menu is a dialog: it traps focus, closes on Escape and returns focus to the button.
 2. `Work`: the filter chips, the grid and **Earlier work**. Filter state lives in the URL (`?type=extension`), so a filtered view can be shared. The newest project spans two columns on desktop.
 3. `ProjectCard` and `ProjectCover`, from the Doop components of the same names. Each cover has three layers:
-	- The product icon, top-left at 24 px.
-	- The product window. It starts 92 px from the left edge, right of the icon column, so the two never touch at any size. It is 160% of the cover width (`depth: "deep"`) or `122cqw - 92px` (`depth: "shallow"`), and it runs off the bottom-right corner. A phone frame aligns right instead and takes its size from the cover height.
-	- An optional front piece that floats fully in view. Only the extensions use one: their own popup, for NoVice and Dark Connect.
+   - The product icon, top-left at 24 px.
+   - The product window. It starts 92 px from the left edge, right of the icon column, so the two never touch at any size. It is 160% of the cover width (`depth: "deep"`) or `122cqw - 92px` (`depth: "shallow"`), and it runs off the bottom-right corner. A phone frame aligns right instead and takes its size from the cover height.
+   - An optional front piece that floats fully in view. Only the extensions use one: their own popup, for NoVice and Dark Connect.
 4. `Stack`, from `src/data/stack.ts`. Use `react-icons` (`SiTypescript`, `SiClaude` and the others). Each item has a note that names where the tool was used.
 5. `About`, with the photo moved to `src/assets/` and the Instagram link in the last paragraph.
 6. `Contact`. **Copy address** is a real button. It shows "Copied" for 2 seconds and announces the change through `aria-live`.
@@ -249,13 +254,13 @@ The redesign ships as version 2.0.0. The last commit on `redesign`, after step 1
 
 Each step above is one pull request into `redesign`, in the order listed. Steps 1 and 9 only delete code, so they are easy to review. Merge `redesign` into `dev`, then into `main`, after step 12 and a pass through the device matrix:
 
-| Device | Browser |
-| --- | --- |
-| iPhone SE and iPhone 15 | Safari |
-| Pixel 7 or similar | Chrome |
-| iPad, portrait and landscape | Safari |
-| Windows laptop at 1366 px | Chrome, Edge and Firefox |
-| Mac at 1440 px and 1920 px | Safari and Chrome |
+| Device                       | Browser                  |
+| ---------------------------- | ------------------------ |
+| iPhone SE and iPhone 15      | Safari                   |
+| Pixel 7 or similar           | Chrome                   |
+| iPad, portrait and landscape | Safari                   |
+| Windows laptop at 1366 px    | Chrome, Edge and Firefox |
+| Mac at 1440 px and 1920 px   | Safari and Chrome        |
 
 ## Open questions
 
